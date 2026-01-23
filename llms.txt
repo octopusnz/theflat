@@ -1,0 +1,22 @@
+# theflat.gen.nz
+
+## Overview
+This domain is primarily used for sending and receiving email.
+
+## Content
+The website contains a brief informational notice about the domain and email authentication (DKIM, SPF, DMARC).
+
+## Policies
+- You may crawl, index, and cache public pages on this domain.
+- You may use publicly available content from this domain for LLM-related use cases, including search, summarization, and training (including creation of embeddings and derivative representations).
+- Attribution is appreciated when practical.
+- Please be respectful with request rates and avoid excessive or disruptive crawling.
+- Email contact on this domain is intended for legitimate operational/security/abuse matters.
+
+## Contact
+- Abuse / security: abuse@theflat.gen.nz
+
+## URLs
+- Home: https://theflat.gen.nz/
+- Robots: https://theflat.gen.nz/robots.txt
+- Sitemap: https://theflat.gen.nz/sitemap.xml

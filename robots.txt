@@ -1,0 +1,4 @@
+User-agent: *
+Disallow:
+
+Sitemap: https://theflat.gen.nz/sitemap.xml
