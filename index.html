@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+		<meta name="theme-color" content="#eaf2ff" media="(prefers-color-scheme: light)" />
 		<meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)" />
 		<meta
 			name="description"
@@ -61,7 +61,8 @@
 		<style>
 			:root {
 				color-scheme: light dark;
-				--bg: #ffffff;
+				--bg-solid: #eaf2ff;
+				--bg: linear-gradient(180deg, #eaf2ff 0%, #ffffff 68%);
 				--fg: #111827;
 				--muted-fg: #374151;
 				--link: #1d4ed8;
@@ -71,7 +72,8 @@
 
 			@media (prefers-color-scheme: dark) {
 				:root {
-					--bg: #0b1220;
+					--bg-solid: #0b1220;
+					--bg: radial-gradient(1200px circle at 20% 0%, #1e3a8a 0%, #0b1220 55%, #020617 100%);
 					--fg: #e5e7eb;
 					--muted-fg: #cbd5e1;
 					--link: #93c5fd;
@@ -99,7 +101,7 @@
 				top: 12px;
 				left: 12px;
 				padding: 10px 12px;
-				background: var(--bg);
+				background: var(--bg-solid);
 				color: var(--fg);
 				border: 2px solid var(--focus);
 				border-radius: 8px;
