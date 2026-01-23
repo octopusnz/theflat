@@ -3,7 +3,8 @@
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<meta name="theme-color" content="#ffffff" />
+		<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+		<meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)" />
 		<title>404 — theflat.gen.nz</title>
 		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 		<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
@@ -31,13 +32,18 @@
 				}
 			}
 
+			html,
+			body {
+				background: var(--bg);
+				color: var(--fg);
+			}
+
 			body {
 				font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
 				line-height: 1.55;
-				background: var(--bg);
-				color: var(--fg);
 				margin: 0;
 				padding: 48px 20px;
+				min-height: 100dvh;
 			}
 
 			.skip-link {
