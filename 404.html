@@ -12,13 +12,48 @@
 		<style>
 			:root {
 				color-scheme: light dark;
+				--bg: #ffffff;
+				--fg: #111827;
+				--muted-fg: #374151;
+				--link: #1d4ed8;
+				--link-visited: #6d28d9;
+				--focus: #f59e0b;
+			}
+
+			@media (prefers-color-scheme: dark) {
+				:root {
+					--bg: #0b1220;
+					--fg: #e5e7eb;
+					--muted-fg: #cbd5e1;
+					--link: #93c5fd;
+					--link-visited: #c4b5fd;
+					--focus: #fbbf24;
+				}
 			}
 
 			body {
 				font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
 				line-height: 1.55;
+				background: var(--bg);
+				color: var(--fg);
 				margin: 0;
 				padding: 48px 20px;
+			}
+
+			a {
+				color: var(--link);
+				text-decoration-thickness: 0.12em;
+				text-underline-offset: 0.16em;
+			}
+
+			a:visited {
+				color: var(--link-visited);
+			}
+
+			a:focus-visible {
+				outline: 3px solid var(--focus);
+				outline-offset: 3px;
+				border-radius: 4px;
 			}
 
 			main {
