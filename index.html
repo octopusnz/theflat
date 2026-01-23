@@ -6,7 +6,7 @@
 		<meta name="theme-color" content="#ffffff" />
 		<meta
 			name="description"
-			content="theflat.gen.nz is primarily used for sending and receiving email."
+			content="theflat.gen.nz we've never been closer."
 		/>
 		<link rel="canonical" href="https://theflat.gen.nz/" />
 
@@ -14,7 +14,7 @@
 		<meta property="og:title" content="theflat.gen.nz" />
 		<meta
 			property="og:description"
-			content="theflat.gen.nz is primarily used for sending and receiving email."
+			content="theflat.gen.nz we've never been closer."
 		/>
 		<meta property="og:url" content="https://theflat.gen.nz/" />
 
@@ -22,7 +22,7 @@
 		<meta name="twitter:title" content="theflat.gen.nz" />
 		<meta
 			name="twitter:description"
-			content="theflat.gen.nz is primarily used for sending and receiving email."
+			content="theflat.gen.nz we've never been closer."
 		/>
 
 		<script type="application/ld+json">
@@ -34,7 +34,7 @@
 						"@id": "https://theflat.gen.nz/#website",
 						"url": "https://theflat.gen.nz/",
 						"name": "theflat.gen.nz",
-						"description": "theflat.gen.nz is primarily used for sending and receiving email."
+						"description": "theflat.gen.nz we've never been closer."
 					},
 					{
 						"@type": "Organization",
@@ -88,6 +88,26 @@
 				padding: 48px 20px;
 			}
 
+			.skip-link {
+				position: absolute;
+				top: 12px;
+				left: 12px;
+				padding: 10px 12px;
+				background: var(--bg);
+				color: var(--fg);
+				border: 2px solid var(--focus);
+				border-radius: 8px;
+				text-decoration: none;
+				transform: translateY(-200%);
+				transition: transform 120ms ease-in-out;
+				z-index: 10;
+			}
+
+			.skip-link:focus,
+			.skip-link:focus-visible {
+				transform: translateY(0);
+			}
+
 			a {
 				color: var(--link);
 				text-decoration-thickness: 0.12em;
@@ -120,7 +140,8 @@
 		</style>
 	</head>
 	<body>
-		<main>
+		<a class="skip-link" href="#main">Skip to content</a>
+		<main id="main" tabindex="-1">
 			<h1>There’s not a lot here yet.</h1>
 
 			<p>This domain name is primarily used for sending and receiving email.</p>

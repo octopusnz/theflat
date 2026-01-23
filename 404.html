@@ -40,6 +40,26 @@
 				padding: 48px 20px;
 			}
 
+			.skip-link {
+				position: absolute;
+				top: 12px;
+				left: 12px;
+				padding: 10px 12px;
+				background: var(--bg);
+				color: var(--fg);
+				border: 2px solid var(--focus);
+				border-radius: 8px;
+				text-decoration: none;
+				transform: translateY(-200%);
+				transition: transform 120ms ease-in-out;
+				z-index: 10;
+			}
+
+			.skip-link:focus,
+			.skip-link:focus-visible {
+				transform: translateY(0);
+			}
+
 			a {
 				color: var(--link);
 				text-decoration-thickness: 0.12em;
@@ -72,7 +92,8 @@
 		</style>
 	</head>
 	<body>
-		<main>
+		<a class="skip-link" href="#main">Skip to content</a>
+		<main id="main" tabindex="-1">
 			<h1>404 — Page not found</h1>
 			<p>The page you’re looking for doesn’t exist.</p>
 			<p><a href="/">Go back to the homepage</a></p>
