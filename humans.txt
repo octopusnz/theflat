@@ -1,0 +1,10 @@
+/* TEAM */
+Owner: Jacob Doherty
+Contact: jacob@theflat.gen.nz
+GitHub: https://github.com/octopusnz/
+
+/* SITE */
+Domain: theflat.gen.nz
+Additional URLs: www.theflat.gen.nz
+Standards: HTML5, CSS3
+Hosting: GitHub Pages
