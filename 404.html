@@ -41,10 +41,18 @@
 				}
 			}
 
+			*,
+			*::before,
+			*::after {
+				box-sizing: border-box;
+			}
+
 			html,
 			body {
 				background: var(--bg);
 				color: var(--fg);
+				height: 100dvh;
+				overflow: hidden;
 			}
 
 			body {
@@ -52,9 +60,9 @@
 				line-height: 1.55;
 				margin: 0;
 				padding: 48px 20px;
-				min-height: 100dvh;
 				display: flex;
 				flex-direction: column;
+				overflow-y: auto;
 			}
 
 			.skip-link {
