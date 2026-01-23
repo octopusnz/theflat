@@ -8,3 +8,7 @@ Domain: theflat.gen.nz
 Additional URLs: www.theflat.gen.nz
 Standards: HTML5, CSS3
 Hosting: GitHub Pages
+
+/* CREDITS */
+Octopus favicon based on icons created by Freepik - Flaticon
+https://www.flaticon.com/free-icons/octopus
