@@ -133,6 +133,18 @@
 				transform: translateY(0);
 			}
 
+			.visually-hidden {
+				position: absolute;
+				width: 1px;
+				height: 1px;
+				padding: 0;
+				margin: -1px;
+				overflow: hidden;
+				clip: rect(0, 0, 0, 0);
+				white-space: nowrap;
+				border: 0;
+			}
+
 			a {
 				color: var(--link);
 				text-decoration-thickness: 0.12em;
@@ -290,6 +302,34 @@
 			.loading {
 				animation: pulse 2s ease-in-out infinite;
 			}
+
+			/* Respect reduced motion preferences */
+			@media (prefers-reduced-motion: reduce) {
+				.stat-card {
+					transition: none;
+				}
+
+				.stat-card:hover {
+					transform: none;
+				}
+
+				.language-bar-fill {
+					transition: none;
+				}
+
+				.loading {
+					animation: none;
+				}
+			}
+
+			/* Ensure gradient text has fallback color */
+			@supports not (background-clip: text) {
+				.stat-value {
+					color: var(--link);
+					background: none;
+					-webkit-text-fill-color: unset;
+				}
+			}
 		</style>
 	</head>
 	<body>
@@ -320,9 +360,9 @@
 			<p><a href="mailto:abuse@theflat.gen.nz">abuse@theflat.gen.nz</a></p>
 
 			<!-- GitHub Stats Section -->
-			<section class="github-stats">
-				<h2>GitHub Statistics</h2>
-				<div id="github-container">
+			<section class="github-stats" aria-labelledby="github-heading">
+				<h2 id="github-heading">GitHub Statistics</h2>
+				<div id="github-container" role="region" aria-live="polite" aria-busy="true">
 					<div class="loading">Loading GitHub statistics...</div>
 				</div>
 			</section>
@@ -333,10 +373,6 @@
 		</footer>
 
 		<script>
-			// GitHub API Configuration
-			const GITHUB_USERNAME = 'octopusnz'; // Replace with your GitHub username
-			const GITHUB_TOKEN = ''; // Optional: Add a personal access token for higher rate limits
-
 			// Language colors (GitHub standard colors)
 			const languageColors = {
 				'JavaScript': '#f1e05a',
@@ -360,74 +396,6 @@
 				'React': '#61dafb'
 			};
 
-			async function fetchGitHubAPI(endpoint) {
-				const headers = {
-					'Accept': 'application/vnd.github.v3+json'
-				};
-				
-				if (GITHUB_TOKEN) {
-					headers['Authorization'] = `token ${GITHUB_TOKEN}`;
-				}
-
-				try {
-					const response = await fetch(`https://api.github.com${endpoint}`, { headers });
-					if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
-					return await response.json();
-				} catch (error) {
-					console.error('Error fetching from GitHub API:', error);
-					throw error;
-				}
-			}
-
-			async function getUserData() {
-				return await fetchGitHubAPI(`/users/${GITHUB_USERNAME}`);
-			}
-
-			async function getRepositories() {
-				const repos = await fetchGitHubAPI(`/users/${GITHUB_USERNAME}/repos?per_page=100&sort=updated`);
-				return repos.filter(repo => !repo.fork); // Exclude forked repos
-			}
-
-			async function getLanguageStats(repos) {
-				const languageStats = {};
-				
-				for (const repo of repos.slice(0, 30)) { // Limit to avoid rate limits
-					try {
-						const languages = await fetchGitHubAPI(`/repos/${GITHUB_USERNAME}/${repo.name}/languages`);
-						for (const [lang, bytes] of Object.entries(languages)) {
-							languageStats[lang] = (languageStats[lang] || 0) + bytes;
-						}
-					} catch (error) {
-						console.error(`Error fetching languages for ${repo.name}:`, error);
-					}
-				}
-				
-				return languageStats;
-			}
-
-			async function getCommitCount() {
-				try {
-					// Get recent events to estimate commit count
-					const events = await fetchGitHubAPI(`/users/${GITHUB_USERNAME}/events/public?per_page=100`);
-					const pushEvents = events.filter(event => event.type === 'PushEvent');
-					const commitCount = pushEvents.reduce((sum, event) => sum + (event.payload.commits?.length || 0), 0);
-					return commitCount;
-				} catch (error) {
-					console.error('Error fetching commit count:', error);
-					return 0;
-				}
-			}
-
-			async function getPullRequestCount() {
-				try {
-					const searchResults = await fetchGitHubAPI(`/search/issues?q=author:${GITHUB_USERNAME}+type:pr`);
-					return searchResults.total_count || 0;
-				} catch (error) {
-					console.error('Error fetching PR count:', error);
-					return 0;
-				}
-			}
-
 			function formatNumber(num) {
 				if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
 				if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
@@ -447,12 +415,12 @@
 					return `
 						<div class="language-item">
 							<div class="language-name">
-								<span class="language-dot" style="background-color: ${color};"></span>
+								<span class="language-dot" style="background-color: ${color};" aria-hidden="true"></span>
 								<span>${lang}</span>
 							</div>
 							<span>${percentage}%</span>
 						</div>
-						<div class="language-bar">
+						<div class="language-bar" role="progressbar" aria-label="${lang} usage" aria-valuenow="${percentage}" aria-valuemin="0" aria-valuemax="100">
 							<div class="language-bar-fill" style="width: ${percentage}%; background: ${color};"></div>
 						</div>
 					`;
@@ -462,15 +430,13 @@
 			}
 
 			function renderTopRepositories(repos) {
-				const topRepos = repos
-					.sort((a, b) => b.stargazers_count - a.stargazers_count)
-					.slice(0, 5);
-
-				const html = topRepos.map(repo => `
+				const html = repos.map(repo => `
 					<li class="repo-item">
 						<div class="repo-name">
-							<a href="${repo.html_url}" target="_blank" rel="noopener">${repo.name}</a>
-							${repo.stargazers_count > 0 ? `⭐ ${repo.stargazers_count}` : ''}
+							<a href="${repo.html_url}" target="_blank" rel="noopener">
+								${repo.name}<span class="visually-hidden"> (opens in new tab)</span>
+							</a>
+							${repo.stargazers_count > 0 ? `<span aria-label="${repo.stargazers_count} stars">⭐ ${repo.stargazers_count}</span>` : ''}
 						</div>
 						${repo.description ? `<div class="repo-description">${repo.description}</div>` : ''}
 					</li>
@@ -483,79 +449,63 @@
 				const container = document.getElementById('github-container');
 
 				try {
-					// Fetch all data in parallel
-					const [userData, repos] = await Promise.all([
-						getUserData(),
-						getRepositories()
-					]);
-
-					const [languageStats, commitCount, prCount] = await Promise.all([
-						getLanguageStats(repos),
-						getCommitCount(),
-						getPullRequestCount()
-					]);
-
-					// Calculate total lines of code (approximate based on language stats)
-					const totalLinesOfCode = Math.round(Object.values(languageStats).reduce((sum, bytes) => sum + bytes, 0) / 50); // Rough estimate: 50 bytes per line
+					// Load pre-generated stats from JSON file
+					const response = await fetch('./github-stats.json');
+					if (!response.ok) throw new Error('Stats file not found');
+					
+					const data = await response.json();
 
 					// Render stats cards
 					container.innerHTML = `
 						<div class="stats-grid">
 							<div class="stat-card">
-								<h3>📊 Total Repositories</h3>
-								<div class="stat-value">${repos.length}</div>
+								<h3><span aria-hidden="true">📊</span> <span>Total Repositories</span></h3>
+								<div class="stat-value">${data.total_repos}</div>
 								<div class="stat-label">Public Repositories</div>
 							</div>
 
 							<div class="stat-card">
-								<h3>💻 Lines of Code</h3>
-								<div class="stat-value">${formatNumber(totalLinesOfCode)}</div>
+								<h3><span aria-hidden="true">💻</span> <span>Lines of Code</span></h3>
+								<div class="stat-value">${formatNumber(data.total_lines)}</div>
 								<div class="stat-label">Approximate Total</div>
 							</div>
 
 							<div class="stat-card">
-								<h3>🔄 Recent Commits</h3>
-								<div class="stat-value">${commitCount}+</div>
-								<div class="stat-label">From Recent Activity</div>
-							</div>
-
-							<div class="stat-card">
-								<h3>🔀 Pull Requests</h3>
-								<div class="stat-value">${formatNumber(prCount)}</div>
-								<div class="stat-label">Total Created</div>
-							</div>
-
-							<div class="stat-card">
-								<h3>🌟 Total Stars</h3>
-								<div class="stat-value">${repos.reduce((sum, repo) => sum + repo.stargazers_count, 0)}</div>
+								<h3><span aria-hidden="true">👀</span> <span>Total Watchers</span></h3>
+								<div class="stat-value">${data.total_watchers}</div>
 								<div class="stat-label">Across All Repos</div>
 							</div>
 
 							<div class="stat-card">
-								<h3>👥 Followers</h3>
-								<div class="stat-value">${userData.followers}</div>
+								<h3><span aria-hidden="true">👥</span> <span>Followers</span></h3>
+								<div class="stat-value">${data.followers}</div>
 								<div class="stat-label">GitHub Followers</div>
 							</div>
 						</div>
 
 						<div class="stats-grid" style="margin-top: 24px;">
 							<div class="stat-card" style="grid-column: 1 / -1;">
-								<h3>🔤 Top Languages</h3>
-								${renderLanguageStats(languageStats)}
+								<h3><span aria-hidden="true">🔤</span> <span>Top Languages</span></h3>
+								${renderLanguageStats(data.languages)}
 							</div>
 
 							<div class="stat-card" style="grid-column: 1 / -1;">
-								<h3>⭐ Top Repositories</h3>
-								${renderTopRepositories(repos)}
+								<h3><span aria-hidden="true">⭐</span> <span>Top Repositories</span></h3>
+								${renderTopRepositories(data.top_repos)}
 							</div>
 						</div>
+						
+						<p style="text-align: center; margin-top: 24px; font-size: 0.875rem; color: var(--muted-fg);">
+							Last updated: ${new Date(data.updated_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+						</p>
 					`;
+						container.setAttribute('aria-busy', 'false');
 				} catch (error) {
 					container.innerHTML = `
-						<div class="error">
-							<p>❌ Error loading GitHub statistics</p>
+						<div class="error" role="alert">
+							<p><span aria-hidden="true">❌</span> Error loading GitHub statistics</p>
 							<p style="font-size: 0.875rem; margin-top: 8px;">
-								Make sure to replace 'YOUR_GITHUB_USERNAME' with your actual GitHub username in the code.
+								Stats will be generated automatically by GitHub Actions. Please wait for the first run to complete.
 							</p>
 						</div>
 					`;
@@ -563,18 +513,7 @@
 			}
 
 			// Load stats when page loads
-			if (GITHUB_USERNAME !== 'YOUR_GITHUB_USERNAME') {
-				displayGitHubStats();
-			} else {
-				document.getElementById('github-container').innerHTML = `
-					<div class="error">
-						<p>⚙️ Configuration Required</p>
-						<p style="font-size: 0.875rem; margin-top: 8px;">
-							Please update the GITHUB_USERNAME constant in the script to your GitHub username.
-						</p>
-					</div>
-				`;
-			}
+			displayGitHubStats();
 		</script>
 	</body>
 </html>

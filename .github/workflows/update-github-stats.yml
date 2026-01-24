@@ -1,0 +1,100 @@
+name: Update GitHub Stats
+
+on:
+  schedule:
+    # Run daily at 00:00 UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Allow manual trigger
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/update-github-stats.yml'
+
+jobs:
+  update-stats:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fetch GitHub Stats
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_STATS_TOKEN }}
+          GITHUB_USERNAME: ${{ github.repository_owner }}
+        run: |
+          # Fetch user data
+          USER_DATA=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/users/$GITHUB_USERNAME")
+          
+          # Fetch repositories (excluding forks)
+          REPOS=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/users/$GITHUB_USERNAME/repos?per_page=100&sort=updated" \
+            | jq '[.[] | select(.fork == false)]')
+          
+          # Calculate stats
+          TOTAL_REPOS=$(echo "$REPOS" | jq 'length')
+          TOTAL_WATCHERS=$(echo "$REPOS" | jq '[.[].watchers_count] | add // 0')
+          FOLLOWERS=$(echo "$USER_DATA" | jq '.followers')
+          
+          # Fetch languages for each repo (limit to 30 repos to avoid rate limits)
+          echo "$REPOS" | jq -c '.[:30]' > repos_temp.json
+          
+          LANGUAGE_STATS='{}'
+          while IFS= read -r repo; do
+            REPO_NAME=$(echo "$repo" | jq -r '.name')
+            LANGUAGES=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+              -H "Accept: application/vnd.github.v3+json" \
+              "https://api.github.com/repos/$GITHUB_USERNAME/$REPO_NAME/languages")
+            
+            # Merge language stats
+            LANGUAGE_STATS=$(echo "$LANGUAGE_STATS $LANGUAGES" | jq -s '
+              reduce .[1] as $lang (.[0]; 
+                reduce ($lang | keys_unsorted[]) as $key (.; 
+                  .[$key] = ((.[$key] // 0) + $lang[$key])
+                )
+              )
+            ')
+          done < <(jq -c '.[]' repos_temp.json)
+          
+          rm repos_temp.json
+          
+          # Calculate total lines of code (approximate)
+          TOTAL_BYTES=$(echo "$LANGUAGE_STATS" | jq '[.[]] | add // 0')
+          TOTAL_LINES=$(echo "$TOTAL_BYTES / 50" | bc)
+          
+          # Get top 5 repos by stars
+          TOP_REPOS=$(echo "$REPOS" | jq '[sort_by(-.stargazers_count) | .[:5] | .[] | {
+            name: .name,
+            description: .description,
+            html_url: .html_url,
+            stargazers_count: .stargazers_count
+          }]')
+          
+          # Create final JSON
+          cat > github-stats.json << EOF
+          {
+            "updated_at": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+            "total_repos": $TOTAL_REPOS,
+            "total_watchers": $TOTAL_WATCHERS,
+            "total_lines": $TOTAL_LINES,
+            "followers": $FOLLOWERS,
+            "languages": $LANGUAGE_STATS,
+            "top_repos": $TOP_REPOS
+          }
+          EOF
+          
+          echo "GitHub stats updated successfully!"
+          cat github-stats.json
+
+      - name: Commit and push if changed
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add github-stats.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update GitHub stats [skip ci]" && git push)
