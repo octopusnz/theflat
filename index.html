@@ -172,8 +172,8 @@
 				display: inline-block;
 				padding: 12px 24px;
 				background: #000000;
-				color: #ffffff;
-				text-decoration: none;
+				color: #ffffff !important;
+				text-decoration: none !important;
 				border-radius: 8px;
 				font-weight: 600;
 				transition: all 0.2s ease;
@@ -184,29 +184,39 @@
 
 			.btn:hover {
 				background: #1a1a1a;
+				color: #ffffff !important;
 				transform: translateY(-2px);
 				box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 			}
 
-			@media (prefers-color-scheme: dark) {
-				.btn {
-					background: #ffffff;
-					color: #000000;
-				}
-
-				.btn:hover {
-					background: #e0e0e0;
-				}
-			}
-
-			.btn-container {
-				text-align: center;
-				margin: 24px 0;
+			.btn:visited {
+				color: #ffffff !important;
 			}
 
 			.btn:focus-visible {
 				outline: 3px solid var(--focus);
 				outline-offset: 2px;
+				color: #ffffff !important;
+			}
+
+			@media (prefers-color-scheme: dark) {
+				.btn {
+					background: #ffffff;
+					color: #000000 !important;
+				}
+
+				.btn:hover {
+					background: #e0e0e0;
+					color: #000000 !important;
+				}
+
+				.btn:visited {
+					color: #000000 !important;
+				}
+
+				.btn:focus-visible {
+					color: #000000 !important;
+				}
 			}
 
 			@media (prefers-reduced-motion: reduce) {
