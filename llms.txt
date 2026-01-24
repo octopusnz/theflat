@@ -14,7 +14,7 @@ The website contains a brief informational notice about the domain and email aut
 - Email contact on this domain is intended for legitimate operational/security/abuse matters.
 
 ## Contact
-- Abuse / security: abuse@theflat.gen.nz
+- Email delivery issues: email@theflat.gen.nz
 
 ## URLs
 - Home: https://theflat.gen.nz/
