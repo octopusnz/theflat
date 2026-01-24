@@ -161,6 +161,48 @@
 				border-radius: 4px;
 			}
 
+			hr {
+				margin: 32px 0;
+				border: none;
+				height: 1px;
+				background: var(--muted-fg);
+			}
+
+			.btn {
+				display: inline-block;
+				padding: 12px 24px;
+				background: var(--link);
+				color: var(--bg);
+				text-decoration: none;
+				border-radius: 8px;
+				font-weight: 600;
+				transition: all 0.2s ease;
+				display: inline-flex;
+				align-items: center;
+				gap: 8px;
+			}
+
+			.btn:hover {
+				background: var(--link-visited);
+				transform: translateY(-2px);
+				box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+			}
+
+			.btn:focus-visible {
+				outline: 3px solid var(--focus);
+				outline-offset: 2px;
+			}
+
+			@media (prefers-reduced-motion: reduce) {
+				.btn {
+					transition: none;
+				}
+
+				.btn:hover {
+					transform: none;
+				}
+			}
+
 			main {
 				max-width: 70ch;
 				margin: 0 auto;
@@ -402,15 +444,23 @@
 
 			<p><a href="mailto:email@theflat.gen.nz">email@theflat.gen.nz</a></p>
 
+			<hr>
+
 			<!-- Development Aspirations Section -->
-			<section style="margin-top: 48px;">
+			<section style="margin-top: 0;">
 				<h2>Development</h2>
 				
 				<p>
 					We play around with various programming languages and frameworks.
 					Along the way we struggle with environments, editors, workflows, CI and automation.
 					Sometimes we manage to produce working code.
-					You can see our adventures on <a href="https://github.com/octopusnz">GitHub</a>.
+				</p>
+				
+				<p>
+					<a href="https://github.com/octopusnz" class="btn" target="_blank" rel="noopener">
+						<span>Visit GitHub</span>
+						<span aria-hidden="true">→</span>
+					</a>
 				</p>
 				
 				<p>
