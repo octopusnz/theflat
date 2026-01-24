@@ -5,6 +5,12 @@ Static site content for **theflat.gen.nz**, hosted on GitHub Pages.
 ## What's in here
 
 - `index.html`: site homepage
+- `github-stats.json`: auto-generated GitHub statistics (created by GitHub Actions)
+- `.github/workflows/update-github-stats.yml`: GitHub Actions workflow
+  - Runs daily at 00:00 UTC and on every push to main
+  - Fetches GitHub user data, repository stats, and language breakdowns
+  - Generates and commits `github-stats.json` for deployment
+- `scripts/generate-github-stats.sh`: local script for generating stats (useful for testing)
 - `404.html`: not-found page
 - `robots.txt`: crawler rules
 - `sitemap.xml`: sitemap for search engines

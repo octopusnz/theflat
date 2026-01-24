@@ -1,4 +1,4 @@
-Contact: mailto:abuse@theflat.gen.nz
+Contact: mailto:email@theflat.gen.nz
 Preferred-Languages: en
 Canonical: https://theflat.gen.nz/.well-known/security.txt
 Expires: 2027-01-23T00:00:00Z
