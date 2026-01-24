@@ -172,7 +172,7 @@
 				display: inline-block;
 				padding: 12px 24px;
 				background: var(--link);
-				color: var(--bg);
+				color: #ffffff;
 				text-decoration: none;
 				border-radius: 8px;
 				font-weight: 600;
@@ -183,9 +183,19 @@
 			}
 
 			.btn:hover {
-				background: var(--link-visited);
+				background: #0969da;
 				transform: translateY(-2px);
-				box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+				box-shadow: 0 4px 12px rgba(9, 105, 218, 0.3);
+			}
+
+			@media (prefers-color-scheme: dark) {
+				.btn {
+					background: #1f6feb;
+				}
+
+				.btn:hover {
+					background: #2477c3;
+				}
 			}
 
 			.btn:focus-visible {
