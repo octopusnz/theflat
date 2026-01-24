@@ -1,0 +1,53 @@
+{
+  "updated_at": "2026-01-24T10:25:15Z",
+  "total_repos": 14,
+  "total_watchers": 0,
+  "total_lines": 15140,
+  "followers": 3,
+  "languages": {
+  "HTML": 38883,
+  "Shell": 96759,
+  "C": 367956,
+  "C++": 102923,
+  "Makefile": 18235,
+  "Rust": 81586,
+  "Ruby": 14080,
+  "Emacs Lisp": 2252,
+  "JavaScript": 18672,
+  "Handlebars": 12936,
+  "CSS": 2590,
+  "Batchfile": 172
+},
+  "top_repos": [
+  {
+    "name": "theflat",
+    "description": "theflat.gen.nz website",
+    "html_url": "https://github.com/octopusnz/theflat",
+    "stargazers_count": 0
+  },
+  {
+    "name": "purple",
+    "description": "Adventures in C",
+    "html_url": "https://github.com/octopusnz/purple",
+    "stargazers_count": 0
+  },
+  {
+    "name": "aoc-2020",
+    "description": "Advent of Code 2020 solved in C",
+    "html_url": "https://github.com/octopusnz/aoc-2020",
+    "stargazers_count": 0
+  },
+  {
+    "name": "dungeon",
+    "description": null,
+    "html_url": "https://github.com/octopusnz/dungeon",
+    "stargazers_count": 0
+  },
+  {
+    "name": "github-workflow-scripts",
+    "description": "A collection of GitHub Workflow Scripts",
+    "html_url": "https://github.com/octopusnz/github-workflow-scripts",
+    "stargazers_count": 0
+  }
+]
+}
