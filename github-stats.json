@@ -1,16 +1,16 @@
 {
-  "updated_at": "2026-01-24T20:01:27Z",
+  "updated_at": "2026-01-26T21:36:39Z",
   "total_repos": 14,
   "total_watchers": 0,
-  "total_lines": 15177,
+  "total_lines": 15195,
   "followers": 3,
   "languages": {
-  "HTML": 40722,
+  "HTML": 41597,
   "Shell": 96759,
+  "Rust": 81586,
   "C": 367956,
   "C++": 102923,
   "Makefile": 18235,
-  "Rust": 81586,
   "Ruby": 14080,
   "Emacs Lisp": 2252,
   "JavaScript": 18672,
@@ -26,6 +26,12 @@
     "stargazers_count": 0
   },
   {
+    "name": "dungeon",
+    "description": "Adventures in Rust making a mini RPG",
+    "html_url": "https://github.com/octopusnz/dungeon",
+    "stargazers_count": 0
+  },
+  {
     "name": "purple",
     "description": "Adventures in C",
     "html_url": "https://github.com/octopusnz/purple",
@@ -35,12 +41,6 @@
     "name": "aoc-2020",
     "description": "Advent of Code 2020 solved in C",
     "html_url": "https://github.com/octopusnz/aoc-2020",
-    "stargazers_count": 0
-  },
-  {
-    "name": "dungeon",
-    "description": null,
-    "html_url": "https://github.com/octopusnz/dungeon",
     "stargazers_count": 0
   },
   {
