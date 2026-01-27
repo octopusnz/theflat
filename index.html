@@ -190,11 +190,7 @@
 				background: #1a1a1a;
 				color: #ffffff !important;
 				transform: translateY(-2px);
-				box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-			}
 
-			.btn:visited {
-				color: #ffffff !important;
 			}
 
 			.btn:focus-visible {
@@ -262,33 +258,34 @@
 				background: linear-gradient(90deg, var(--muted-fg) 25%, var(--fg) 50%, var(--muted-fg) 75%);
 				background-size: 200% 100%;
 				animation: skeleton-loading 1.5s infinite;
-			}
+			will-change: transform;
+		}
 
-			@keyframes skeleton-loading {
-				0% { background-position: 200% 0; }
-				100% { background-position: -200% 0; }
-			}
+		@keyframes skeleton-loading {
+			0% { transform: translateX(-100%); }
+			100% { transform: translateX(100%); }
+		}
 
-			.skeleton-card {
-				background: var(--bg);
-				border: 2px solid var(--muted-fg);
-				border-radius: 12px;
-				padding: 24px;
-				height: 180px;
-			}
+		.skeleton-card {
+			background: var(--bg);
+			border: 2px solid var(--muted-fg);
+			border-radius: 12px;
+			padding: 24px;
+			height: 180px;
+		}
 
-			.skeleton-text {
-				height: 24px;
-				margin-bottom: 12px;
-				border-radius: 4px;
-				width: 80%;
-			}
+		.skeleton-text {
+			height: 24px;
+			margin-bottom: 12px;
+			border-radius: 4px;
+			width: 80%;
+		}
 
-			.skeleton-text-small {
-				height: 16px;
-				border-radius: 4px;
-				width: 60%;
-			}
+		.skeleton-text-small {
+			height: 16px;
+			border-radius: 4px;
+			width: 60%;
+		}
 
 			@media (prefers-reduced-motion: reduce) {
 				.skeleton {
@@ -309,135 +306,134 @@
 				border: 2px solid var(--muted-fg);
 				border-radius: 12px;
 				padding: 24px;
-				transition: transform 0.2s ease, box-shadow 0.2s ease;
+			transition: transform 0.2s ease;
+			will-change: transform;
+		}
+
+		.stat-card:hover {
+			transform: translateY(-4px);
+		}
+
+		.stat-card h3 {
+			margin: 0 0 16px;
+			font-size: 1.2rem;
+			color: var(--fg);
+		}
+
+		.stat-value {
+			font-size: 2.5rem;
+			font-weight: bold;
+			margin: 8px 0;
+			background: linear-gradient(135deg, var(--link), var(--link-visited));
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+			background-clip: text;
+		}
+
+		.stat-label {
+			font-size: 0.875rem;
+			color: var(--muted-fg);
+			text-transform: uppercase;
+			letter-spacing: 0.05em;
+		}
+
+		.language-bar {
+			margin: 12px 0;
+		}
+
+		.language-bar-fill {
+			height: 8px;
+			background: linear-gradient(90deg, var(--link), var(--link-visited));
+			border-radius: 4px;
+			transition: transform 0.3s ease;
+			transform-origin: left;
+			will-change: transform;
+		}
+
+		.language-item {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin: 8px 0;
+			font-size: 0.9rem;
+		}
+
+		.language-name {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+		}
+
+		.language-dot {
+			width: 12px;
+			height: 12px;
+			border-radius: 50%;
+			display: inline-block;
+		}
+
+		.repo-list {
+			list-style: none;
+			padding: 0;
+			margin: 0;
+		}
+
+		.repo-item {
+			padding: 12px 0;
+			border-bottom: 1px solid var(--muted-fg);
+		}
+
+		.repo-item:last-child {
+			border-bottom: none;
+		}
+
+		.repo-name {
+			font-weight: 600;
+			margin-bottom: 4px;
+		}
+
+		.repo-description {
+			font-size: 0.875rem;
+			color: var(--muted-fg);
+		}
+
+		.error {
+			text-align: center;
+			padding: 24px;
+			color: #ef4444;
+		}
+
+			@keyframes pulse {
+			0%, 100% { transform: scale(1); }
+			50% { transform: scale(0.95); }
+		}
+
+		.loading {
+			text-align: center;
+			padding: 24px;
+			color: var(--muted-fg);
+			animation: pulse 2s ease-in-out infinite;
+			will-change: transform;
+		}
+		/* Respect reduced motion preferences */
+		@media (prefers-reduced-motion: reduce) {
+			.stat-card {
+				transition: none;
 			}
 
 			.stat-card:hover {
-				transform: translateY(-4px);
-				box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-			}
-
-			.stat-card h3 {
-				margin: 0 0 16px;
-				font-size: 1.2rem;
-				color: var(--fg);
-			}
-
-			.stat-value {
-				font-size: 2.5rem;
-				font-weight: bold;
-				margin: 8px 0;
-				background: linear-gradient(135deg, var(--link), var(--link-visited));
-				-webkit-background-clip: text;
-				-webkit-text-fill-color: transparent;
-				background-clip: text;
-			}
-
-			.stat-label {
-				font-size: 0.875rem;
-				color: var(--muted-fg);
-				text-transform: uppercase;
-				letter-spacing: 0.05em;
-			}
-
-			.language-bar {
-				margin: 12px 0;
+				transform: none;
 			}
 
 			.language-bar-fill {
-				height: 8px;
-				background: linear-gradient(90deg, var(--link), var(--link-visited));
-				border-radius: 4px;
-				transition: width 0.3s ease;
-			}
-
-			.language-item {
-				display: flex;
-				justify-content: space-between;
-				align-items: center;
-				margin: 8px 0;
-				font-size: 0.9rem;
-			}
-
-			.language-name {
-				display: flex;
-				align-items: center;
-				gap: 8px;
-			}
-
-			.language-dot {
-				width: 12px;
-				height: 12px;
-				border-radius: 50%;
-				display: inline-block;
-			}
-
-			.repo-list {
-				list-style: none;
-				padding: 0;
-				margin: 0;
-			}
-
-			.repo-item {
-				padding: 12px 0;
-				border-bottom: 1px solid var(--muted-fg);
-			}
-
-			.repo-item:last-child {
-				border-bottom: none;
-			}
-
-			.repo-name {
-				font-weight: 600;
-				margin-bottom: 4px;
-			}
-
-			.repo-description {
-				font-size: 0.875rem;
-				color: var(--muted-fg);
+				transition: none;
 			}
 
 			.loading {
-				text-align: center;
-				padding: 24px;
-				color: var(--muted-fg);
+				animation: none;
 			}
+		}
 
-			.error {
-				text-align: center;
-				padding: 24px;
-				color: #ef4444;
-			}
-
-			@keyframes pulse {
-				0%, 100% { opacity: 1; }
-				50% { opacity: 0.5; }
-			}
-
-			.loading {
-				animation: pulse 2s ease-in-out infinite;
-			}
-
-			/* Respect reduced motion preferences */
-			@media (prefers-reduced-motion: reduce) {
-				.stat-card {
-					transition: none;
-				}
-
-				.stat-card:hover {
-					transform: none;
-				}
-
-				.language-bar-fill {
-					transition: none;
-				}
-
-				.loading {
-					animation: none;
-				}
-			}
-
-			/* Ensure gradient text has fallback color */
+		/* Ensure gradient text has fallback color */
 			@supports not (background-clip: text) {
 				.stat-value {
 					color: var(--link);
@@ -479,10 +475,11 @@
 			<!-- Development Aspirations Section -->
 		<section>
 			<h2>Development</h2>
-					We play around with various programming languages and frameworks.
-					Along the way we struggle with environments, editors, workflows, CI and automation.
-					Sometimes we manage to produce working code.
-				</p>
+			<p>
+				We play around with various programming languages and frameworks.
+				Along the way we struggle with environments, editors, workflows, CI and automation.
+				Sometimes we manage to produce working code.
+			</p>
 				
 			<div class="btn-container">
 				<a href="https://github.com/octopusnz" class="btn" target="_blank" rel="noopener">
@@ -492,6 +489,7 @@
 			</div>
 
 			<hr>
+		</section>
 
 		<section>
 			<h2>What is the octopus stuff all about?</h2>
@@ -505,9 +503,9 @@
 
 		<hr>
 
-		<section class="github-stats" aria-labelledby="github-heading">
+		<section class="github-stats" aria-labelledby="github-heading" style="contain: layout style paint;">
 				<h2 id="github-heading">GitHub Statistics</h2>
-				<div id="github-container" role="region" aria-live="polite" aria-busy="true">
+				<div id="github-container" role="region" aria-live="polite" aria-busy="true" style="content-visibility: auto;">
 					<div class="stats-grid">
 						<div class="skeleton-card">
 							<div class="skeleton skeleton-text"></div>
@@ -532,7 +530,6 @@
 					</div>
 				</div>
 			</section>
-		</section>
 
 		</main>
 
@@ -583,13 +580,13 @@
 					return `
 						<div class="language-item">
 							<div class="language-name">
-								<span class="language-dot" style="background-color: ${color};" aria-hidden="true"></span>
+								<span class="language-dot" style="background-color: ${color};" aria-hidden="true" role="presentation"></span>
 								<span>${lang}</span>
 							</div>
-							<span>${percentage}%</span>
+							<span aria-label="${percentage} percent">${percentage}%</span>
 						</div>
-						<div class="language-bar" role="progressbar" aria-label="${lang} usage" aria-valuenow="${percentage}" aria-valuemin="0" aria-valuemax="100">
-							<div class="language-bar-fill" style="width: ${percentage}%; background: ${color};"></div>
+						<div class="language-bar" role="progressbar" aria-label="${lang} programming language usage: ${percentage} percent" aria-valuenow="${percentage}" aria-valuemin="0" aria-valuemax="100">
+							<div class="language-bar-fill" style="transform: scaleX(${percentage / 100}); background: ${color};"></div>
 						</div>
 					`;
 				}).join('');
@@ -604,7 +601,7 @@
 							<a href="${repo.html_url}" target="_blank" rel="noopener">
 								${repo.name}<span class="visually-hidden"> (opens in new tab)</span>
 							</a>
-							${repo.stargazers_count > 0 ? `<span aria-label="${repo.stargazers_count} stars">⭐ ${repo.stargazers_count}</span>` : ''}
+							${repo.stargazers_count > 0 ? `<span aria-label="${repo.stargazers_count} stars"><span aria-hidden="true">⭐</span> ${repo.stargazers_count}</span>` : ''}
 						</div>
 						${repo.description ? `<div class="repo-description">${repo.description}</div>` : ''}
 					</li>
@@ -627,25 +624,25 @@
 					container.innerHTML = `
 						<div class="stats-grid">
 							<div class="stat-card">
-								<h3><span aria-hidden="true">📊</span> <span>Total Repositories</span></h3>
+								<h3><span aria-hidden="true" role="presentation">📊</span> <span>Total Repositories</span></h3>
 								<div class="stat-value">${data.total_repos}</div>
 								<div class="stat-label">Public Repositories</div>
 							</div>
 
 							<div class="stat-card">
-								<h3><span aria-hidden="true">💻</span> <span>Lines of Code</span></h3>
+								<h3><span aria-hidden="true" role="presentation">💻</span> <span>Lines of Code</span></h3>
 								<div class="stat-value">${formatNumber(data.total_lines)}</div>
 								<div class="stat-label">Approximate Total</div>
 							</div>
 
 							<div class="stat-card">
-								<h3><span aria-hidden="true">👀</span> <span>Total Watchers</span></h3>
+								<h3><span aria-hidden="true" role="presentation">👀</span> <span>Total Watchers</span></h3>
 								<div class="stat-value">${data.total_watchers}</div>
 								<div class="stat-label">Across All Repos</div>
 							</div>
 
 							<div class="stat-card">
-								<h3><span aria-hidden="true">👥</span> <span>Followers</span></h3>
+								<h3><span aria-hidden="true" role="presentation">👥</span> <span>Followers</span></h3>
 								<div class="stat-value">${data.followers}</div>
 								<div class="stat-label">GitHub Followers</div>
 							</div>
@@ -653,12 +650,12 @@
 
 						<div class="stats-grid" style="margin-top: 24px;">
 							<div class="stat-card" style="grid-column: 1 / -1;">
-								<h3><span aria-hidden="true">🔤</span> <span>Top Languages</span></h3>
+								<h3><span aria-hidden="true" role="presentation">🔤</span> <span>Top Languages</span></h3>
 								${renderLanguageStats(data.languages)}
 							</div>
 
 							<div class="stat-card" style="grid-column: 1 / -1;">
-								<h3><span aria-hidden="true">⭐</span> <span>Top Repositories</span></h3>
+								<h3><span aria-hidden="true" role="presentation">⭐</span> <span>Top Repositories</span></h3>
 								${renderTopRepositories(data.top_repos)}
 							</div>
 						</div>
@@ -671,7 +668,7 @@
 				} catch (error) {
 					container.innerHTML = `
 						<div class="error" role="alert">
-							<p><span aria-hidden="true">❌</span> Error loading GitHub statistics</p>
+							<p><span aria-hidden="true" role="presentation">❌</span> Error loading GitHub statistics</p>
 							<p style="font-size: 0.875rem; margin-top: 8px;">
 								Stats will be generated automatically by GitHub Actions. Please wait for the first run to complete.
 							</p>
@@ -681,8 +678,25 @@
 				}
 			}
 
-			// Load stats when page loads
-			displayGitHubStats();
+			// Defer stats loading using IntersectionObserver for better performance
+			const container = document.getElementById('github-container');
+			const section = container.closest('.github-stats');
+
+			if ('IntersectionObserver' in window) {
+				const observer = new IntersectionObserver(
+					(entries) => {
+						if (entries[0].isIntersecting) {
+							displayGitHubStats();
+							observer.unobserve(section);
+						}
+					},
+					{ rootMargin: '50px' }
+				);
+				observer.observe(section);
+			} else {
+				// Fallback for browsers without IntersectionObserver
+				displayGitHubStats();
+			}
 		</script>
 	</body>
 </html>
