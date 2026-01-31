@@ -1134,128 +1134,169 @@
 				}
 
 				renderMap() {
-					// Render custom map if available
-					if (store.data.mapSvg) {
-						if (store.data.mapType === 'svg') {
-							const parser = new DOMParser();
-							const svgDoc = parser.parseFromString(store.data.mapSvg, 'image/svg+xml');
-							const customSvg = svgDoc.documentElement;
-							
-							// Optimize SVG for performance
-							this.optimizeSvgForPerformance(customSvg);
-							
-							const mainGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-							mainGroup.setAttribute('id', 'main-group');
-							
-							// Import all SVG content into main group
-							Array.from(customSvg.children).forEach(child => {
-								const imported = document.importNode(child, true);
-								mainGroup.appendChild(imported);
-							});
-							
-							// Create and add locations layer on top
-							const locationsLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-							locationsLayer.setAttribute('id', 'locations-layer');
-							mainGroup.appendChild(locationsLayer);
-							
-							// Add main group to SVG
-							this.svg.appendChild(mainGroup);
-							this.mainGroup = mainGroup;
-							this.locationsLayer = locationsLayer;
-							
-						} else if (store.data.mapType === 'raster') {
-							// Handle raster images (JPG, PNG, etc.)
-							const width = store.data.mapWidth || 1000;
-							const height = store.data.mapHeight || 600;
-							
-							// Update viewBox to match image dimensions
-							this.svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-							this.svg.setAttribute('width', '100%');
-							this.svg.setAttribute('height', '100%');
-							
-							// Clear existing content
-							this.svg.innerHTML = '';
-							
-							// Create main group for all content
-							const mainGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-							mainGroup.setAttribute('id', 'main-group');
-							
-							// Add image as background
-							const image = document.createElementNS('http://www.w3.org/2000/svg', 'image');
-							image.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', store.data.mapSvg);
-							image.setAttribute('x', '0');
-							image.setAttribute('y', '0');
-							image.setAttribute('width', width);
-							image.setAttribute('height', height);
-							image.setAttribute('preserveAspectRatio', 'none');
-							mainGroup.appendChild(image);
-							
-							// Create and add locations layer on top
-							const locationsLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-							locationsLayer.setAttribute('id', 'locations-layer');
-							mainGroup.appendChild(locationsLayer);
-							
-							// Add main group to SVG
-							this.svg.appendChild(mainGroup);
-							this.mainGroup = mainGroup;
-							this.locationsLayer = locationsLayer;
-						}
-					}
-					this.render();
-				}
-
-				render() {
-					if (!this.locationsLayer) return;
-					
-					this.locationsLayer.innerHTML = '';
-					const locations = store.getAll('locations');
-					
-					locations.forEach(location => {
-						const x = location.x || Math.random() * 900 + 50;
-						const y = location.y || Math.random() * 500 + 50;
+				// Clear existing SVG content first
+				this.svg.innerHTML = '';
+				
+				// Render custom map if available
+				if (store.data.mapSvg) {
+					if (store.data.mapType === 'svg') {
+						const parser = new DOMParser();
+						const svgDoc = parser.parseFromString(store.data.mapSvg, 'image/svg+xml');
+						const customSvg = svgDoc.documentElement;
 						
-						const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-						g.classList.add('map-location');
-						g.setAttribute('data-id', location.id);
+						// Get dimensions from SVG if available
+						const width = customSvg.getAttribute('width') || 1000;
+						const height = customSvg.getAttribute('height') || 600;
+						this.svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
 						
-						const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-						circle.setAttribute('cx', x);
-						circle.setAttribute('cy', y);
-						circle.setAttribute('r', 8);
+						// Optimize SVG for performance
+						this.optimizeSvgForPerformance(customSvg);
 						
-						const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-						text.setAttribute('x', x);
-						text.setAttribute('y', y - 15);
-						text.setAttribute('pointer-events', 'none');
-						text.textContent = location.name;
+						const mainGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+						mainGroup.setAttribute('id', 'main-group');
 						
-						g.appendChild(circle);
-						g.appendChild(text);
-						
-						g.addEventListener('click', () => {
-							showLocationDetails(location.id);
+						// Import all SVG content into main group
+						Array.from(customSvg.children).forEach(child => {
+							const imported = document.importNode(child, true);
+							mainGroup.appendChild(imported);
 						});
 						
-						this.locationsLayer.appendChild(g);
-					});
-				}
-			}
+						// Create and add locations layer on top
+						const locationsLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+						locationsLayer.setAttribute('id', 'locations-layer');
+						mainGroup.appendChild(locationsLayer);
+						
+						// Add main group to SVG
+						this.svg.appendChild(mainGroup);
+						this.mainGroup = mainGroup;
+						this.locationsLayer = locationsLayer;
+						
+					} else if (store.data.mapType === 'raster') {
+						// Handle raster images (JPG, PNG, etc.)
+						const width = store.data.mapWidth || 1000;
+						const height = store.data.mapHeight || 600;
+						
+						// Update viewBox and SVG size
+						this.svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+						this.svg.setAttribute('width', '100%');
+						this.svg.setAttribute('height', '100%');
+						this.svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+						
+						// Create main group for all content
+						const mainGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+						mainGroup.setAttribute('id', 'main-group');
+						
+						// Add image as background
+						const image = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+						image.setAttribute('href', store.data.mapSvg);
+						image.setAttribute('x', '0');
+						image.setAttribute('y', '0');
+						image.setAttribute('width', width);
+						image.setAttribute('height', height);
+						image.setAttribute('preserveAspectRatio', 'none');
+						mainGroup.appendChild(image);
+						
+						// Create and add locations layer on top
+						const locationsLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+						locationsLayer.setAttribute('id', 'locations-layer');
+						mainGroup.appendChild(locationsLayer);
+						
+						// Add main group to SVG
+						this.svg.appendChild(mainGroup);
+						this.mainGroup = mainGroup;
+						this.locationsLayer = locationsLayer;
+					}
+				} else {
+					// Default map with grid
+					this.svg.setAttribute('viewBox', '0 0 1000 600');
+					
+					// Create defs with grid pattern
+					const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+					const pattern = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
+					pattern.setAttribute('id', 'grid');
+					pattern.setAttribute('width', '50');
+					pattern.setAttribute('height', '50');
+					pattern.setAttribute('patternUnits', 'userSpaceOnUse');
+					
+					const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+					path.setAttribute('d', 'M 50 0 L 0 0 0 50');
+					path.setAttribute('fill', 'none');
+					path.setAttribute('stroke', 'rgba(100,100,100,0.1)');
+					path.setAttribute('stroke-width', '1');
+					pattern.appendChild(path);
+					defs.appendChild(pattern);
+					
+					const mainGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+					mainGroup.setAttribute('id', 'main-group');
+					
+					// Add grid background
+					const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+					rect.setAttribute('width', '1000');
+					rect.setAttribute('height', '600');
+					rect.setAttribute('fill', 'url(#grid)');
+					mainGroup.appendChild(rect);
+					
+					// Create and add locations layer on top
+					const locationsLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+					locationsLayer.setAttribute('id', 'locations-layer');
+					mainGroup.appendChild(locationsLayer);
+					
+					this.svg.appendChild(defs);
+					this.svg.appendChild(mainGroup);
+					this.mainGroup = mainGroup;
+					this.locationsLayer = locationsLayer;
+		}
+		this.render();
+	}
 
-	// Detail Panel Controller
-	function showLocationDetails(locationId) {
-				const location = store.get('locations', locationId);
-				if (!location) return;
+	render() {
+		if (!this.locationsLayer) return;
+		
+		this.locationsLayer.innerHTML = '';
+		const locations = store.getAll('locations');
+		
+		locations.forEach(location => {
+			const x = location.x || Math.random() * 900 + 50;
+			const y = location.y || Math.random() * 500 + 50;
+			
+			const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+			g.classList.add('map-location');
+			g.setAttribute('data-id', location.id);
+			
+			const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+			circle.setAttribute('cx', x);
+			circle.setAttribute('cy', y);
+			circle.setAttribute('r', 8);
+			
+			const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+			text.setAttribute('x', x);
+			text.setAttribute('y', y - 15);
+			text.setAttribute('pointer-events', 'none');
+			text.textContent = location.name;
+			
+			g.appendChild(circle);
+			g.appendChild(text);
+			
+			g.addEventListener('click', () => {
+				showLocationDetails(location.id);
+			});
+			
+			this.locationsLayer.appendChild(g);
+		});
+	}
+}
 
-				const panel = document.getElementById('detail-panel');
-				const title = document.getElementById('detail-title');
-				const content = document.getElementById('detail-content');
+// Detail Panel Controller
+function showLocationDetails(locationId) {
+	const location = store.get('locations', locationId);
+		const title = document.getElementById('detail-title');
+		const content = document.getElementById('detail-content');
 
-				title.textContent = location.name;
+		title.textContent = location.name;
 
-				// Get related NPCs and items
-				const relatedNPCs = store.getAll('npcs').filter(npc => npc.locationId === locationId);
-				const relatedItems = store.getAll('items').filter(item => item.locationId === locationId);
-
+		// Get related NPCs and items
+		const relatedNPCs = store.getAll('npcs').filter(npc => npc.locationId === locationId);
+		const relatedItems = store.getAll('items').filter(item => item.locationId === locationId);
 				content.innerHTML = `
 					<div class="detail-section">
 						<h3>Description</h3>
@@ -1293,15 +1334,14 @@
 						</ul>
 					</div>
 					` : ''}
-				`;
+		`;
 
-				panel.classList.remove('hidden');
-			}
+		panel.classList.remove('hidden');
+	}
 
-			function hideDetailPanel() {
-				document.getElementById('detail-panel').classList.add('hidden');
-			}
-
+	function hideDetailPanel() {
+		document.getElementById('detail-panel').classList.add('hidden');
+	}
 			function showCategoryList(category) {
 				const panel = document.getElementById('detail-panel');
 				const title = document.getElementById('detail-title');
