@@ -309,6 +309,11 @@
 				cursor: grabbing;
 			}
 
+			#main-group {
+				will-change: transform;
+				transform-origin: 0 0;
+			}
+
 			.map-location {
 				cursor: pointer;
 				transition: all 0.2s;
@@ -951,6 +956,7 @@
 					this.isDragging = false;
 					this.startX = 0;
 					this.startY = 0;
+					this.rafId = null;
 
 					this.initializeEvents();
 					this.render();
@@ -987,13 +993,23 @@
 					this.startX = e.clientX - this.translateX;
 					this.startY = e.clientY - this.translateY;
 					this.svg.style.cursor = 'grabbing';
+					e.preventDefault();
 				}
 
 				drag(e) {
 					if (!this.isDragging) return;
-					this.translateX = e.clientX - this.startX;
-					this.translateY = e.clientY - this.startY;
-					this.updateTransform();
+					e.preventDefault();
+					
+					// Use requestAnimationFrame for smooth updates
+					if (this.rafId) {
+						cancelAnimationFrame(this.rafId);
+					}
+					
+					this.rafId = requestAnimationFrame(() => {
+						this.translateX = e.clientX - this.startX;
+						this.translateY = e.clientY - this.startY;
+						this.updateTransform();
+					});
 				}
 
 				endDrag() {
@@ -1003,15 +1019,14 @@
 
 				updateTransform() {
 					if (this.mainGroup) {
-						this.mainGroup.style.transform = 
-							`translate(${this.translateX}px, ${this.translateY}px) scale(${this.scale})`;
-							this.mainGroup.style.transformOrigin = '0 0';
+						// Use SVG transform attribute for better performance
+						const transform = `translate(${this.translateX}, ${this.translateY}) scale(${this.scale})`;
+						this.mainGroup.setAttribute('transform', transform);
 					} else {
 						// Fallback for default grid view
 						if (this.locationsLayer) {
-							this.locationsLayer.style.transform = 
-								`translate(${this.translateX}px, ${this.translateY}px) scale(${this.scale})`;
-							this.locationsLayer.style.transformOrigin = '0 0';
+							const transform = `translate(${this.translateX}, ${this.translateY}) scale(${this.scale})`;
+							this.locationsLayer.setAttribute('transform', transform);
 						}
 					}
 				}
