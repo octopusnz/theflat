@@ -612,6 +612,10 @@
 				</ul>
 				<button class="btn" id="btn-add-new">+ Add New</button>
 				<hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border);">
+				<label class="btn" id="btn-upload-map-label" style="margin-bottom: 8px; cursor: pointer;">
+					Upload Map (SVG)
+					<input type="file" id="btn-upload-map" accept=".svg,image/svg+xml" style="display: none;">
+				</label>
 				<button class="btn btn-export" id="btn-export">Export Data</button>
 				<label class="btn btn-import" id="btn-import-label" style="margin-top: 8px; cursor: pointer;">
 					Import Data
@@ -716,7 +720,8 @@
 						locations: [],
 						npcs: [],
 						items: [],
-						events: []
+						events: [],
+						mapSvg: null
 					};
 					this.loaded = true;
 					this.updateBadges();
@@ -759,6 +764,25 @@
 					} catch (e) {
 						console.error('Error importing data:', e);
 						alert('Error importing file. Please ensure it\'s a valid rpg-data.json file.');
+						return false;
+					}
+				}
+
+				async uploadMapSvg(file) {
+					try {
+						const text = await file.text();
+						
+						// Basic validation that it's an SVG
+						if (!text.trim().startsWith('<svg') && !text.trim().startsWith('<?xml')) {
+							throw new Error('File does not appear to be a valid SVG');
+						}
+						
+						this.data.mapSvg = text;
+						console.log('Custom map SVG uploaded');
+						return true;
+					} catch (e) {
+						console.error('Error uploading map:', e);
+						alert('Error uploading map. Please ensure it\'s a valid SVG file.');
 						return false;
 					}
 				}
@@ -817,7 +841,7 @@
 			// Load data and initialize app
 			async function initApp() {
 				await store.load();
-				mapController.render();
+				mapController.renderMap();
 			}
 
 			// Export functionality
@@ -835,6 +859,20 @@
 						alert('Data imported successfully!');
 					}
 					// Reset input so same file can be imported again
+					e.target.value = '';
+				}
+			});
+
+			// Upload Map functionality
+			document.getElementById('btn-upload-map').addEventListener('change', async (e) => {
+				const file = e.target.files[0];
+				if (file) {
+					const success = await store.uploadMapSvg(file);
+					if (success) {
+						mapController.renderMap();
+						alert('Map uploaded successfully! Don\'t forget to export your data to save the map.');
+					}
+					// Reset input so same file can be uploaded again
 					e.target.value = '';
 				}
 			});
@@ -906,6 +944,34 @@
 				updateTransform() {
 					this.locationsLayer.style.transform = 
 						`translate(${this.translateX}px, ${this.translateY}px) scale(${this.scale})`;
+				}
+
+				renderMap() {
+					// Render custom SVG map if available
+					if (store.data.mapSvg) {
+						const parser = new DOMParser();
+						const svgDoc = parser.parseFromString(store.data.mapSvg, 'image/svg+xml');
+						const customSvg = svgDoc.documentElement;
+						
+						// Preserve the locations layer
+						const locationsLayer = this.locationsLayer.cloneNode(true);
+						
+						// Replace SVG content but keep attributes
+						const viewBox = customSvg.getAttribute('viewBox') || '0 0 1000 600';
+						this.svg.setAttribute('viewBox', viewBox);
+						
+						// Clear and add custom map content
+						this.svg.innerHTML = '';
+						Array.from(customSvg.children).forEach(child => {
+							const imported = document.importNode(child, true);
+							this.svg.appendChild(imported);
+						});
+						
+						// Re-add locations layer
+						this.svg.appendChild(locationsLayer);
+						this.locationsLayer = document.getElementById('locations-layer');
+					}
+					this.render();
 				}
 
 				render() {
