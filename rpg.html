@@ -318,11 +318,8 @@
 
 		.map-location {
 			cursor: pointer;
-			transition: all 0.2s;
-			pointer-events: bounding-box;
-		}
-
-		.map-location:hover {
+	}
+	.map-location:hover {
 			filter: brightness(1.2);
 		}
 
@@ -981,25 +978,7 @@
 				zoom(factor) {
 					this.scale *= factor;
 					this.scale = Math.max(0.5, Math.min(5, this.scale));
-				
-				// Disable transitions during zoom for better performance
-				if (this.mainGroup) {
-					this.mainGroup.style.transition = 'none';
-				}
-				
-				this.updateTransform();
-				
-				// Re-enable transitions after a frame
-				if (this.mainGroup) {
-					setTimeout(() => {
-						if (this.mainGroup) {
-							this.mainGroup.style.transition = '';
-						}
-					}, 16);
-				}
-		}
-
-		resetView() {
+			this.updateTransform();
 			this.scale = 1;
 			this.translateX = 0;
 			this.translateY = 0;
@@ -1037,21 +1016,21 @@
 
 				updateTransform() {
 					if (this.mainGroup) {
-						// Use SVG transform attribute for better performance
-						const transform = `translate(${this.translateX}, ${this.translateY}) scale(${this.scale})`;
-						this.mainGroup.setAttribute('transform', transform);
-					} else {
-						// Fallback for default grid view
-						if (this.locationsLayer) {
-							const transform = `translate(${this.translateX}, ${this.translateY}) scale(${this.scale})`;
-							this.locationsLayer.setAttribute('transform', transform);
-						}
-					}
+				// Use CSS transform with translate3d for hardware acceleration
+				this.mainGroup.style.transform = 
+					`translate3d(${this.translateX}px, ${this.translateY}px, 0) scale(${this.scale})`;
+			} else {
+				// Fallback for default grid view
+				if (this.locationsLayer) {
+					this.locationsLayer.style.transform = 
+						`translate3d(${this.translateX}px, ${this.translateY}px, 0) scale(${this.scale})`;
 				}
+			}
+		}
 
-				renderMap() {
-					// Render custom map if available
-					if (store.data.mapSvg) {
+		renderMap() {
+				// Render custom map if available
+				if (store.data.mapSvg) {
 						if (store.data.mapType === 'svg') {
 							// Handle SVG maps
 							const parser = new DOMParser();
