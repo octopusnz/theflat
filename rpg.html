@@ -944,6 +944,7 @@
 				constructor() {
 					this.svg = document.getElementById('map-svg');
 					this.locationsLayer = document.getElementById('locations-layer');
+					this.mainGroup = null;
 					this.scale = 1;
 					this.translateX = 0;
 					this.translateY = 0;
@@ -1001,8 +1002,18 @@
 				}
 
 				updateTransform() {
-					this.locationsLayer.style.transform = 
-						`translate(${this.translateX}px, ${this.translateY}px) scale(${this.scale})`;
+					if (this.mainGroup) {
+						this.mainGroup.style.transform = 
+							`translate(${this.translateX}px, ${this.translateY}px) scale(${this.scale})`;
+							this.mainGroup.style.transformOrigin = '0 0';
+					} else {
+						// Fallback for default grid view
+						if (this.locationsLayer) {
+							this.locationsLayer.style.transform = 
+								`translate(${this.translateX}px, ${this.translateY}px) scale(${this.scale})`;
+							this.locationsLayer.style.transformOrigin = '0 0';
+						}
+					}
 				}
 
 				renderMap() {
@@ -1021,16 +1032,24 @@
 							// Clear existing content
 							this.svg.innerHTML = '';
 							
-							// Import all SVG content
+							// Create main group for all content (this will be transformed)
+							const mainGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+							mainGroup.setAttribute('id', 'main-group');
+							
+							// Import all SVG content into main group
 							Array.from(customSvg.children).forEach(child => {
 								const imported = document.importNode(child, true);
-								this.svg.appendChild(imported);
+								mainGroup.appendChild(imported);
 							});
 							
 							// Create and add locations layer on top
 							const locationsLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 							locationsLayer.setAttribute('id', 'locations-layer');
-							this.svg.appendChild(locationsLayer);
+							mainGroup.appendChild(locationsLayer);
+							
+							// Add main group to SVG
+							this.svg.appendChild(mainGroup);
+							this.mainGroup = mainGroup;
 							this.locationsLayer = locationsLayer;
 							
 						} else if (store.data.mapType === 'raster') {
@@ -1044,18 +1063,26 @@
 							// Clear existing content
 							this.svg.innerHTML = '';
 							
+							// Create main group for all content
+							const mainGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+							mainGroup.setAttribute('id', 'main-group');
+							
 							// Add image as background
 							const image = document.createElementNS('http://www.w3.org/2000/svg', 'image');
 							image.setAttributeNS('http://www.w3.org/1999/xlink', 'href', store.data.mapSvg);
 							image.setAttribute('width', width);
 							image.setAttribute('height', height);
 							image.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-							this.svg.appendChild(image);
+							mainGroup.appendChild(image);
 							
 							// Create and add locations layer on top
 							const locationsLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 							locationsLayer.setAttribute('id', 'locations-layer');
-							this.svg.appendChild(locationsLayer);
+							mainGroup.appendChild(locationsLayer);
+							
+							// Add main group to SVG
+							this.svg.appendChild(mainGroup);
+							this.mainGroup = mainGroup;
 							this.locationsLayer = locationsLayer;
 						}
 					}
