@@ -762,41 +762,59 @@
 
 				async loadStaticMap() {
 					try {
-						const response = await fetch('/map.svg');
-						if (response.ok) {
-							const svgText = await response.text();
-							this.data.mapSvg = svgText;
-							this.data.mapType = 'svg';
-							this.data.isStaticMap = true;
-							console.log('Static map.svg loaded');
-							return true;
-						}
-					} catch (e) {
-						console.log('Static map.svg not found, using default');
+					// Try to load PNG first (much faster for zoom/pan)
+					const pngResponse = await fetch('/map.png');
+					if (pngResponse.ok) {
+						const pngBlob = await pngResponse.blob();
+						const pngUrl = URL.createObjectURL(pngBlob);
+						this.data.mapSvg = pngUrl;
+						this.data.mapType = 'raster';
+						this.data.mapWidth = 11548;
+						this.data.mapHeight = 7724;
+						this.data.isStaticMap = true;
+						console.log('Static map.png loaded (raster, optimized for performance)');
+						return true;
 					}
-					return false;
+				} catch (e) {
+					console.log('map.png not found, trying map.svg...');
 				}
 
-				save() {
-					// Note: This doesn't save to the server automatically
-					// Users need to export and commit the JSON file
-					this.updateBadges();
-					console.log('Data updated (use Export to save changes)');
+				// Fallback to SVG
+				try {
+					const response = await fetch('/map.svg');
+					if (response.ok) {
+						const svgText = await response.text();
+						this.data.mapSvg = svgText;
+						this.data.mapType = 'svg';
+						this.data.isStaticMap = true;
+						console.log('Static map.svg loaded (vector)');
+					return true;
 				}
+			} catch (e) {
+				console.log('Static map.svg not found, using default');
+			}
+			return false;
+		}
 
-				exportData() {
-					const dataStr = JSON.stringify(this.data, null, 2);
-					const dataBlob = new Blob([dataStr], { type: 'application/json' });
-					const url = URL.createObjectURL(dataBlob);
-					const link = document.createElement('a');
-					link.href = url;
-					link.download = 'rpg-data.json';
-					document.body.appendChild(link);
-					link.click();
-					document.body.removeChild(link);
-					URL.revokeObjectURL(url);
-				}
+		save() {
+			// Note: This doesn't save to the server automatically
+			// Users need to export and commit the JSON file
+			this.updateBadges();
+			console.log('Data updated (use Export to save changes)');
+		}
 
+		exportData() {
+			const dataStr = JSON.stringify(this.data, null, 2);
+			const dataBlob = new Blob([dataStr], { type: 'application/json' });
+			const url = URL.createObjectURL(dataBlob);
+			const link = document.createElement('a');
+			link.href = url;
+			link.download = 'rpg-data.json';
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+			URL.revokeObjectURL(url);
+		}
 				async importData(file) {
 					try {
 						const text = await file.text();
