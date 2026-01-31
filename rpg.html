@@ -342,25 +342,24 @@
 		.map-location circle {
 				fill: var(--link);
 				stroke: var(--bg);
-				stroke-width: 2;
-			}
-
-			.map-location text {
-			fill: #1a1a1a;
-			font-size: 14px;
-			font-weight: 600;
-			pointer-events: none;
-			text-anchor: middle;
-			text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.8), -1px -1px 3px rgba(255, 255, 255, 0.8);
-			paint-order: stroke;
-			stroke: rgba(255, 255, 255, 0.6);
-			stroke-width: 0.5;
+			stroke-width: 15;
 		}
 
-		/* Detail Panel */
-			.detail-panel {
-				width: 400px;
-				background: var(--bg);
+		.map-location text {
+		fill: #1a1a1a;
+		font-size: 120px;
+		font-weight: 600;
+		pointer-events: none;
+		text-anchor: middle;
+		text-shadow: 3px 3px 8px rgba(255, 255, 255, 0.9), -3px -3px 8px rgba(255, 255, 255, 0.9);
+		paint-order: stroke;
+		stroke: rgba(255, 255, 255, 0.8);
+		stroke-width: 4;
+	}
+
+	.detail-panel {
+			width: 400px;
+			background: var(--bg);
 				border-left: 2px solid var(--border);
 				padding: 24px;
 				overflow-y: auto;
@@ -1234,32 +1233,34 @@ async function initApp() {
 				const x = location.x || Math.random() * 900 + 50;
 				const y = location.y || Math.random() * 500 + 50;
 				
-				const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-				g.classList.add('map-location');
-				g.setAttribute('data-id', location.id);
-				
-				const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-				circle.setAttribute('cx', x);
-				circle.setAttribute('cy', y);
-				circle.setAttribute('r', 8);
-				
-				const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-				text.setAttribute('x', x);
-				text.setAttribute('y', y - 15);
-				text.setAttribute('pointer-events', 'none');
-				text.textContent = location.name;
-				
-				g.appendChild(circle);
-				g.appendChild(text);
-				
-				g.addEventListener('click', () => {
-					showLocationDetails(location.id);
-				});
-				
-				this.locationsLayer.appendChild(g);
-			});
-		}
-	}
+			console.log('[DEBUG] Creating marker for', location.name, 'at', x, y);
+			
+			const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+			g.classList.add('map-location');
+			g.setAttribute('data-id', location.id);
+			
+			const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+			circle.setAttribute('cx', x);
+			circle.setAttribute('cy', y);
+			circle.setAttribute('r', 80); // Increased from 8 to 80 for 11548×7724 map
+			
+			const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+			text.setAttribute('x', x);
+			text.setAttribute('y', y - 120); // Increased offset from -15 to -120
+			text.setAttribute('font-size', '120'); // Added explicit font size
+		text.textContent = location.name;
+		
+		g.appendChild(circle);
+		g.appendChild(text);
+		
+		g.addEventListener('click', () => {
+			showLocationDetails(location.id);
+		});
+		
+		this.locationsLayer.appendChild(g);
+	});
+}
+}
 
 // Detail Panel Controller
 function showLocationDetails(locationId) {
