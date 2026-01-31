@@ -974,9 +974,12 @@
 					this.startX = 0;
 					this.startY = 0;
 					this.rafId = null;
+					this.transformTimeout = null;
+					this.willChangeTimeout = null;
+					this.isTransforming = false;
 
 					this.initializeEvents();
-					this.render();
+					this.renderMap();
 				}
 
 				initializeEvents() {
@@ -985,137 +988,142 @@
 					document.getElementById('btn-zoom-out').addEventListener('click', () => this.zoom(0.8));
 					document.getElementById('btn-reset-view').addEventListener('click', () => this.resetView());
 
-				// Pan controls with passive option for better scroll performance
-				this.svg.addEventListener('mousedown', (e) => this.startDrag(e));
-				this.svg.addEventListener('mousemove', (e) => this.drag(e), { passive: false });
-				if (this.transformTimeout) return;
-				
-				this.scale *= factor;
-				this.scale = Math.max(0.5, Math.min(5, this.scale));
-				this.updateTransform();
-				
-				// Throttle: wait 80ms before allowing next zoom
-				this.transformTimeout = setTimeout(() => {
-					this.transformTimeout = null;
-				}, 80);
-			}
-			resetView() {
-				this.scale = 1;
-				this.translateX = 0;
-				this.translateY = 0;
-				this.updateTransform();
-			}
-
-			startDrag(e) {
-				this.isDragging = true;
-				this.startX = e.clientX - this.translateX;
-				this.startY = e.clientY - this.translateY;
-				this.svg.style.cursor = 'grabbing';
-				e.preventDefault();
-			}
-
-			drag(e) {
-				if (!this.isDragging) return;
-				e.preventDefault();
-			
-			// Update position values immediately
-			this.translateX = e.clientX - this.startX;
-			this.translateY = e.clientY - this.startY;
-			
-			// Throttle transform updates during drag
-			this.updateTransform();
-		}
-
-		endDrag() {
-			this.isDragging = false;
-			this.svg.style.cursor = 'grab';
-		}
-
-		updateTransform() {
-			// Use RAF for smooth 60fps updates
-			if (this.rafId) {
-				cancelAnimationFrame(this.rafId);
-			}
-			
-			this.rafId = requestAnimationFrame(() => {
-				const target = this.mainGroup || this.locationsLayer;
-				if (!target) return;
-				
-				// Apply transform with no transition for instant feedback
-				target.style.transform = 
-					`translate3d(${this.translateX}px, ${this.translateY}px, 0) scale(${this.scale})`;
-				
-				// Mark as transforming and set will-change
-				if (!this.isTransforming) {
-					this.isTransforming = true;
-					target.style.willChange = 'transform';
+					// Pan controls with passive option for better scroll performance
+					this.svg.addEventListener('mousedown', (e) => this.startDrag(e));
+					this.svg.addEventListener('mousemove', (e) => this.drag(e), { passive: false });
+					document.addEventListener('mouseup', (e) => this.endDrag(e));
 				}
-				
-				// Remove will-change after transform completes to save memory
-				clearTimeout(this.willChangeTimeout);
-				this.willChangeTimeout = setTimeout(() => {
-					target.style.willChange = 'auto';
-					this.isTransforming = false;
-				}, 200);
-				
-				this.rafId = null;
-			});
-		}
 
+				zoom(factor) {
+					// Throttle zoom events to prevent rapid-fire updates
+					if (this.transformTimeout) return;
+					
+					this.scale *= factor;
+					this.scale = Math.max(0.5, Math.min(5, this.scale));
+					this.updateTransform();
+					
+					// Throttle: wait 80ms before allowing next zoom
+					this.transformTimeout = setTimeout(() => {
+						this.transformTimeout = null;
+					}, 80);
+				}
 
-	optimizeSvgForPerformance(svgElement) {
-		// Optimize SVG rendering for better zoom/pan performance
-		svgElement.setAttribute('shape-rendering', 'optimizeSpeed');
-		svgElement.setAttribute('image-rendering', 'optimizeSpeed');
-		
-		// Remove animations that slow down transforms
-		const animations = svgElement.querySelectorAll('animate, animateTransform, animateMotion');
-		animations.forEach(anim => anim.remove());
-		
-		// Log filter count for performance awareness
-		const filters = svgElement.querySelectorAll('filter');
-		if (filters.length > 5) {
-			console.log(`Performance: Found ${filters.length} filters in SVG. Consider rasterizing.`);
-		}
-		
-		// Flatten deeply nested groups (>3 levels) for better rendering
-		this.flattenDeepGroups(svgElement, 0);
-	}
+				resetView() {
+					this.scale = 1;
+					this.translateX = 0;
+					this.translateY = 0;
+					this.updateTransform();
+				}
 
-	flattenDeepGroups(element, depth) {
-		if (depth > 3) {
-			// Flatten groups that are too deeply nested
-			const groups = element.querySelectorAll('g');
-			groups.forEach(g => {
-				if (g.children.length === 1 && g.children[0].tagName === 'g') {
-					const childGroup = g.children[0];
-					while (childGroup.firstChild) {
-						g.appendChild(childGroup.firstChild);
+				startDrag(e) {
+					this.isDragging = true;
+					this.startX = e.clientX - this.translateX;
+					this.startY = e.clientY - this.translateY;
+					this.svg.style.cursor = 'grabbing';
+					e.preventDefault();
+				}
+
+				drag(e) {
+					if (!this.isDragging) return;
+					e.preventDefault();
+					
+					// Update position values immediately
+					this.translateX = e.clientX - this.startX;
+					this.translateY = e.clientY - this.startY;
+					
+					// Throttle transform updates during drag
+					this.updateTransform();
+				}
+
+				endDrag(e) {
+					this.isDragging = false;
+					this.svg.style.cursor = 'grab';
+				}
+
+				updateTransform() {
+					// Use RAF for smooth 60fps updates
+					if (this.rafId) {
+						cancelAnimationFrame(this.rafId);
 					}
-					childGroup.remove();
+					
+					this.rafId = requestAnimationFrame(() => {
+						const target = this.mainGroup || this.locationsLayer;
+						if (!target) return;
+						
+						// Apply transform with no transition for instant feedback
+						target.style.transform = 
+							`translate3d(${this.translateX}px, ${this.translateY}px, 0) scale(${this.scale})`;
+						
+						// Mark as transforming and set will-change
+						if (!this.isTransforming) {
+							this.isTransforming = true;
+							target.style.willChange = 'transform';
+						}
+						
+						// Remove will-change after transform completes to save memory
+						clearTimeout(this.willChangeTimeout);
+						this.willChangeTimeout = setTimeout(() => {
+							target.style.willChange = 'auto';
+							this.isTransforming = false;
+						}, 200);
+						
+						this.rafId = null;
+					});
 				}
-			});
-			return;
-		}
-		
-		Array.from(element.children).forEach(child => {
-			if (child.tagName === 'g') {
-				this.flattenDeepGroups(child, depth + 1);
-			}
-		});
-	}
 
-		renderMap() {
-			// Render custom map if available
-			if (store.data.mapSvg) {
-				if (store.data.mapType === 'svg') {
+				optimizeSvgForPerformance(svgElement) {
+					// Optimize SVG rendering for better zoom/pan performance
+					svgElement.setAttribute('shape-rendering', 'optimizeSpeed');
+					svgElement.setAttribute('image-rendering', 'optimizeSpeed');
+					
+					// Remove animations that slow down transforms
+					const animations = svgElement.querySelectorAll('animate, animateTransform, animateMotion');
+					animations.forEach(anim => anim.remove());
+					
+					// Log filter count for performance awareness
+					const filters = svgElement.querySelectorAll('filter');
+					if (filters.length > 5) {
+						console.log(`Performance: Found ${filters.length} filters in SVG. Consider rasterizing.`);
+					}
+					
+					// Flatten deeply nested groups (>3 levels) for better rendering
+					this.flattenDeepGroups(svgElement, 0);
+				}
+
+				flattenDeepGroups(element, depth) {
+					if (depth > 3) {
+						// Flatten groups that are too deeply nested
+						const groups = element.querySelectorAll('g');
+						groups.forEach(g => {
+							if (g.children.length === 1 && g.children[0].tagName === 'g') {
+								const childGroup = g.children[0];
+								while (childGroup.firstChild) {
+									g.appendChild(childGroup.firstChild);
+								}
+								childGroup.remove();
+							}
+						});
+						return;
+					}
+					
+					Array.from(element.children).forEach(child => {
+						if (child.tagName === 'g') {
+							this.flattenDeepGroups(child, depth + 1);
+						}
+					});
+				}
+
+				renderMap() {
+					// Render custom map if available
+					if (store.data.mapSvg) {
+						if (store.data.mapType === 'svg') {
 							const parser = new DOMParser();
 							const svgDoc = parser.parseFromString(store.data.mapSvg, 'image/svg+xml');
 							const customSvg = svgDoc.documentElement;
 							
-						// Optimize SVG for performance
-						this.optimizeSvgForPerformance(customSvg);
-						
+							// Optimize SVG for performance
+							this.optimizeSvgForPerformance(customSvg);
+							
 							const mainGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 							mainGroup.setAttribute('id', 'main-group');
 							
@@ -1162,51 +1170,52 @@
 							const locationsLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 							locationsLayer.setAttribute('id', 'locations-layer');
 							mainGroup.appendChild(locationsLayer);
-					// Add main group to SVG
-					this.svg.appendChild(mainGroup);
-					this.mainGroup = mainGroup;
-					this.locationsLayer = locationsLayer;
+							
+							// Add main group to SVG
+							this.svg.appendChild(mainGroup);
+							this.mainGroup = mainGroup;
+							this.locationsLayer = locationsLayer;
+						}
+					}
+					this.render();
+				}
+
+				render() {
+					if (!this.locationsLayer) return;
+					
+					this.locationsLayer.innerHTML = '';
+					const locations = store.getAll('locations');
+					
+					locations.forEach(location => {
+						const x = location.x || Math.random() * 900 + 50;
+						const y = location.y || Math.random() * 500 + 50;
+						
+						const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+						g.classList.add('map-location');
+						g.setAttribute('data-id', location.id);
+						
+						const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+						circle.setAttribute('cx', x);
+						circle.setAttribute('cy', y);
+						circle.setAttribute('r', 8);
+						
+						const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+						text.setAttribute('x', x);
+						text.setAttribute('y', y - 15);
+						text.setAttribute('pointer-events', 'none');
+						text.textContent = location.name;
+						
+						g.appendChild(circle);
+						g.appendChild(text);
+						
+						g.addEventListener('click', () => {
+							showLocationDetails(location.id);
+						});
+						
+						this.locationsLayer.appendChild(g);
+					});
 				}
 			}
-			this.render();
-		}
-
-		render() {
-			if (!this.locationsLayer) return;
-			
-			this.locationsLayer.innerHTML = '';
-			const locations = store.getAll('locations');
-			
-			locations.forEach(location => {
-				const x = location.x || Math.random() * 900 + 50;
-				const y = location.y || Math.random() * 500 + 50;
-				
-				const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-				g.classList.add('map-location');
-				g.setAttribute('data-id', location.id);
-				
-				const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-				circle.setAttribute('cx', x);
-				circle.setAttribute('cy', y);
-				circle.setAttribute('r', 8);
-				
-				const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-				text.setAttribute('x', x);
-				text.setAttribute('y', y - 15);
-				text.setAttribute('pointer-events', 'none');
-				text.textContent = location.name;
-				
-				g.appendChild(circle);
-				g.appendChild(text);
-				
-				g.addEventListener('click', () => {
-					showLocationDetails(location.id);
-				});
-				
-				this.locationsLayer.appendChild(g);
-			});
-		}
-	}
 
 	// Detail Panel Controller
 	function showLocationDetails(locationId) {
