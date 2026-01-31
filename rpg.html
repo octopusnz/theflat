@@ -709,6 +709,12 @@
 							this.loaded = true;
 							this.updateBadges();
 							console.log('Data loaded from JSON file');
+							
+							// Load static map if no custom map is set
+							if (!this.data.mapSvg) {
+								await this.loadStaticMap();
+							}
+							
 							return true;
 						}
 					} catch (e) {
@@ -725,6 +731,27 @@
 					};
 					this.loaded = true;
 					this.updateBadges();
+					
+					// Load static map
+					await this.loadStaticMap();
+					
+					return false;
+				}
+
+				async loadStaticMap() {
+					try {
+						const response = await fetch('/map.svg');
+						if (response.ok) {
+							const svgText = await response.text();
+							this.data.mapSvg = svgText;
+							this.data.mapType = 'svg';
+							this.data.isStaticMap = true;
+							console.log('Static map.svg loaded');
+							return true;
+						}
+					} catch (e) {
+						console.log('Static map.svg not found, using default');
+					}
 					return false;
 				}
 
@@ -781,6 +808,7 @@
 							
 							this.data.mapSvg = text;
 							this.data.mapType = 'svg';
+							this.data.isStaticMap = false;
 							console.log('Custom SVG map uploaded');
 						} else if (file.type.startsWith('image/')) {
 							// Handle raster images (JPG, PNG, etc.)
@@ -792,6 +820,7 @@
 									img.onload = () => {
 										this.data.mapSvg = e.target.result; // Store as data URL
 										this.data.mapType = 'raster';
+										this.data.isStaticMap = false;
 										this.data.mapWidth = img.width;
 										this.data.mapHeight = img.height;
 										console.log(`Custom raster map uploaded: ${img.width}x${img.height}`);
@@ -985,23 +1014,25 @@
 							const svgDoc = parser.parseFromString(store.data.mapSvg, 'image/svg+xml');
 							const customSvg = svgDoc.documentElement;
 							
-							// Preserve the locations layer
-							const locationsLayer = this.locationsLayer.cloneNode(true);
-							
-							// Replace SVG content but keep attributes
+							// Get viewBox from custom SVG
 							const viewBox = customSvg.getAttribute('viewBox') || '0 0 1000 600';
 							this.svg.setAttribute('viewBox', viewBox);
 							
-							// Clear and add custom map content
+							// Clear existing content
 							this.svg.innerHTML = '';
+							
+							// Import all SVG content
 							Array.from(customSvg.children).forEach(child => {
 								const imported = document.importNode(child, true);
 								this.svg.appendChild(imported);
 							});
 							
-							// Re-add locations layer
+							// Create and add locations layer on top
+							const locationsLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+							locationsLayer.setAttribute('id', 'locations-layer');
 							this.svg.appendChild(locationsLayer);
-							this.locationsLayer = document.getElementById('locations-layer');
+							this.locationsLayer = locationsLayer;
+							
 						} else if (store.data.mapType === 'raster') {
 							// Handle raster images (JPG, PNG, etc.)
 							const width = store.data.mapWidth || 1000;
@@ -1010,9 +1041,10 @@
 							// Update viewBox to match image dimensions
 							this.svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
 							
-							// Clear and add image background
+							// Clear existing content
 							this.svg.innerHTML = '';
 							
+							// Add image as background
 							const image = document.createElementNS('http://www.w3.org/2000/svg', 'image');
 							image.setAttributeNS('http://www.w3.org/1999/xlink', 'href', store.data.mapSvg);
 							image.setAttribute('width', width);
@@ -1020,7 +1052,7 @@
 							image.setAttribute('preserveAspectRatio', 'xMidYMid meet');
 							this.svg.appendChild(image);
 							
-							// Re-add locations layer
+							// Create and add locations layer on top
 							const locationsLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 							locationsLayer.setAttribute('id', 'locations-layer');
 							this.svg.appendChild(locationsLayer);
