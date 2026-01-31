@@ -792,104 +792,102 @@
 						this.data.mapType = 'svg';
 						this.data.isStaticMap = true;
 						console.log('Static map.svg loaded (vector)');
-					return true;
+						return true;
+					}
+				} catch (e) {
+					console.log('Static map.svg not found, using default');
 				}
-			} catch (e) {
-				console.log('Static map.svg not found, using default');
+				return false;
 			}
-			return false;
-		}
 
-		save() {
-			// Note: This doesn't save to the server automatically
-			// Users need to export and commit the JSON file
-			this.updateBadges();
-			console.log('Data updated (use Export to save changes)');
-		}
+	save() {
+		// Note: This doesn't save to the server automatically
+		// Users need to export and commit the JSON file
+		this.updateBadges();
+		console.log('Data updated (use Export to save changes)');
+	}
 
-		exportData() {
-			const dataStr = JSON.stringify(this.data, null, 2);
-			const dataBlob = new Blob([dataStr], { type: 'application/json' });
-			const url = URL.createObjectURL(dataBlob);
-			const link = document.createElement('a');
-			link.href = url;
-			link.download = 'rpg-data.json';
-			document.body.appendChild(link);
-			link.click();
-			document.body.removeChild(link);
+	exportData() {
+		const dataStr = JSON.stringify(this.data, null, 2);
+		const dataBlob = new Blob([dataStr], { type: 'application/json' });
+		const url = URL.createObjectURL(dataBlob);
+		const link = document.createElement('a');
+		link.href = url;
+		link.download = 'rpg-data.json';
+		document.body.appendChild(link);
 			URL.revokeObjectURL(url);
 		}
-				async importData(file) {
-					try {
-						const text = await file.text();
-						const imported = JSON.parse(text);
-						
-						// Validate structure
-						if (imported.locations && imported.npcs && imported.items && imported.events) {
-							this.data = imported;
-							this.updateBadges();
-							return true;
-						} else {
-							throw new Error('Invalid data structure');
-						}
-					} catch (e) {
-						console.error('Error importing data:', e);
-						alert('Error importing file. Please ensure it\'s a valid rpg-data.json file.');
-						return false;
-					}
-				}
 
-				async uploadMapSvg(file) {
-					try {
-						// Check if it's an SVG or raster image
-						if (file.type === 'image/svg+xml' || file.name.endsWith('.svg')) {
-							// Handle SVG
-							const text = await file.text();
-							
-							if (!text.trim().startsWith('<svg') && !text.trim().startsWith('<?xml')) {
-								throw new Error('File does not appear to be a valid SVG');
-							}
-							
-							this.data.mapSvg = text;
-							this.data.mapType = 'svg';
+	async importData(file) {
+		try {
+			const text = await file.text();
+			const imported = JSON.parse(text);
+			
+			// Validate structure
+			if (imported.locations && imported.npcs && imported.items && imported.events) {
+				this.data = imported;
+				this.updateBadges();
+				return true;
+			} else {
+				throw new Error('Invalid data structure');
+			}
+		} catch (e) {
+			console.error('Error importing data:', e);
+			alert('Error importing file. Please ensure it\'s a valid rpg-data.json file.');
+			return false;
+		}
+	}
+
+	async uploadMapSvg(file) {
+		try {
+			// Check if it's an SVG or raster image
+			if (file.type === 'image/svg+xml' || file.name.endsWith('.svg')) {
+				// Handle SVG
+				const text = await file.text();
+				
+				if (!text.trim().startsWith('<svg') && !text.trim().startsWith('<?xml')) {
+					throw new Error('File does not appear to be a valid SVG');
+				}
+				
+				this.data.mapSvg = text;
+				this.data.mapType = 'svg';
+				this.data.isStaticMap = false;
+				console.log('Custom SVG map uploaded');
+			} else if (file.type.startsWith('image/')) {
+				// Handle raster images (JPG, PNG, etc.)
+				const reader = new FileReader();
+				
+				return new Promise((resolve, reject) => {
+					reader.onload = (e) => {
+						const img = new Image();
+						img.onload = () => {
+							this.data.mapSvg = e.target.result; // Store as data URL
+							this.data.mapType = 'raster';
 							this.data.isStaticMap = false;
-							console.log('Custom SVG map uploaded');
-						} else if (file.type.startsWith('image/')) {
-							// Handle raster images (JPG, PNG, etc.)
-							const reader = new FileReader();
-							
-							return new Promise((resolve, reject) => {
-								reader.onload = (e) => {
-									const img = new Image();
-									img.onload = () => {
-										this.data.mapSvg = e.target.result; // Store as data URL
-										this.data.mapType = 'raster';
-										this.data.isStaticMap = false;
-										this.data.mapWidth = img.width;
-										this.data.mapHeight = img.height;
-										console.log(`Custom raster map uploaded: ${img.width}x${img.height}`);
-										resolve(true);
-									};
-									img.onerror = () => {
-										reject(new Error('Failed to load image'));
-									};
-									img.src = e.target.result;
-								};
-								reader.onerror = () => reject(new Error('Failed to read file'));
-								reader.readAsDataURL(file);
-							});
-						} else {
-							throw new Error('Unsupported file type');
-						}
-						
-						return true;
-					} catch (e) {
-						console.error('Error uploading map:', e);
-						alert('Error uploading map. Please ensure it\'s a valid image file.');
-						return false;
-					}
-				}
-
+							this.data.mapWidth = img.width;
+							this.data.mapHeight = img.height;
+							console.log(`Custom raster map uploaded: ${img.width}x${img.height}`);
+							resolve(true);
+						};
+						img.onerror = () => {
+							reject(new Error('Failed to load image'));
+						};
+						img.src = e.target.result;
+					};
+					reader.onerror = () => reject(new Error('Failed to read file'));
+					reader.readAsDataURL(file);
+				});
+			} else {
+				throw new Error('Unsupported file type');
+			}
+			
+			return true;
+		} catch (e) {
+			console.error('Error uploading map:', e);
+			alert('Error uploading map. Please ensure it\'s a valid image file.');
+			return false;
+		}
+	}
 				add(type, item) {
 					if (!this.data[type]) {
 						this.data[type] = [];
