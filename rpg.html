@@ -734,7 +734,6 @@
 							this.data = await response.json();
 							this.loaded = true;
 							this.updateBadges();
-							console.log('Data loaded from JSON file');
 							
 							// Load static map if no custom map is set
 							if (!this.data.mapSvg) {
@@ -765,129 +764,127 @@
 				}
 
 				async loadStaticMap() {
+					// Try to load PNG first
 					try {
-					// Try to load PNG first (much faster for zoom/pan)
-					const pngResponse = await fetch('/map.png');
-					if (pngResponse.ok) {
-						const pngBlob = await pngResponse.blob();
-						const pngUrl = URL.createObjectURL(pngBlob);
-						this.data.mapSvg = pngUrl;
-						this.data.mapType = 'raster';
-						this.data.mapWidth = 11548;
-						this.data.mapHeight = 7724;
-						this.data.isStaticMap = true;
-						console.log('Static map.png loaded (raster, optimized for performance)');
-						return true;
-					}
-				} catch (e) {
-					console.log('map.png not found, trying map.svg...');
-				}
-
-				// Fallback to SVG
-				try {
-					const response = await fetch('/map.svg');
-					if (response.ok) {
-						const svgText = await response.text();
-						this.data.mapSvg = svgText;
-						this.data.mapType = 'svg';
-						this.data.isStaticMap = true;
-						console.log('Static map.svg loaded (vector)');
-						return true;
-					}
-				} catch (e) {
-					console.log('Static map.svg not found, using default');
-				}
-				return false;
-			}
-
-	save() {
-		// Note: This doesn't save to the server automatically
-		// Users need to export and commit the JSON file
-		this.updateBadges();
-		console.log('Data updated (use Export to save changes)');
-	}
-
-	exportData() {
-		const dataStr = JSON.stringify(this.data, null, 2);
-		const dataBlob = new Blob([dataStr], { type: 'application/json' });
-		const url = URL.createObjectURL(dataBlob);
-		const link = document.createElement('a');
-		link.href = url;
-		link.download = 'rpg-data.json';
-		document.body.appendChild(link);
-			URL.revokeObjectURL(url);
-		}
-
-	async importData(file) {
-		try {
-			const text = await file.text();
-			const imported = JSON.parse(text);
-			
-			// Validate structure
-			if (imported.locations && imported.npcs && imported.items && imported.events) {
-				this.data = imported;
-				this.updateBadges();
-				return true;
-			} else {
-				throw new Error('Invalid data structure');
-			}
-		} catch (e) {
-			console.error('Error importing data:', e);
-			alert('Error importing file. Please ensure it\'s a valid rpg-data.json file.');
-			return false;
-		}
-	}
-
-	async uploadMapSvg(file) {
-		try {
-			// Check if it's an SVG or raster image
-			if (file.type === 'image/svg+xml' || file.name.endsWith('.svg')) {
-				// Handle SVG
-				const text = await file.text();
-				
-				if (!text.trim().startsWith('<svg') && !text.trim().startsWith('<?xml')) {
-					throw new Error('File does not appear to be a valid SVG');
-				}
-				
-				this.data.mapSvg = text;
-				this.data.mapType = 'svg';
-				this.data.isStaticMap = false;
-				console.log('Custom SVG map uploaded');
-			} else if (file.type.startsWith('image/')) {
-				// Handle raster images (JPG, PNG, etc.)
-				const reader = new FileReader();
-				
-				return new Promise((resolve, reject) => {
-					reader.onload = (e) => {
-						const img = new Image();
-						img.onload = () => {
-							this.data.mapSvg = e.target.result; // Store as data URL
+						const response = await fetch('/map.png');
+						if (response.ok) {
+							const pngBlob = await response.blob();
+							const pngUrl = URL.createObjectURL(pngBlob);
+							this.data.mapSvg = pngUrl;
 							this.data.mapType = 'raster';
+							this.data.mapWidth = 11548;
+							this.data.mapHeight = 7724;
+							this.data.isStaticMap = true;
+							return true;
+						}
+					} catch (e) {
+						// PNG not found, try SVG
+					}
+
+					// Fallback to SVG
+					try {
+						const response = await fetch('/map.svg');
+						if (response.ok) {
+							const svgText = await response.text();
+							this.data.mapSvg = svgText;
+							this.data.mapType = 'svg';
+							this.data.isStaticMap = true;
+							return true;
+						}
+					} catch (e) {
+						// SVG not found, will use default grid
+					}
+					return false;
+				}
+
+				save() {
+					// Note: This doesn't save to the server automatically
+					// Users need to export and commit the JSON file
+					this.updateBadges();
+				}
+
+				exportData() {
+					const dataStr = JSON.stringify(this.data, null, 2);
+					const dataBlob = new Blob([dataStr], { type: 'application/json' });
+					const url = URL.createObjectURL(dataBlob);
+					const link = document.createElement('a');
+					link.href = url;
+					link.download = 'rpg-data.json';
+					document.body.appendChild(link);
+					link.click();
+					document.body.removeChild(link);
+					URL.revokeObjectURL(url);
+				}
+
+				async importData(file) {
+					try {
+						const text = await file.text();
+						const imported = JSON.parse(text);
+						
+						// Validate structure
+						if (imported.locations && imported.npcs && imported.items && imported.events) {
+							this.data = imported;
+							this.updateBadges();
+							return true;
+						} else {
+							throw new Error('Invalid data structure');
+						}
+					} catch (e) {
+						console.error('Error importing data:', e);
+						alert('Error importing file. Please ensure it\'s a valid rpg-data.json file.');
+						return false;
+					}
+				}
+
+				async uploadMapSvg(file) {
+					try {
+						// Check if it's an SVG or raster image
+						if (file.type === 'image/svg+xml' || file.name.endsWith('.svg')) {
+							// Handle SVG
+							const text = await file.text();
+							
+							if (!text.trim().startsWith('<svg') && !text.trim().startsWith('<?xml')) {
+								throw new Error('File does not appear to be a valid SVG');
+							}
+							
+							this.data.mapSvg = text;
+							this.data.mapType = 'svg';
 							this.data.isStaticMap = false;
-							this.data.mapWidth = img.width;
-							this.data.mapHeight = img.height;
-							console.log(`Custom raster map uploaded: ${img.width}x${img.height}`);
-							resolve(true);
-						};
-						img.onerror = () => {
-							reject(new Error('Failed to load image'));
-						};
-						img.src = e.target.result;
-					};
-					reader.onerror = () => reject(new Error('Failed to read file'));
-					reader.readAsDataURL(file);
-				});
-			} else {
-				throw new Error('Unsupported file type');
-			}
-			
-			return true;
-		} catch (e) {
-			console.error('Error uploading map:', e);
-			alert('Error uploading map. Please ensure it\'s a valid image file.');
-			return false;
-		}
-	}
+						} else if (file.type.startsWith('image/')) {
+							// Handle raster images (JPG, PNG, etc.)
+							const reader = new FileReader();
+							
+							return new Promise((resolve, reject) => {
+								reader.onload = (e) => {
+									const img = new Image();
+									img.onload = () => {
+										this.data.mapSvg = e.target.result; // Store as data URL
+										this.data.mapType = 'raster';
+										this.data.isStaticMap = false;
+										this.data.mapWidth = img.width;
+										this.data.mapHeight = img.height;
+										resolve(true);
+									};
+									img.onerror = () => {
+										reject(new Error('Failed to load image'));
+									};
+									img.src = e.target.result;
+								};
+								reader.onerror = () => reject(new Error('Failed to read file'));
+								reader.readAsDataURL(file);
+							});
+						} else {
+							throw new Error('Unsupported file type');
+						}
+						
+						return true;
+					} catch (e) {
+						console.error('Error uploading map:', e);
+						alert('Error uploading map. Please ensure it\'s a valid image file.');
+						return false;
+					}
+				}
+
 				add(type, item) {
 					if (!this.data[type]) {
 						this.data[type] = [];
@@ -934,49 +931,48 @@
 					document.getElementById('badge-events').textContent = this.data.events.length;
 					
 					const total = this.data.locations.length + this.data.npcs.length + 
-					              this.data.items.length + this.data.events.length;
+						              this.data.items.length + this.data.events.length;
 					document.getElementById('badge-all').textContent = total;
 				}
 			}
-			
-			// Load data and initialize app
-			async function initApp() {
-				await store.load();
-				mapController.renderMap();
-			}
+// Load data and initialize app
+async function initApp() {
+	await store.load();
+	mapController.renderMap();
+}
 
-			// Export functionality
-			document.getElementById('btn-export').addEventListener('click', () => {
-				store.exportData();
-			});
+// Export functionality
+document.getElementById('btn-export').addEventListener('click', () => {
+	store.exportData();
+});
 
-			// Import functionality
-			document.getElementById('btn-import').addEventListener('change', async (e) => {
-				const file = e.target.files[0];
-				if (file) {
-					const success = await store.importData(file);
-					if (success) {
-						mapController.render();
-						alert('Data imported successfully!');
-					}
-					// Reset input so same file can be imported again
-					e.target.value = '';
-				}
-			});
+// Import functionality
+document.getElementById('btn-import').addEventListener('change', async (e) => {
+	const file = e.target.files[0];
+	if (file) {
+		const success = await store.importData(file);
+		if (success) {
+			mapController.render();
+			alert('Data imported successfully!');
+		}
+		// Reset input so same file can be imported again
+		e.target.value = '';
+	}
+});
 
-			// Upload Map functionality
-			document.getElementById('btn-upload-map').addEventListener('change', async (e) => {
-				const file = e.target.files[0];
-				if (file) {
-					const success = await store.uploadMapSvg(file);
-					if (success) {
-						mapController.renderMap();
-						alert('Map uploaded successfully! Don\'t forget to export your data to save the map.');
-					}
-					// Reset input so same file can be uploaded again
-					e.target.value = '';
-				}
-			});
+// Upload Map functionality
+document.getElementById('btn-upload-map').addEventListener('change', async (e) => {
+	const file = e.target.files[0];
+	if (file) {
+		const success = await store.uploadMapSvg(file);
+		if (success) {
+			mapController.renderMap();
+			alert('Map uploaded successfully! Don\'t forget to export your data to save the map.');
+		}
+		// Reset input so same file can be uploaded again
+		e.target.value = '';
+	}
+});
 
 			// Initialize data store
 			const store = new DataStore();
@@ -1101,12 +1097,7 @@
 					animations.forEach(anim => anim.remove());
 					
 					// Log filter count for performance awareness
-					const filters = svgElement.querySelectorAll('filter');
-					if (filters.length > 5) {
-						console.log(`Performance: Found ${filters.length} filters in SVG. Consider rasterizing.`);
-					}
-					
-					// Flatten deeply nested groups (>3 levels) for better rendering
+// Flatten deeply nested groups (>3 levels) for better rendering
 					this.flattenDeepGroups(svgElement, 0);
 				}
 
@@ -1289,106 +1280,108 @@
 // Detail Panel Controller
 function showLocationDetails(locationId) {
 	const location = store.get('locations', locationId);
+	const panel = document.getElementById('detail-panel');
+	const title = document.getElementById('detail-title');
+	const content = document.getElementById('detail-content');
+
+	title.textContent = location.name;
+
+	// Get related NPCs and items
+	const relatedNPCs = store.getAll('npcs').filter(npc => npc.locationId === locationId);
+	const relatedItems = store.getAll('items').filter(item => item.locationId === locationId);
+	
+	let html = '<div class="detail-section">';
+	html += '<h3>Description</h3>';
+	html += '<p>' + (location.description || 'No description available.') + '</p>';
+	html += '</div>';
+	
+	if (location.history) {
+		html += '<div class="detail-section">';
+		html += '<h3>History</h3>';
+		html += '<p>' + location.history + '</p>';
+		html += '</div>';
+	}
+	
+	if (relatedNPCs.length > 0) {
+		html += '<div class="detail-section">';
+		html += '<h3>NPCs</h3>';
+		html += '<ul class="npc-list">';
+		relatedNPCs.forEach(npc => {
+			html += '<li class="npc-item">';
+			html += '<div class="npc-name">' + npc.name + '</div>';
+			html += '<div class="npc-role">' + (npc.role || 'Unknown role') + '</div>';
+			html += '</li>';
+		});
+		html += '</ul>';
+		html += '</div>';
+	}
+	
+	if (relatedItems.length > 0) {
+		html += '<div class="detail-section">';
+		html += '<h3>Items</h3>';
+		html += '<ul class="item-list">';
+		relatedItems.forEach(item => {
+			html += '<li class="item-item">';
+			html += '<div class="item-name">' + item.name + '</div>';
+			html += '<div class="item-type">' + (item.type || 'Unknown type') + '</div>';
+			html += '</li>';
+		});
+		html += '</ul>';
+		html += '</div>';
+	}
+	
+	content.innerHTML = html;
+	panel.classList.remove('hidden');
+}
+
+function hideDetailPanel() {
+		document.getElementById('detail-panel').classList.add('hidden');
+	}
+	function showCategoryList(category) {
+		const panel = document.getElementById('detail-panel');
 		const title = document.getElementById('detail-title');
 		const content = document.getElementById('detail-content');
 
-		title.textContent = location.name;
+		let categoryName = category.charAt(0).toUpperCase() + category.slice(1, -1);
+		let items = store.getAll(category);
 
-		// Get related NPCs and items
-		const relatedNPCs = store.getAll('npcs').filter(npc => npc.locationId === locationId);
-		const relatedItems = store.getAll('items').filter(item => item.locationId === locationId);
-				content.innerHTML = `
-					<div class="detail-section">
-						<h3>Description</h3>
-						<p>${location.description || 'No description available.'}</p>
-					</div>
-					${location.history ? `
-					<div class="detail-section">
-						<h3>History</h3>
-						<p>${location.history}</p>
-					</div>
-					` : ''}
-					${relatedNPCs.length > 0 ? `
-					<div class="detail-section">
-						<h3>NPCs</h3>
-						<ul class="npc-list">
-							${relatedNPCs.map(npc => `
-								<li class="npc-item">
-									<div class="npc-name">${npc.name}</div>
-									<div class="npc-role">${npc.role || 'Unknown role'}</div>
-								</li>
-							`).join('')}
-						</ul>
-					</div>
-					` : ''}
-					${relatedItems.length > 0 ? `
-					<div class="detail-section">
-						<h3>Items</h3>
-						<ul class="item-list">
-							${relatedItems.map(item => `
-								<li class="item-item">
-									<div class="item-name">${item.name}</div>
-									<div class="item-type">${item.type || 'Unknown type'}</div>
-								</li>
-							`).join('')}
-						</ul>
-					</div>
-					` : ''}
-		`;
+		title.textContent = categoryName;
+
+		if (items.length === 0) {
+			content.innerHTML = '<div class="empty-state"><p>No ' + category + ' yet. Click + Add New to create one.</p></div>';
+			panel.classList.remove('hidden');
+			return;
+		}
+
+		const itemsHTML = items.map(item => {
+			let html = '<div class="item-list-entry" data-id="' + item.id + '" style="padding: 12px; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; margin-bottom: 8px; transition: all 0.2s;">';
+			html += '<div style="font-weight: 600; color: var(--link);">' + item.name + '</div>';
+			if (item.role) html += '<div style="font-size: 0.9em; color: var(--muted-fg);">' + item.role + '</div>';
+			if (item.type) html += '<div style="font-size: 0.9em; color: var(--muted-fg);">' + item.type + '</div>';
+			if (item.date) html += '<div style="font-size: 0.9em; color: var(--muted-fg);">' + item.date + '</div>';
+			html += '</div>';
+			return html;
+		}).join('');
+
+		content.innerHTML = '<div class="item-list-container">' + itemsHTML + '</div>';
+		content.querySelectorAll('.item-list-entry').forEach(entry => {
+			entry.addEventListener('mouseover', function() {
+				this.style.backgroundColor = 'var(--hover)';
+				this.style.borderColor = 'var(--link)';
+			});
+			entry.addEventListener('mouseout', function() {
+				this.style.backgroundColor = 'transparent';
+				this.style.borderColor = 'var(--border)';
+			});
+			
+			entry.addEventListener('click', () => {
+				const itemId = parseInt(entry.dataset.id);
+				showItemDetails(category, itemId);
+			});
+		});
 
 		panel.classList.remove('hidden');
 	}
-
-	function hideDetailPanel() {
-		document.getElementById('detail-panel').classList.add('hidden');
-	}
-			function showCategoryList(category) {
-				const panel = document.getElementById('detail-panel');
-				const title = document.getElementById('detail-title');
-				const content = document.getElementById('detail-content');
-
-				let categoryName = category.charAt(0).toUpperCase() + category.slice(1, -1);
-				let items = store.getAll(category);
-
-				title.textContent = categoryName;
-
-				if (items.length === 0) {
-					content.innerHTML = `<div class="empty-state"><p>No ${category} yet. Click + Add New to create one.</p></div>`;
-					panel.classList.remove('hidden');
-					return;
-				}
-
-				content.innerHTML = `
-					<div class="item-list-container">
-						${items.map(item => `
-							<div class="item-list-entry" data-id="${item.id}" style="padding: 12px; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; margin-bottom: 8px; transition: all 0.2s;">
-								<div style="font-weight: 600; color: var(--link);">${item.name}</div>
-								${item.role ? `<div style="font-size: 0.9em; color: var(--muted-fg);">${item.role}</div>` : ''}
-								${item.type ? `<div style="font-size: 0.9em; color: var(--muted-fg);">${item.type}</div>` : ''}
-								${item.date ? `<div style="font-size: 0.9em; color: var(--muted-fg);">${item.date}</div>` : ''}
-							</div>
-						`).join('')}
-					</div>
-				`;
-
-				content.querySelectorAll('.item-list-entry').forEach(entry => {
-					entry.addEventListener('mouseover', function() {
-						this.style.backgroundColor = 'var(--hover)';
-						this.style.borderColor = 'var(--link)';
-					});
-					entry.addEventListener('mouseout', function() {
-						this.style.backgroundColor = 'transparent';
-						this.style.borderColor = 'var(--border)';
-					});
-					
-					entry.addEventListener('click', () => {
-						const itemId = parseInt(entry.dataset.id);
-						showItemDetails(category, itemId);
-					});
-				});
-
-				panel.classList.remove('hidden');
-			}
 
 			function showItemDetails(category, itemId) {
 				const panel = document.getElementById('detail-panel');
@@ -1400,230 +1393,231 @@ function showLocationDetails(locationId) {
 
 				title.textContent = item.name;
 
-				let detailsHTML = `<div class="detail-section">`;
+			let detailsHTML = '<div class="detail-section">';
 
-				if (category === 'locations') {
-					if (item.description) detailsHTML += `<div style="margin-bottom: 12px;"><h3>Description</h3><p>${item.description}</p></div>`;
-					if (item.history) detailsHTML += `<div style="margin-bottom: 12px;"><h3>History</h3><p>${item.history}</p></div>`;
+			if (category === 'locations') {
+				if (item.description) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Description</h3><p>' + item.description + '</p></div>';
+				if (item.history) detailsHTML += '<div style="margin-bottom: 12px;"><h3>History</h3><p>' + item.history + '</p></div>';
 
-					const relatedNPCs = store.getAll('npcs').filter(npc => npc.locationId === itemId);
-					if (relatedNPCs.length > 0) {
-						detailsHTML += `<div style="margin-bottom: 12px;"><h3>NPCs Here</h3><ul>`;
-						relatedNPCs.forEach(npc => {
-							detailsHTML += `<li>${npc.name}${npc.role ? ` - ${npc.role}` : ''}</li>`;
-						});
-						detailsHTML += `</ul></div>`;
-					}
-
-					const relatedItems = store.getAll('items').filter(itm => itm.locationId === itemId);
-					if (relatedItems.length > 0) {
-						detailsHTML += `<div style="margin-bottom: 12px;"><h3>Items Here</h3><ul>`;
-						relatedItems.forEach(itm => {
-							detailsHTML += `<li>${itm.name}${itm.type ? ` (${itm.type})` : ''}</li>`;
-						});
-						detailsHTML += `</ul></div>`;
-					}
-				} else if (category === 'npcs') {
-					if (item.role) detailsHTML += `<div style="margin-bottom: 12px;"><h3>Role/Title</h3><p>${item.role}</p></div>`;
-					if (item.description) detailsHTML += `<div style="margin-bottom: 12px;"><h3>Description</h3><p>${item.description}</p></div>`;
-					if (item.locationId) {
-						const location = store.get('locations', item.locationId);
-						if (location) detailsHTML += `<div style="margin-bottom: 12px;"><h3>Location</h3><p>${location.name}</p></div>`;
-					}
-				} else if (category === 'items') {
-					if (item.type) detailsHTML += `<div style="margin-bottom: 12px;"><h3>Type</h3><p>${item.type}</p></div>`;
-					if (item.description) detailsHTML += `<div style="margin-bottom: 12px;"><h3>Description</h3><p>${item.description}</p></div>`;
-					if (item.locationId) {
-						const location = store.get('locations', item.locationId);
-						if (location) detailsHTML += `<div style="margin-bottom: 12px;"><h3>Found At</h3><p>${location.name}</p></div>`;
-					}
-				} else if (category === 'events') {
-					if (item.date) detailsHTML += `<div style="margin-bottom: 12px;"><h3>Date/Time</h3><p>${item.date}</p></div>`;
-					if (item.description) detailsHTML += `<div style="margin-bottom: 12px;"><h3>Description</h3><p>${item.description}</p></div>`;
-					if (item.locationId) {
-						const location = store.get('locations', item.locationId);
-						if (location) detailsHTML += `<div style="margin-bottom: 12px;"><h3>Location</h3><p>${location.name}</p></div>`;
-					}
+				const relatedNPCs = store.getAll('npcs').filter(npc => npc.locationId === itemId);
+				if (relatedNPCs.length > 0) {
+					detailsHTML += '<div style="margin-bottom: 12px;"><h3>NPCs Here</h3><ul>';
+					relatedNPCs.forEach(npc => {
+						detailsHTML += '<li>' + npc.name + (npc.role ? ' - ' + npc.role : '') + '</li>';
+					});
+					detailsHTML += '</ul></div>';
 				}
 
-				if (item.createdAt) {
-					detailsHTML += `<div style="font-size: 0.85em; color: var(--muted-fg); margin-top: 16px; padding-top: 8px; border-top: 1px solid var(--border);">Added ${new Date(item.createdAt).toLocaleDateString()}</div>`;
+				const relatedItems = store.getAll('items').filter(itm => itm.locationId === itemId);
+				if (relatedItems.length > 0) {
+					detailsHTML += '<div style="margin-bottom: 12px;"><h3>Items Here</h3><ul>';
+					relatedItems.forEach(itm => {
+						detailsHTML += '<li>' + itm.name + (itm.type ? ' (' + itm.type + ')' : '') + '</li>';
+					});
+					detailsHTML += '</ul></div>';
 				}
-
-				detailsHTML += `</div>`;
-				content.innerHTML = detailsHTML;
-				panel.classList.remove('hidden');
+			} else if (category === 'npcs') {
+				if (item.role) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Role/Title</h3><p>' + item.role + '</p></div>';
+				if (item.description) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Description</h3><p>' + item.description + '</p></div>';
+				if (item.locationId) {
+					const location = store.get('locations', item.locationId);
+					if (location) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Location</h3><p>' + location.name + '</p></div>';
+				}
+			} else if (category === 'items') {
+				if (item.type) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Type</h3><p>' + item.type + '</p></div>';
+				if (item.description) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Description</h3><p>' + item.description + '</p></div>';
+				if (item.locationId) {
+					const location = store.get('locations', item.locationId);
+					if (location) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Found At</h3><p>' + location.name + '</p></div>';
+				}
+			} else if (category === 'events') {
+				if (item.date) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Date/Time</h3><p>' + item.date + '</p></div>';
+				if (item.description) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Description</h3><p>' + item.description + '</p></div>';
+				if (item.locationId) {
+					const location = store.get('locations', item.locationId);
+					if (location) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Location</h3><p>' + location.name + '</p></div>';
+				}
 			}
 
-			// Modal Controller
-			const modal = document.getElementById('modal-add');
-			const form = document.getElementById('form-add');
-			const typeSelect = document.getElementById('add-type');
-			const formFields = document.getElementById('form-fields');
+			if (item.createdAt) {
+				detailsHTML += '<div style="font-size: 0.85em; color: var(--muted-fg); margin-top: 16px; padding-top: 8px; border-top: 1px solid var(--border);\">Added ' + new Date(item.createdAt).toLocaleDateString() + '</div>';
+			}
 
-			const formTemplates = {
-				location: `
-					<div class="form-group">
-						<label for="name">Name *</label>
-						<input type="text" id="name" name="name" required>
-					</div>
-					<div class="form-group">
-						<label for="description">Description</label>
-						<textarea id="description" name="description"></textarea>
-					</div>
-					<div class="form-group">
-						<label for="history">History</label>
-						<textarea id="history" name="history"></textarea>
-					</div>
-					<div class="form-group">
-						<label for="x">Map X Position (optional)</label>
-						<input type="number" id="x" name="x" min="0" max="1000">
-					</div>
-					<div class="form-group">
-						<label for="y">Map Y Position (optional)</label>
-						<input type="number" id="y" name="y" min="0" max="600">
-					</div>
-				`,
-				npc: `
-					<div class="form-group">
-						<label for="name">Name *</label>
-						<input type="text" id="name" name="name" required>
-					</div>
-					<div class="form-group">
-						<label for="role">Role/Title</label>
-						<input type="text" id="role" name="role">
-					</div>
-					<div class="form-group">
-						<label for="description">Description</label>
-						<textarea id="description" name="description"></textarea>
-					</div>
-					<div class="form-group">
-						<label for="locationId">Associated Location</label>
-						<select id="locationId" name="locationId">
-							<option value="">None</option>
-							${store.getAll('locations').map(loc => 
-								`<option value="${loc.id}">${loc.name}</option>`
-							).join('')}
-						</select>
-					</div>
-				`,
-				item: `
-					<div class="form-group">
-						<label for="name">Name *</label>
-						<input type="text" id="name" name="name" required>
-					</div>
-					<div class="form-group">
-						<label for="type">Type</label>
-						<input type="text" id="type" name="type" placeholder="e.g., Weapon, Artifact, Consumable">
-					</div>
-					<div class="form-group">
-						<label for="description">Description</label>
-						<textarea id="description" name="description"></textarea>
-					</div>
-					<div class="form-group">
-						<label for="locationId">Found At</label>
-						<select id="locationId" name="locationId">
-							<option value="">Unknown</option>
-							${store.getAll('locations').map(loc => 
-								`<option value="${loc.id}">${loc.name}</option>`
-							).join('')}
-						</select>
-					</div>
-				`,
-				event: `
-					<div class="form-group">
-						<label for="name">Event Name *</label>
-						<input type="text" id="name" name="name" required>
-					</div>
-					<div class="form-group">
-						<label for="date">Date/Time</label>
-						<input type="text" id="date" name="date" placeholder="e.g., Day 15 of Midsummer">
-					</div>
-					<div class="form-group">
-						<label for="description">Description</label>
-						<textarea id="description" name="description"></textarea>
-					</div>
-					<div class="form-group">
-						<label for="locationId">Location</label>
-						<select id="locationId" name="locationId">
-							<option value="">Unknown</option>
-							${store.getAll('locations').map(loc => 
-								`<option value="${loc.id}">${loc.name}</option>`
-							).join('')}
-						</select>
-					</div>
-				`
-			};
+			detailsHTML += '</div>';
+		content.innerHTML = detailsHTML;
+		panel.classList.remove('hidden');
+	}
 
-			typeSelect.addEventListener('change', (e) => {
-				const type = e.target.value;
-				formFields.innerHTML = formTemplates[type] || '';
-			});
+	// Modal Controller
+	const modal = document.getElementById('modal-add');
+	const form = document.getElementById('form-add');
+	const typeSelect = document.getElementById('add-type');
+	const formFields = document.getElementById('form-fields');
 
-			document.getElementById('btn-add-new').addEventListener('click', () => {
-				modal.classList.add('active');
-			});
-
-			document.getElementById('btn-close-modal').addEventListener('click', () => {
-				modal.classList.remove('active');
-				form.reset();
-				formFields.innerHTML = '';
-			});
-
-			document.getElementById('btn-cancel').addEventListener('click', () => {
-				modal.classList.remove('active');
-				form.reset();
-				formFields.innerHTML = '';
-			});
-
-			form.addEventListener('submit', (e) => {
-				e.preventDefault();
-				
-				const formData = new FormData(form);
-				const data = Object.fromEntries(formData);
-				const type = data.type + 's'; // Convert to plural for storage
-				
-				delete data.type;
-				
-				// Convert numeric fields
-				if (data.x) data.x = parseFloat(data.x);
-				if (data.y) data.y = parseFloat(data.y);
-				
-				store.add(type, data);
-				
-				modal.classList.remove('active');
-				form.reset();
-				formFields.innerHTML = '';
-				
-				// Refresh map if location was added
-				if (type === 'locations') {
-					mapController.render();
-				}
-			});
-
-			// Close detail panel
-			document.getElementById('btn-close-detail').addEventListener('click', hideDetailPanel);
-
-			// Category filter
-			document.querySelectorAll('.category-item').forEach(item => {
-				item.addEventListener('click', () => {
-					document.querySelectorAll('.category-item').forEach(i => i.classList.remove('active'));
-					item.classList.add('active');
-					
-					const category = item.dataset.category;
-					if (category === 'all') {
-						hideDetailPanel();
-					} else {
-						showCategoryList(category);
-					}
+	function getFormTemplate(type) {
+		if (type === 'location') {
+			return '<div class="form-group">' +
+				'<label for="name">Name</label>' +
+				'<input type="text" id="name" name="name" required>' +
+				'</div>' +
+				'<div class="form-group">' +
+				'<label for="description">Description</label>' +
+					'<textarea id="description" name="description"></textarea>' +
+					'</div>' +
+					'<div class="form-group">' +
+					'<label for="history">History</label>' +
+					'<textarea id="history" name="history"></textarea>' +
+					'</div>' +
+					'<div class="form-group">' +
+					'<label for="x">Map X Position (optional)</label>' +
+					'<input type="number" id="x" name="x" min="0" max="1000">' +
+					'</div>' +
+					'<div class="form-group">' +
+					'<label for="y">Map Y Position (optional)</label>' +
+					'<input type="number" id="y" name="y" min="0" max="600">' +
+					'</div>';
+			} else if (type === 'npc') {
+				const locations = store.getAll('locations');
+				let locationOptions = '<option value="">None</option>';
+				locations.forEach(loc => {
+					locationOptions += '<option value="' + loc.id + '">' + loc.name + '</option>';
 				});
-			});
+				return '<div class="form-group">' +
+					'<label for="name">Name *</label>' +
+					'<input type="text" id="name" name="name" required>' +
+					'</div>' +
+					'<div class="form-group">' +
+					'<label for="role">Role/Title</label>' +
+					'<input type="text" id="role" name="role">' +
+					'</div>' +
+					'<div class="form-group">' +
+					'<label for="description">Description</label>' +
+					'<textarea id="description" name="description"></textarea>' +
+					'</div>' +
+					'<div class="form-group">' +
+					'<label for="locationId">Associated Location</label>' +
+					'<select id="locationId" name="locationId">' +
+					locationOptions +
+					'</select>' +
+					'</div>';
+			} else if (type === 'item') {
+				const locations = store.getAll('locations');
+				let locationOptions = '<option value="">Unknown</option>';
+				locations.forEach(loc => {
+					locationOptions += '<option value="' + loc.id + '">' + loc.name + '</option>';
+				});
+				return '<div class="form-group">' +
+					'<label for="name">Name *</label>' +
+					'<input type="text" id="name" name="name" required>' +
+					'</div>' +
+					'<div class="form-group">' +
+					'<label for="type">Type</label>' +
+					'<input type="text" id="type" name="type" placeholder="e.g., Weapon, Artifact, Consumable">' +
+					'</div>' +
+					'<div class="form-group">' +
+					'<label for="description">Description</label>' +
+					'<textarea id="description" name="description"></textarea>' +
+					'</div>' +
+					'<div class="form-group">' +
+					'<label for="locationId">Found At</label>' +
+					'<select id="locationId" name="locationId">' +
+					locationOptions +
+					'</select>' +
+					'</div>';
+			} else if (type === 'event') {
+				const locations = store.getAll('locations');
+				let locationOptions = '<option value="">Unknown</option>';
+				locations.forEach(loc => {
+					locationOptions += '<option value="' + loc.id + '">' + loc.name + '</option>';
+				});
+				return '<div class="form-group">' +
+					'<label for="name">Event Name *</label>' +
+					'<input type="text" id="name" name="name" required>' +
+					'</div>' +
+					'<div class="form-group">' +
+					'<label for="date">Date/Time</label>' +
+					'<input type="text" id="date" name="date" placeholder="e.g., Day 15 of Midsummer">' +
+					'</div>' +
+					'<div class="form-group">' +
+					'<label for="description">Description</label>' +
+					'<textarea id="description" name="description"></textarea>' +
+					'</div>' +
+					'<div class="form-group">' +
+					'<label for="locationId">Location</label>' +
+					'<select id="locationId" name="locationId">' +
+					locationOptions +
+					'</select>' +
+					'</div>';
+			}
+			return '';
+		}
 
-			// Initialize
-			const mapController = new MapController();
+		typeSelect.addEventListener('change', (e) => {
+			const type = e.target.value;
+			formFields.innerHTML = getFormTemplate(type);
+	});
+
+	document.getElementById('btn-add-new').addEventListener('click', () => {
+		modal.classList.add('active');
+	});
+
+	document.getElementById('btn-close-modal').addEventListener('click', () => {
+		modal.classList.remove('active');
+		form.reset();
+		formFields.innerHTML = '';
+	});
+
+	document.getElementById('btn-cancel').addEventListener('click', () => {
+		modal.classList.remove('active');
+		form.reset();
+		formFields.innerHTML = '';
+	});
+
+	form.addEventListener('submit', (e) => {
+		e.preventDefault();
+		
+		const formData = new FormData(form);
+		const data = Object.fromEntries(formData);
+		const type = data.type + 's'; // Convert to plural for storage
+		
+		delete data.type;
+		
+		// Convert numeric fields
+		if (data.x) data.x = parseFloat(data.x);
+		if (data.y) data.y = parseFloat(data.y);
+		
+		store.add(type, data);
+		
+		modal.classList.remove('active');
+		form.reset();
+		formFields.innerHTML = '';
+		
+		// Refresh map if location was added
+		if (type === 'locations') {
+			mapController.render();
+		}
+	});
+
+	// Close detail panel
+	document.getElementById('btn-close-detail').addEventListener('click', hideDetailPanel);
+
+	// Category filter
+	document.querySelectorAll('.category-item').forEach(item => {
+		item.addEventListener('click', () => {
+			document.querySelectorAll('.category-item').forEach(i => i.classList.remove('active'));
+			item.classList.add('active');
 			
-			// Start the app
-			initApp();
-		</script>
-	</body>
-</html>
+			const category = item.dataset.category;
+			if (category === 'all') {
+				hideDetailPanel();
+			} else {
+				showCategoryList(category);
+			}
+		});
+	});
+
+	// Initialize
+	const mapController = new MapController();
+	
+	// Start the app
+	initApp();
