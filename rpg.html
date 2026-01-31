@@ -1236,45 +1236,45 @@ document.getElementById('btn-upload-map').addEventListener('change', async (e) =
 					this.svg.appendChild(mainGroup);
 					this.mainGroup = mainGroup;
 					this.locationsLayer = locationsLayer;
-			}
-			this.render();
 		}
+		this.render();
+	}
 
-		render() {
-			if (!this.locationsLayer) return;
+	render() {
+		if (!this.locationsLayer) return;
+		
+		this.locationsLayer.innerHTML = '';
+		const locations = store.getAll('locations');
+		
+		locations.forEach(location => {
+			const x = location.x || Math.random() * 900 + 50;
+			const y = location.y || Math.random() * 500 + 50;
 			
-			this.locationsLayer.innerHTML = '';
-			const locations = store.getAll('locations');
+			const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+			g.classList.add('map-location');
+			g.setAttribute('data-id', location.id);
 			
-			locations.forEach(location => {
-				const x = location.x || Math.random() * 900 + 50;
-				const y = location.y || Math.random() * 500 + 50;
-				
-				const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-				g.classList.add('map-location');
-				g.setAttribute('data-id', location.id);
-				
-				const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-				circle.setAttribute('cx', x);
-				circle.setAttribute('cy', y);
-				circle.setAttribute('r', 8);
-				
-				const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-				text.setAttribute('x', x);
-				text.setAttribute('y', y - 15);
-				text.setAttribute('pointer-events', 'none');
-				text.textContent = location.name;
-				
-				g.appendChild(circle);
-				g.appendChild(text);
-				
-				g.addEventListener('click', () => {
-					showLocationDetails(location.id);
-				});
-				
-				this.locationsLayer.appendChild(g);
+			const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+			circle.setAttribute('cx', x);
+			circle.setAttribute('cy', y);
+			circle.setAttribute('r', 8);
+			
+			const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+			text.setAttribute('x', x);
+			text.setAttribute('y', y - 15);
+			text.setAttribute('pointer-events', 'none');
+			text.textContent = location.name;
+			
+			g.appendChild(circle);
+			g.appendChild(text);
+			
+			g.addEventListener('click', () => {
+				showLocationDetails(location.id);
 			});
-		}
+			
+			this.locationsLayer.appendChild(g);
+		});
+	}
 }
 
 // Detail Panel Controller
