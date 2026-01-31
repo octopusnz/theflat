@@ -766,7 +766,7 @@
 					// Try to load PNG first
 					try {
 					console.log('[DEBUG] Attempting to load map.png...');
-					const response = await fetch('/map.png');
+					const response = await fetch('/map.png?v=' + Date.now(), {cache: 'no-store'});
 					if (response.ok) {
 						const pngBlob = await response.blob();
 						const pngUrl = URL.createObjectURL(pngBlob);
