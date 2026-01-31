@@ -75,7 +75,12 @@
 			body {
 				font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
 				line-height: 1.55;
+				display: -webkit-box;
+				display: -webkit-flex;
 				display: flex;
+				-webkit-box-orient: vertical;
+				-webkit-box-direction: normal;
+				-webkit-flex-direction: column;
 				flex-direction: column;
 			}
 
@@ -89,31 +94,35 @@
 				border: 2px solid var(--focus);
 				border-radius: 8px;
 				text-decoration: none;
+				-webkit-transform: translateY(-200%);
 				transform: translateY(-200%);
+				-webkit-transition: -webkit-transform 120ms ease-in-out;
 				transition: transform 120ms ease-in-out;
 				z-index: 100;
 			}
 
 			.skip-link:focus,
 			.skip-link:focus-visible {
+				-webkit-transform: translateY(0);
 				transform: translateY(0);
 			}
 
 			a {
-				color: var(--link);
-				text-decoration-thickness: 0.12em;
-				text-underline-offset: 0.16em;
-			}
 
-			a:visited {
-				color: var(--link-visited);
-			}
+			color: var(--link);
+			text-decoration-thickness: 0.12em;
+			text-underline-offset: 0.16em;
+		}
 
-			a:focus-visible {
-				outline: 3px solid var(--focus);
-				outline-offset: 3px;
-				border-radius: 4px;
-			}
+		a:visited {
+			color: var(--link-visited);
+		}
+
+		a:focus-visible {
+			outline: 3px solid var(--focus);
+			outline-offset: 3px;
+			border-radius: 4px;
+		}
 
 			/* Header */
 			header {
@@ -234,7 +243,8 @@
 
 			.btn:hover {
 				background: #1a1a1a;
-				transform: translateY(-2px);
+			-webkit-transform: translateY(-2px);
+			transform: translateY(-2px);
 			}
 
 			.btn:focus-visible {
@@ -320,6 +330,7 @@
 			cursor: pointer;
 	}
 	.map-location:hover {
+			-webkit-filter: brightness(1.2);
 			filter: brightness(1.2);
 		}
 
@@ -568,6 +579,7 @@
 				}
 
 				.btn:hover {
+					-webkit-transform: none;
 					transform: none;
 				}
 			}
@@ -981,32 +993,36 @@
 				this.updateTransform();
 			}
 
+			resetView() {
+				this.scale = 1;
+				this.translateX = 0;
+				this.translateY = 0;
+				this.updateTransform();
+			}
+
 			startDrag(e) {
 				this.isDragging = true;
 				this.startX = e.clientX - this.translateX;
 				this.startY = e.clientY - this.translateY;
 				this.svg.style.cursor = 'grabbing';
 				e.preventDefault();
-					
-					// Use requestAnimationFrame for smooth updates
-					if (this.rafId) {
-						cancelAnimationFrame(this.rafId);
-					}
-					
-					this.rafId = requestAnimationFrame(() => {
-						this.translateX = e.clientX - this.startX;
-						this.translateY = e.clientY - this.startY;
-						this.updateTransform();
-					});
+			}
+
+			drag(e) {
+				if (!this.isDragging) return;
+				e.preventDefault();
+				this.translateX = e.clientX - this.startX;
+				this.translateY = e.clientY - this.startY;
+				this.updateTransform();
 				}
 
-				endDrag() {
-					this.isDragging = false;
-					this.svg.style.cursor = 'grab';
-				}
+		endDrag() {
+			this.isDragging = false;
+			this.svg.style.cursor = 'grab';
+		}
 
-				updateTransform() {
-					if (this.mainGroup) {
+		updateTransform() {
+			if (this.mainGroup) {
 				// Use CSS transform with translate3d for hardware acceleration
 				this.mainGroup.style.transform = 
 					`translate3d(${this.translateX}px, ${this.translateY}px, 0) scale(${this.scale})`;
@@ -1020,10 +1036,9 @@
 		}
 
 		renderMap() {
-				// Render custom map if available
-				if (store.data.mapSvg) {
-						if (store.data.mapType === 'svg') {
-							// Handle SVG maps
+			// Render custom map if available
+			if (store.data.mapSvg) {
+				if (store.data.mapType === 'svg') {
 							const parser = new DOMParser();
 							const svgDoc = parser.parseFromString(store.data.mapSvg, 'image/svg+xml');
 							const customSvg = svgDoc.documentElement;
@@ -1072,7 +1087,7 @@
 							
 							// Add image as background
 							const image = document.createElementNS('http://www.w3.org/2000/svg', 'image');
-							image.setAttributeNS('http://www.w3.org/1999/xlink', 'href', store.data.mapSvg);
+							image.setAttribute('href', store.data.mapSvg);
 							image.setAttribute('width', width);
 							image.setAttribute('height', height);
 							image.setAttribute('preserveAspectRatio', 'xMidYMid meet');
@@ -1082,53 +1097,54 @@
 							const locationsLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 							locationsLayer.setAttribute('id', 'locations-layer');
 							mainGroup.appendChild(locationsLayer);
-							
-							// Add main group to SVG
-							this.svg.appendChild(mainGroup);
-							this.mainGroup = mainGroup;
-							this.locationsLayer = locationsLayer;
-						}
-					}
-					this.render();
+					// Add main group to SVG
+					this.svg.appendChild(mainGroup);
+					this.mainGroup = mainGroup;
+					this.locationsLayer = locationsLayer;
 				}
-
-				render() {
-					this.locationsLayer.innerHTML = '';
-					const locations = store.getAll('locations');
-					
-					locations.forEach(location => {
-						const x = location.x || Math.random() * 900 + 50;
-						const y = location.y || Math.random() * 500 + 50;
-						
-						const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-						g.classList.add('map-location');
-						g.setAttribute('data-id', location.id);
-						
-						const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-						circle.setAttribute('cx', x);
-						circle.setAttribute('cy', y);
-						circle.setAttribute('r', 8);
-						
-						const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-						text.setAttribute('x', x);
-						text.setAttribute('y', y - 15);
-					text.setAttribute('pointer-events', 'none');
-					text.textContent = location.name;
-					
-					g.appendChild(circle);
-					g.appendChild(text);
-					
-					g.addEventListener('click', () => {
-						showLocationDetails(location.id);
-					});
-					
-					this.locationsLayer.appendChild(g);
-				});
 			}
+			this.render();
 		}
 
-		// Detail Panel Controller
-		function showLocationDetails(locationId) {
+		render() {
+			if (!this.locationsLayer) return;
+			
+			this.locationsLayer.innerHTML = '';
+			const locations = store.getAll('locations');
+			
+			locations.forEach(location => {
+				const x = location.x || Math.random() * 900 + 50;
+				const y = location.y || Math.random() * 500 + 50;
+				
+				const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+				g.classList.add('map-location');
+				g.setAttribute('data-id', location.id);
+				
+				const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+				circle.setAttribute('cx', x);
+				circle.setAttribute('cy', y);
+				circle.setAttribute('r', 8);
+				
+				const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+				text.setAttribute('x', x);
+				text.setAttribute('y', y - 15);
+				text.setAttribute('pointer-events', 'none');
+				text.textContent = location.name;
+				
+				g.appendChild(circle);
+				g.appendChild(text);
+				
+				g.addEventListener('click', () => {
+					showLocationDetails(location.id);
+				});
+				
+				this.locationsLayer.appendChild(g);
+			});
+		}
+	}
+
+	// Detail Panel Controller
+	function showLocationDetails(locationId) {
 				const location = store.get('locations', locationId);
 				if (!location) return;
 
