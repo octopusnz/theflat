@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<!-- Google Tag Manager -->
+		<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+		new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+		j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+		'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+		})(window,document,'script','dataLayer','GTM-W8RGXCTR');</script>
+		<!-- End Google Tag Manager -->
+
+		<link rel="preconnect" href="https://www.googletagmanager.com">
+		<link rel="dns-prefetch" href="https://www.googletagmanager.com">
+
+		<link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com; connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; frame-src https://www.googletagmanager.com;">
+		<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+		<meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)">
+		<meta name="description" content="RPG Campaign Tracker - Track world events, locations, NPCs and lore">
+		<link rel="canonical" href="https://theflat.gen.nz/rpg">
+
+		<title>RPG Campaign Tracker - theflat.gen.nz</title>
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+		<link rel="icon" href="/favicon-96x96.png" type="image/png" sizes="96x96">
+		<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+        <link rel="manifest" href="/site.webmanifest">
+		<style>
+			:root {
+				color-scheme: light dark;
+				--bg: #ffffff;
+				--fg: #111827;
+				--muted-fg: #374151;
+				--link: #1d4ed8;
+				--link-visited: #6d28d9;
+				--focus: #f59e0b;
+				--border: #d1d5db;
+				--hover: #f3f4f6;
+			}
+
+			@media (prefers-color-scheme: dark) {
+				:root {
+					--bg: #0b1220;
+					--fg: #e5e7eb;
+					--muted-fg: #cbd5e1;
+					--link: #93c5fd;
+					--link-visited: #c4b5fd;
+					--focus: #fbbf24;
+					--border: #334155;
+					--hover: #1e293b;
+				}
+			}
+
+			*,
+			*::before,
+			*::after {
+				box-sizing: border-box;
+			}
+
+			html,
+			body {
+				background: var(--bg);
+				color: var(--fg);
+				height: 100vh;
+				height: 100dvh;
+				margin: 0;
+				padding: 0;
+				overflow: hidden;
+			}
+
+			body {
+				font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+				line-height: 1.55;
+				display: flex;
+				flex-direction: column;
+			}
+
+			.skip-link {
+				position: absolute;
+				top: 12px;
+				left: 12px;
+				padding: 10px 12px;
+				background: var(--bg);
+				color: var(--fg);
+				border: 2px solid var(--focus);
+				border-radius: 8px;
+				text-decoration: none;
+				transform: translateY(-200%);
+				transition: transform 120ms ease-in-out;
+				z-index: 100;
+			}
+
+			.skip-link:focus,
+			.skip-link:focus-visible {
+				transform: translateY(0);
+			}
+
+			a {
+				color: var(--link);
+				text-decoration-thickness: 0.12em;
+				text-underline-offset: 0.16em;
+			}
+
+			a:visited {
+				color: var(--link-visited);
+			}
+
+			a:focus-visible {
+				outline: 3px solid var(--focus);
+				outline-offset: 3px;
+				border-radius: 4px;
+			}
+
+			/* Header */
+			header {
+				background: var(--bg);
+				border-bottom: 2px solid var(--border);
+				padding: 16px 24px;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				flex-shrink: 0;
+			}
+
+			h1 {
+				margin: 0;
+				font-size: 1.5rem;
+			}
+
+			.nav-links {
+				display: flex;
+				gap: 16px;
+			}
+
+			.nav-links a {
+				text-decoration: none;
+				padding: 8px 12px;
+				border-radius: 6px;
+				transition: background 0.2s;
+			}
+
+			.nav-links a:hover {
+				background: var(--hover);
+			}
+
+			.btn-import,
+			.btn-export {
+				padding: 8px 16px;
+				font-size: 0.875rem;
+				display: inline-block;
+			}
+
+			/* Main Container */
+			.container {
+				display: flex;
+				flex: 1;
+				overflow: hidden;
+			}
+
+			/* Sidebar */
+			.sidebar {
+				width: 280px;
+				background: var(--bg);
+				border-right: 2px solid var(--border);
+				padding: 20px;
+				overflow-y: auto;
+				flex-shrink: 0;
+			}
+
+			.sidebar h2 {
+				margin: 0 0 16px;
+				font-size: 1.1rem;
+				color: var(--muted-fg);
+				text-transform: uppercase;
+				letter-spacing: 0.05em;
+			}
+
+			.category-list {
+				list-style: none;
+				padding: 0;
+				margin: 0 0 24px;
+			}
+
+			.category-item {
+				padding: 10px;
+				margin: 4px 0;
+				border-radius: 6px;
+				cursor: pointer;
+				transition: background 0.2s;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+
+			.category-item:hover,
+			.category-item.active {
+				background: var(--hover);
+			}
+
+			.category-item.active {
+				font-weight: 600;
+				border-left: 3px solid var(--link);
+				padding-left: 7px;
+			}
+
+			.badge {
+				background: var(--border);
+				color: var(--fg);
+				padding: 2px 8px;
+				border-radius: 12px;
+				font-size: 0.75rem;
+				font-weight: 600;
+			}
+
+			.btn {
+				display: block;
+				width: 100%;
+				padding: 12px;
+				background: #000000;
+				color: #ffffff;
+				text-decoration: none;
+				border: none;
+				border-radius: 8px;
+				font-weight: 600;
+				font-size: 1rem;
+				cursor: pointer;
+				transition: all 0.2s ease;
+				text-align: center;
+			}
+
+			.btn:hover {
+				background: #1a1a1a;
+				transform: translateY(-2px);
+			}
+
+			.btn:focus-visible {
+				outline: 3px solid var(--focus);
+				outline-offset: 2px;
+			}
+
+			@media (prefers-color-scheme: dark) {
+				.btn {
+					background: #ffffff;
+					color: #000000;
+				}
+
+				.btn:hover {
+					background: #e0e0e0;
+				}
+			}
+
+			/* Map Area */
+			.map-container {
+				flex: 1;
+				display: flex;
+				flex-direction: column;
+				overflow: hidden;
+			}
+
+			.map-toolbar {
+				background: var(--bg);
+				border-bottom: 2px solid var(--border);
+				padding: 12px 20px;
+				display: flex;
+				gap: 12px;
+				align-items: center;
+			}
+
+			.btn-toolbar {
+				padding: 8px 16px;
+				background: var(--bg);
+				color: var(--fg);
+				border: 2px solid var(--border);
+				border-radius: 6px;
+				font-size: 0.875rem;
+				cursor: pointer;
+				transition: all 0.2s;
+			}
+
+			.btn-toolbar:hover {
+				background: var(--hover);
+				border-color: var(--link);
+			}
+
+			.map-view {
+				flex: 1;
+				position: relative;
+				overflow: hidden;
+				background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
+			}
+
+			@media (prefers-color-scheme: dark) {
+				.map-view {
+					background: linear-gradient(135deg, #0c1429 0%, #172033 100%);
+				}
+			}
+
+			.map-svg {
+				width: 100%;
+				height: 100%;
+				cursor: grab;
+			}
+
+			.map-svg:active {
+				cursor: grabbing;
+			}
+
+			.map-location {
+				cursor: pointer;
+				transition: all 0.2s;
+			}
+
+			.map-location:hover {
+				filter: brightness(1.2);
+			}
+
+			.map-location circle {
+				fill: var(--link);
+				stroke: var(--bg);
+				stroke-width: 2;
+			}
+
+			.map-location text {
+				fill: var(--fg);
+				font-size: 14px;
+				font-weight: 600;
+				pointer-events: none;
+				text-anchor: middle;
+			}
+
+			/* Detail Panel */
+			.detail-panel {
+				width: 400px;
+				background: var(--bg);
+				border-left: 2px solid var(--border);
+				padding: 24px;
+				overflow-y: auto;
+				flex-shrink: 0;
+			}
+
+			.detail-panel.hidden {
+				display: none;
+			}
+
+			.detail-header {
+				display: flex;
+				justify-content: space-between;
+				align-items: flex-start;
+				margin-bottom: 20px;
+			}
+
+			.detail-header h2 {
+				margin: 0;
+				font-size: 1.5rem;
+			}
+
+			.btn-close {
+				background: none;
+				border: none;
+				color: var(--muted-fg);
+				font-size: 1.5rem;
+				cursor: pointer;
+				padding: 4px 8px;
+				line-height: 1;
+			}
+
+			.btn-close:hover {
+				color: var(--fg);
+			}
+
+			.detail-section {
+				margin-bottom: 24px;
+			}
+
+			.detail-section h3 {
+				margin: 0 0 12px;
+				font-size: 1rem;
+				color: var(--muted-fg);
+				text-transform: uppercase;
+				letter-spacing: 0.05em;
+			}
+
+			.detail-section p {
+				margin: 0;
+				line-height: 1.6;
+			}
+
+			.npc-list,
+			.item-list {
+				list-style: none;
+				padding: 0;
+				margin: 0;
+			}
+
+			.npc-item,
+			.item-item {
+				padding: 12px;
+				margin: 8px 0;
+				background: var(--hover);
+				border-radius: 6px;
+				border: 1px solid var(--border);
+			}
+
+			.npc-name,
+			.item-name {
+				font-weight: 600;
+				margin-bottom: 4px;
+			}
+
+			.npc-role,
+			.item-type {
+				color: var(--muted-fg);
+				font-size: 0.875rem;
+			}
+
+			/* Modal */
+			.modal {
+				display: none;
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background: rgba(0, 0, 0, 0.5);
+				z-index: 1000;
+				align-items: center;
+				justify-content: center;
+			}
+
+			.modal.active {
+				display: flex;
+			}
+
+			.modal-content {
+				background: var(--bg);
+				border-radius: 12px;
+				padding: 32px;
+				max-width: 600px;
+				width: 90%;
+				max-height: 90vh;
+				overflow-y: auto;
+				box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+			}
+
+			.modal-header {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin-bottom: 24px;
+			}
+
+			.modal-header h2 {
+				margin: 0;
+				font-size: 1.5rem;
+			}
+
+			.form-group {
+				margin-bottom: 20px;
+			}
+
+			.form-group label {
+				display: block;
+				margin-bottom: 8px;
+				font-weight: 600;
+				color: var(--fg);
+			}
+
+			.form-group input,
+			.form-group textarea,
+			.form-group select {
+				width: 100%;
+				padding: 10px 12px;
+				border: 2px solid var(--border);
+				border-radius: 6px;
+				background: var(--bg);
+				color: var(--fg);
+				font-family: inherit;
+				font-size: 1rem;
+			}
+
+			.form-group input:focus,
+			.form-group textarea:focus,
+			.form-group select:focus {
+				outline: none;
+				border-color: var(--link);
+			}
+
+			.form-group textarea {
+				resize: vertical;
+				min-height: 100px;
+			}
+
+			.form-actions {
+				display: flex;
+				gap: 12px;
+				justify-content: flex-end;
+				margin-top: 24px;
+			}
+
+			.btn-secondary {
+				background: var(--border);
+				color: var(--fg);
+			}
+
+			.btn-secondary:hover {
+				background: var(--muted-fg);
+			}
+
+			.empty-state {
+				text-align: center;
+				padding: 60px 20px;
+				color: var(--muted-fg);
+			}
+
+			.empty-state svg {
+				width: 80px;
+				height: 80px;
+				margin-bottom: 16px;
+				opacity: 0.5;
+			}
+
+			@media (max-width: 1024px) {
+				.detail-panel {
+					position: fixed;
+					top: 0;
+					right: 0;
+					height: 100vh;
+					z-index: 50;
+					box-shadow: -4px 0 12px rgba(0, 0, 0, 0.1);
+				}
+			}
+
+			@media (max-width: 768px) {
+				.sidebar {
+					position: fixed;
+					left: -280px;
+					top: 0;
+					height: 100vh;
+					z-index: 50;
+					transition: left 0.3s;
+					box-shadow: 4px 0 12px rgba(0, 0, 0, 0.1);
+				}
+
+				.sidebar.active {
+					left: 0;
+				}
+
+				.detail-panel {
+					width: 100%;
+				}
+			}
+
+			@media (prefers-reduced-motion: reduce) {
+				.btn,
+				.category-item,
+				.map-location,
+				.sidebar {
+					transition: none;
+				}
+
+				.btn:hover {
+					transform: none;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<!-- Google Tag Manager (noscript) -->
+		<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W8RGXCTR"
+		height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+		<!-- End Google Tag Manager (noscript) -->
+
+		<a href="#main-content" class="skip-link">Skip to main content</a>
+
+		<header>
+			<h1>RPG Campaign Tracker</h1>
+			<nav class="nav-links">
+				<a href="/">Home</a>
+				<a href="/rpg">RPG Tracker</a>
+			</nav>
+		</header>
+
+		<div class="container">
+			<!-- Sidebar -->
+			<aside class="sidebar" id="sidebar">
+				<h2>Categories</h2>
+				<ul class="category-list">
+					<li class="category-item active" data-category="all">
+						<span>All</span>
+						<span class="badge" id="badge-all">0</span>
+					</li>
+					<li class="category-item" data-category="locations">
+						<span>Locations</span>
+						<span class="badge" id="badge-locations">0</span>
+					</li>
+					<li class="category-item" data-category="npcs">
+						<span>NPCs</span>
+						<span class="badge" id="badge-npcs">0</span>
+					</li>
+					<li class="category-item" data-category="items">
+						<span>Items</span>
+						<span class="badge" id="badge-items">0</span>
+					</li>
+					<li class="category-item" data-category="events">
+						<span>Events</span>
+						<span class="badge" id="badge-events">0</span>
+					</li>
+				</ul>
+				<button class="btn" id="btn-add-new">+ Add New</button>
+				<hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border);">
+				<button class="btn btn-export" id="btn-export">Export Data</button>
+				<label class="btn btn-import" id="btn-import-label" style="margin-top: 8px; cursor: pointer;">
+					Import Data
+					<input type="file" id="btn-import" accept=".json" style="display: none;">
+				</label>
+			</aside>
+
+			<!-- Map Container -->
+			<div class="map-container" id="main-content">
+				<div class="map-toolbar">
+					<button class="btn-toolbar" id="btn-zoom-in">Zoom In</button>
+					<button class="btn-toolbar" id="btn-zoom-out">Zoom Out</button>
+					<button class="btn-toolbar" id="btn-reset-view">Reset View</button>
+				</div>
+				<div class="map-view" id="map-view">
+					<svg class="map-svg" id="map-svg" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid meet">
+						<!-- Map background -->
+						<defs>
+							<pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
+								<path d="M 50 0 L 0 0 0 50" fill="none" stroke="rgba(100,100,100,0.1)" stroke-width="1"/>
+							</pattern>
+						</defs>
+						<rect width="1000" height="600" fill="url(#grid)"/>
+						
+						<!-- Example locations - will be dynamically populated -->
+						<g id="locations-layer"></g>
+					</svg>
+				</div>
+			</div>
+
+			<!-- Detail Panel -->
+			<aside class="detail-panel hidden" id="detail-panel">
+				<div class="detail-header">
+					<h2 id="detail-title">Select a location</h2>
+					<button class="btn-close" id="btn-close-detail" aria-label="Close details">&times;</button>
+				</div>
+				<div id="detail-content">
+					<div class="empty-state">
+						<p>Click on a location on the map to view details</p>
+					</div>
+				</div>
+			</aside>
+		</div>
+
+		<!-- Add New Modal -->
+		<div class="modal" id="modal-add">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h2>Add New</h2>
+					<button class="btn-close" id="btn-close-modal" aria-label="Close modal">&times;</button>
+				</div>
+				<form id="form-add">
+					<div class="form-group">
+						<label for="add-type">Type</label>
+						<select id="add-type" name="type" required>
+							<option value="">Select type...</option>
+							<option value="location">Location</option>
+							<option value="npc">NPC</option>
+							<option value="item">Item</option>
+							<option value="event">Event</option>
+						</select>
+					</div>
+					<div id="form-fields"></div>
+					<div class="form-actions">
+						<button type="button" class="btn btn-secondary" id="btn-cancel">Cancel</button>
+						<button type="submit" class="btn">Save</button>
+					</div>
+				</form>
+			</div>
+		</div>
+
+		<script>
+			// Data Store
+			class DataStore {
+				constructor() {
+					this.dataFile = '/rpg-data.json';
+					this.data = {
+						locations: [],
+						npcs: [],
+						items: [],
+						events: []
+					};
+					this.loaded = false;
+				}
+
+				async load() {
+					try {
+						const response = await fetch(this.dataFile);
+						if (response.ok) {
+							this.data = await response.json();
+							this.loaded = true;
+							this.updateBadges();
+							console.log('Data loaded from JSON file');
+							return true;
+						}
+					} catch (e) {
+						console.error('Error loading data from JSON:', e);
+					}
+					
+					// Fallback to empty state
+					this.data = {
+						locations: [],
+						npcs: [],
+						items: [],
+						events: []
+					};
+					this.loaded = true;
+					this.updateBadges();
+					return false;
+				}
+
+				save() {
+					// Note: This doesn't save to the server automatically
+					// Users need to export and commit the JSON file
+					this.updateBadges();
+					console.log('Data updated (use Export to save changes)');
+				}
+
+				exportData() {
+					const dataStr = JSON.stringify(this.data, null, 2);
+					const dataBlob = new Blob([dataStr], { type: 'application/json' });
+					const url = URL.createObjectURL(dataBlob);
+					const link = document.createElement('a');
+					link.href = url;
+					link.download = 'rpg-data.json';
+					document.body.appendChild(link);
+					link.click();
+					document.body.removeChild(link);
+					URL.revokeObjectURL(url);
+				}
+
+				async importData(file) {
+					try {
+						const text = await file.text();
+						const imported = JSON.parse(text);
+						
+						// Validate structure
+						if (imported.locations && imported.npcs && imported.items && imported.events) {
+							this.data = imported;
+							this.updateBadges();
+							return true;
+						} else {
+							throw new Error('Invalid data structure');
+						}
+					} catch (e) {
+						console.error('Error importing data:', e);
+						alert('Error importing file. Please ensure it\'s a valid rpg-data.json file.');
+						return false;
+					}
+				}
+
+				add(type, item) {
+					if (!this.data[type]) {
+						this.data[type] = [];
+					}
+					// Generate a proper integer ID
+					const maxId = this.data[type].reduce((max, item) => 
+						Math.max(max, item.id || 0), 0);
+					item.id = maxId + 1;
+					item.createdAt = new Date().toISOString();
+					this.data[type].push(item);
+					this.save();
+					return item;
+				}
+
+				get(type, id) {
+					return this.data[type]?.find(item => item.id === id);
+				}
+
+				getAll(type) {
+					return this.data[type] || [];
+				}
+
+				update(type, id, updates) {
+					const index = this.data[type]?.findIndex(item => item.id === id);
+					if (index !== -1) {
+						this.data[type][index] = { ...this.data[type][index], ...updates };
+						this.save();
+						return this.data[type][index];
+					}
+					return null;
+				}
+
+				delete(type, id) {
+					if (this.data[type]) {
+						this.data[type] = this.data[type].filter(item => item.id !== id);
+						this.save();
+					}
+				}
+
+				updateBadges() {
+					document.getElementById('badge-locations').textContent = this.data.locations.length;
+					document.getElementById('badge-npcs').textContent = this.data.npcs.length;
+					document.getElementById('badge-items').textContent = this.data.items.length;
+					document.getElementById('badge-events').textContent = this.data.events.length;
+					
+					const total = this.data.locations.length + this.data.npcs.length + 
+					              this.data.items.length + this.data.events.length;
+					document.getElementById('badge-all').textContent = total;
+				}
+			}
+			
+			// Load data and initialize app
+			async function initApp() {
+				await store.load();
+				mapController.render();
+			}
+
+			// Export functionality
+			document.getElementById('btn-export').addEventListener('click', () => {
+				store.exportData();
+			});
+
+			// Import functionality
+			document.getElementById('btn-import').addEventListener('change', async (e) => {
+				const file = e.target.files[0];
+				if (file) {
+					const success = await store.importData(file);
+					if (success) {
+						mapController.render();
+						alert('Data imported successfully!');
+					}
+					// Reset input so same file can be imported again
+					e.target.value = '';
+				}
+			});
+
+			// Initialize data store
+			const store = new DataStore();
+
+			// Map Controller
+			class MapController {
+				constructor() {
+					this.svg = document.getElementById('map-svg');
+					this.locationsLayer = document.getElementById('locations-layer');
+					this.scale = 1;
+					this.translateX = 0;
+					this.translateY = 0;
+					this.isDragging = false;
+					this.startX = 0;
+					this.startY = 0;
+
+					this.initializeEvents();
+					this.render();
+				}
+
+				initializeEvents() {
+					// Zoom controls
+					document.getElementById('btn-zoom-in').addEventListener('click', () => this.zoom(1.2));
+					document.getElementById('btn-zoom-out').addEventListener('click', () => this.zoom(0.8));
+					document.getElementById('btn-reset-view').addEventListener('click', () => this.resetView());
+
+					// Pan controls
+					this.svg.addEventListener('mousedown', (e) => this.startDrag(e));
+					this.svg.addEventListener('mousemove', (e) => this.drag(e));
+					this.svg.addEventListener('mouseup', () => this.endDrag());
+					this.svg.addEventListener('mouseleave', () => this.endDrag());
+				}
+
+				zoom(factor) {
+					this.scale *= factor;
+					this.scale = Math.max(0.5, Math.min(5, this.scale));
+					this.updateTransform();
+				}
+
+				resetView() {
+					this.scale = 1;
+					this.translateX = 0;
+					this.translateY = 0;
+					this.updateTransform();
+				}
+
+				startDrag(e) {
+					this.isDragging = true;
+					this.startX = e.clientX - this.translateX;
+					this.startY = e.clientY - this.translateY;
+					this.svg.style.cursor = 'grabbing';
+				}
+
+				drag(e) {
+					if (!this.isDragging) return;
+					this.translateX = e.clientX - this.startX;
+					this.translateY = e.clientY - this.startY;
+					this.updateTransform();
+				}
+
+				endDrag() {
+					this.isDragging = false;
+					this.svg.style.cursor = 'grab';
+				}
+
+				updateTransform() {
+					this.locationsLayer.style.transform = 
+						`translate(${this.translateX}px, ${this.translateY}px) scale(${this.scale})`;
+				}
+
+				render() {
+					this.locationsLayer.innerHTML = '';
+					const locations = store.getAll('locations');
+					
+					locations.forEach(location => {
+						const x = location.x || Math.random() * 900 + 50;
+						const y = location.y || Math.random() * 500 + 50;
+						
+						const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+						g.classList.add('map-location');
+						g.setAttribute('data-id', location.id);
+						
+						const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+						circle.setAttribute('cx', x);
+						circle.setAttribute('cy', y);
+						circle.setAttribute('r', 8);
+						
+						const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+						text.setAttribute('x', x);
+						text.setAttribute('y', y - 15);
+						text.textContent = location.name;
+						
+						g.appendChild(circle);
+						g.appendChild(text);
+						
+						g.addEventListener('click', () => {
+							showLocationDetails(location.id);
+						});
+						
+						this.locationsLayer.appendChild(g);
+					});
+				}
+			}
+
+			// Detail Panel Controller
+			function showLocationDetails(locationId) {
+				const location = store.get('locations', locationId);
+				if (!location) return;
+
+				const panel = document.getElementById('detail-panel');
+				const title = document.getElementById('detail-title');
+				const content = document.getElementById('detail-content');
+
+				title.textContent = location.name;
+
+				// Get related NPCs and items
+				const relatedNPCs = store.getAll('npcs').filter(npc => npc.locationId === locationId);
+				const relatedItems = store.getAll('items').filter(item => item.locationId === locationId);
+
+				content.innerHTML = `
+					<div class="detail-section">
+						<h3>Description</h3>
+						<p>${location.description || 'No description available.'}</p>
+					</div>
+					${location.history ? `
+					<div class="detail-section">
+						<h3>History</h3>
+						<p>${location.history}</p>
+					</div>
+					` : ''}
+					${relatedNPCs.length > 0 ? `
+					<div class="detail-section">
+						<h3>NPCs</h3>
+						<ul class="npc-list">
+							${relatedNPCs.map(npc => `
+								<li class="npc-item">
+									<div class="npc-name">${npc.name}</div>
+									<div class="npc-role">${npc.role || 'Unknown role'}</div>
+								</li>
+							`).join('')}
+						</ul>
+					</div>
+					` : ''}
+					${relatedItems.length > 0 ? `
+					<div class="detail-section">
+						<h3>Items</h3>
+						<ul class="item-list">
+							${relatedItems.map(item => `
+								<li class="item-item">
+									<div class="item-name">${item.name}</div>
+									<div class="item-type">${item.type || 'Unknown type'}</div>
+								</li>
+							`).join('')}
+						</ul>
+					</div>
+					` : ''}
+				`;
+
+				panel.classList.remove('hidden');
+			}
+
+			function hideDetailPanel() {
+				document.getElementById('detail-panel').classList.add('hidden');
+			}
+
+			// Modal Controller
+			const modal = document.getElementById('modal-add');
+			const form = document.getElementById('form-add');
+			const typeSelect = document.getElementById('add-type');
+			const formFields = document.getElementById('form-fields');
+
+			const formTemplates = {
+				location: `
+					<div class="form-group">
+						<label for="name">Name *</label>
+						<input type="text" id="name" name="name" required>
+					</div>
+					<div class="form-group">
+						<label for="description">Description</label>
+						<textarea id="description" name="description"></textarea>
+					</div>
+					<div class="form-group">
+						<label for="history">History</label>
+						<textarea id="history" name="history"></textarea>
+					</div>
+					<div class="form-group">
+						<label for="x">Map X Position (optional)</label>
+						<input type="number" id="x" name="x" min="0" max="1000">
+					</div>
+					<div class="form-group">
+						<label for="y">Map Y Position (optional)</label>
+						<input type="number" id="y" name="y" min="0" max="600">
+					</div>
+				`,
+				npc: `
+					<div class="form-group">
+						<label for="name">Name *</label>
+						<input type="text" id="name" name="name" required>
+					</div>
+					<div class="form-group">
+						<label for="role">Role/Title</label>
+						<input type="text" id="role" name="role">
+					</div>
+					<div class="form-group">
+						<label for="description">Description</label>
+						<textarea id="description" name="description"></textarea>
+					</div>
+					<div class="form-group">
+						<label for="locationId">Associated Location</label>
+						<select id="locationId" name="locationId">
+							<option value="">None</option>
+							${store.getAll('locations').map(loc => 
+								`<option value="${loc.id}">${loc.name}</option>`
+							).join('')}
+						</select>
+					</div>
+				`,
+				item: `
+					<div class="form-group">
+						<label for="name">Name *</label>
+						<input type="text" id="name" name="name" required>
+					</div>
+					<div class="form-group">
+						<label for="type">Type</label>
+						<input type="text" id="type" name="type" placeholder="e.g., Weapon, Artifact, Consumable">
+					</div>
+					<div class="form-group">
+						<label for="description">Description</label>
+						<textarea id="description" name="description"></textarea>
+					</div>
+					<div class="form-group">
+						<label for="locationId">Found At</label>
+						<select id="locationId" name="locationId">
+							<option value="">Unknown</option>
+							${store.getAll('locations').map(loc => 
+								`<option value="${loc.id}">${loc.name}</option>`
+							).join('')}
+						</select>
+					</div>
+				`,
+				event: `
+					<div class="form-group">
+						<label for="name">Event Name *</label>
+						<input type="text" id="name" name="name" required>
+					</div>
+					<div class="form-group">
+						<label for="date">Date/Time</label>
+						<input type="text" id="date" name="date" placeholder="e.g., Day 15 of Midsummer">
+					</div>
+					<div class="form-group">
+						<label for="description">Description</label>
+						<textarea id="description" name="description"></textarea>
+					</div>
+					<div class="form-group">
+						<label for="locationId">Location</label>
+						<select id="locationId" name="locationId">
+							<option value="">Unknown</option>
+							${store.getAll('locations').map(loc => 
+								`<option value="${loc.id}">${loc.name}</option>`
+							).join('')}
+						</select>
+					</div>
+				`
+			};
+
+			typeSelect.addEventListener('change', (e) => {
+				const type = e.target.value;
+				formFields.innerHTML = formTemplates[type] || '';
+			});
+
+			document.getElementById('btn-add-new').addEventListener('click', () => {
+				modal.classList.add('active');
+			});
+
+			document.getElementById('btn-close-modal').addEventListener('click', () => {
+				modal.classList.remove('active');
+				form.reset();
+				formFields.innerHTML = '';
+			});
+
+			document.getElementById('btn-cancel').addEventListener('click', () => {
+				modal.classList.remove('active');
+				form.reset();
+				formFields.innerHTML = '';
+			});
+
+			form.addEventListener('submit', (e) => {
+				e.preventDefault();
+				
+				const formData = new FormData(form);
+				const data = Object.fromEntries(formData);
+				const type = data.type + 's'; // Convert to plural for storage
+				
+				delete data.type;
+				
+				// Convert numeric fields
+				if (data.x) data.x = parseFloat(data.x);
+				if (data.y) data.y = parseFloat(data.y);
+				
+				store.add(type, data);
+				
+				modal.classList.remove('active');
+				form.reset();
+				formFields.innerHTML = '';
+				
+				// Refresh map if location was added
+				if (type === 'locations') {
+					mapController.render();
+				}
+			});
+
+			// Close detail panel
+			document.getElementById('btn-close-detail').addEventListener('click', hideDetailPanel);
+
+			// Category filter (for future enhancement)
+			document.querySelectorAll('.category-item').forEach(item => {
+				item.addEventListener('click', () => {
+					document.querySelectorAll('.category-item').forEach(i => i.classList.remove('active'));
+					item.classList.add('active');
+					// Can implement filtering logic here
+				});
+			});
+
+			// Initialize
+			const mapController = new MapController();
+			
+			// Start the app
+			initApp();
+		</script>
+	</body>
+</html>

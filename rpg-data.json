@@ -1,0 +1,93 @@
+{
+  "locations": [
+    {
+      "id": 1,
+      "name": "The Golden City",
+      "description": "A bustling metropolis known for its grand markets and towering spires. The streets are paved with yellow cobblestones that shimmer in the sunlight.",
+      "history": "Founded over 500 years ago by the legendary King Aldrich after the Great War. The city has served as the capital of the kingdom ever since.",
+      "x": 500,
+      "y": 300,
+      "createdAt": "2026-01-31T00:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "name": "Dark Forest",
+      "description": "An ancient woodland filled with mystery and danger. The trees here grow unnaturally tall, blocking out most sunlight.",
+      "history": "Said to be cursed by an old witch centuries ago. Many who enter never return.",
+      "x": 250,
+      "y": 400,
+      "createdAt": "2026-01-31T00:00:00.000Z"
+    },
+    {
+      "id": 3,
+      "name": "Frostpeak Mountains",
+      "description": "Treacherous mountain range covered in eternal snow. Home to ancient dragons and hidden monasteries.",
+      "history": "The dwarven kingdoms once thrived here before the dragons came.",
+      "x": 750,
+      "y": 150,
+      "createdAt": "2026-01-31T00:00:00.000Z"
+    }
+  ],
+  "npcs": [
+    {
+      "id": 101,
+      "name": "Eldrin the Wise",
+      "role": "Court Wizard",
+      "description": "An elderly mage with vast knowledge of the arcane arts. His long white beard nearly touches the ground, and his eyes sparkle with ancient wisdom.",
+      "locationId": 1,
+      "createdAt": "2026-01-31T00:00:00.000Z"
+    },
+    {
+      "id": 102,
+      "name": "Thora Ironhammer",
+      "role": "Blacksmith",
+      "description": "A stout dwarf with arms like tree trunks. She crafts the finest weapons in the realm.",
+      "locationId": 1,
+      "createdAt": "2026-01-31T00:00:00.000Z"
+    },
+    {
+      "id": 103,
+      "name": "The Witch of the Woods",
+      "role": "Mysterious Hermit",
+      "description": "A reclusive figure who lives deep in the forest. Some say she's helpful, others claim she's dangerous.",
+      "locationId": 2,
+      "createdAt": "2026-01-31T00:00:00.000Z"
+    }
+  ],
+  "items": [
+    {
+      "id": 201,
+      "name": "Sword of Dawn",
+      "type": "Legendary Weapon",
+      "description": "A blade that glows with the light of the morning sun. Said to have been wielded by King Aldrich himself.",
+      "locationId": 1,
+      "createdAt": "2026-01-31T00:00:00.000Z"
+    },
+    {
+      "id": 202,
+      "name": "Amulet of Shadows",
+      "type": "Cursed Artifact",
+      "description": "A dark pendant that grants its wearer the ability to move through shadows, but at a terrible cost.",
+      "locationId": 2,
+      "createdAt": "2026-01-31T00:00:00.000Z"
+    }
+  ],
+  "events": [
+    {
+      "id": 301,
+      "name": "The Festival of Lights",
+      "date": "First day of Summer",
+      "description": "An annual celebration where the entire city is illuminated by thousands of lanterns. Musicians and performers fill the streets.",
+      "locationId": 1,
+      "createdAt": "2026-01-31T00:00:00.000Z"
+    },
+    {
+      "id": 302,
+      "name": "The Great Disappearance",
+      "date": "50 years ago",
+      "description": "An entire village near the Dark Forest vanished overnight. No trace of the inhabitants was ever found.",
+      "locationId": 2,
+      "createdAt": "2026-01-31T00:00:00.000Z"
+    }
+  ]
+}
