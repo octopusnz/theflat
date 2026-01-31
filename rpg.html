@@ -1170,6 +1170,8 @@
 							
 							// Update viewBox to match image dimensions
 							this.svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+							this.svg.setAttribute('width', '100%');
+							this.svg.setAttribute('height', '100%');
 							
 							// Clear existing content
 							this.svg.innerHTML = '';
@@ -1180,10 +1182,12 @@
 							
 							// Add image as background
 							const image = document.createElementNS('http://www.w3.org/2000/svg', 'image');
-							image.setAttribute('href', store.data.mapSvg);
+							image.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', store.data.mapSvg);
+							image.setAttribute('x', '0');
+							image.setAttribute('y', '0');
 							image.setAttribute('width', width);
 							image.setAttribute('height', height);
-							image.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+							image.setAttribute('preserveAspectRatio', 'none');
 							mainGroup.appendChild(image);
 							
 							// Create and add locations layer on top
