@@ -346,14 +346,18 @@
 			}
 
 			.map-location text {
-				fill: var(--fg);
-				font-size: 14px;
-				font-weight: 600;
-				pointer-events: none;
-				text-anchor: middle;
-			}
+			fill: #1a1a1a;
+			font-size: 14px;
+			font-weight: 600;
+			pointer-events: none;
+			text-anchor: middle;
+			text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.8), -1px -1px 3px rgba(255, 255, 255, 0.8);
+			paint-order: stroke;
+			stroke: rgba(255, 255, 255, 0.6);
+			stroke-width: 0.5;
+		}
 
-			/* Detail Panel */
+		/* Detail Panel */
 			.detail-panel {
 				width: 400px;
 				background: var(--bg);
@@ -1296,6 +1300,119 @@
 				document.getElementById('detail-panel').classList.add('hidden');
 			}
 
+			function showCategoryList(category) {
+				const panel = document.getElementById('detail-panel');
+				const title = document.getElementById('detail-title');
+				const content = document.getElementById('detail-content');
+
+				let categoryName = category.charAt(0).toUpperCase() + category.slice(1, -1);
+				let items = store.getAll(category);
+
+				title.textContent = categoryName;
+
+				if (items.length === 0) {
+					content.innerHTML = `<div class="empty-state"><p>No ${category} yet. Click + Add New to create one.</p></div>`;
+					panel.classList.remove('hidden');
+					return;
+				}
+
+				content.innerHTML = `
+					<div class="item-list-container">
+						${items.map(item => `
+							<div class="item-list-entry" data-id="${item.id}" style="padding: 12px; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; margin-bottom: 8px; transition: all 0.2s;">
+								<div style="font-weight: 600; color: var(--link);">${item.name}</div>
+								${item.role ? `<div style="font-size: 0.9em; color: var(--muted-fg);">${item.role}</div>` : ''}
+								${item.type ? `<div style="font-size: 0.9em; color: var(--muted-fg);">${item.type}</div>` : ''}
+								${item.date ? `<div style="font-size: 0.9em; color: var(--muted-fg);">${item.date}</div>` : ''}
+							</div>
+						`).join('')}
+					</div>
+				`;
+
+				content.querySelectorAll('.item-list-entry').forEach(entry => {
+					entry.addEventListener('mouseover', function() {
+						this.style.backgroundColor = 'var(--hover)';
+						this.style.borderColor = 'var(--link)';
+					});
+					entry.addEventListener('mouseout', function() {
+						this.style.backgroundColor = 'transparent';
+						this.style.borderColor = 'var(--border)';
+					});
+					
+					entry.addEventListener('click', () => {
+						const itemId = parseInt(entry.dataset.id);
+						showItemDetails(category, itemId);
+					});
+				});
+
+				panel.classList.remove('hidden');
+			}
+
+			function showItemDetails(category, itemId) {
+				const panel = document.getElementById('detail-panel');
+				const title = document.getElementById('detail-title');
+				const content = document.getElementById('detail-content');
+				const item = store.get(category, itemId);
+
+				if (!item) return;
+
+				title.textContent = item.name;
+
+				let detailsHTML = `<div class="detail-section">`;
+
+				if (category === 'locations') {
+					if (item.description) detailsHTML += `<div style="margin-bottom: 12px;"><h3>Description</h3><p>${item.description}</p></div>`;
+					if (item.history) detailsHTML += `<div style="margin-bottom: 12px;"><h3>History</h3><p>${item.history}</p></div>`;
+
+					const relatedNPCs = store.getAll('npcs').filter(npc => npc.locationId === itemId);
+					if (relatedNPCs.length > 0) {
+						detailsHTML += `<div style="margin-bottom: 12px;"><h3>NPCs Here</h3><ul>`;
+						relatedNPCs.forEach(npc => {
+							detailsHTML += `<li>${npc.name}${npc.role ? ` - ${npc.role}` : ''}</li>`;
+						});
+						detailsHTML += `</ul></div>`;
+					}
+
+					const relatedItems = store.getAll('items').filter(itm => itm.locationId === itemId);
+					if (relatedItems.length > 0) {
+						detailsHTML += `<div style="margin-bottom: 12px;"><h3>Items Here</h3><ul>`;
+						relatedItems.forEach(itm => {
+							detailsHTML += `<li>${itm.name}${itm.type ? ` (${itm.type})` : ''}</li>`;
+						});
+						detailsHTML += `</ul></div>`;
+					}
+				} else if (category === 'npcs') {
+					if (item.role) detailsHTML += `<div style="margin-bottom: 12px;"><h3>Role/Title</h3><p>${item.role}</p></div>`;
+					if (item.description) detailsHTML += `<div style="margin-bottom: 12px;"><h3>Description</h3><p>${item.description}</p></div>`;
+					if (item.locationId) {
+						const location = store.get('locations', item.locationId);
+						if (location) detailsHTML += `<div style="margin-bottom: 12px;"><h3>Location</h3><p>${location.name}</p></div>`;
+					}
+				} else if (category === 'items') {
+					if (item.type) detailsHTML += `<div style="margin-bottom: 12px;"><h3>Type</h3><p>${item.type}</p></div>`;
+					if (item.description) detailsHTML += `<div style="margin-bottom: 12px;"><h3>Description</h3><p>${item.description}</p></div>`;
+					if (item.locationId) {
+						const location = store.get('locations', item.locationId);
+						if (location) detailsHTML += `<div style="margin-bottom: 12px;"><h3>Found At</h3><p>${location.name}</p></div>`;
+					}
+				} else if (category === 'events') {
+					if (item.date) detailsHTML += `<div style="margin-bottom: 12px;"><h3>Date/Time</h3><p>${item.date}</p></div>`;
+					if (item.description) detailsHTML += `<div style="margin-bottom: 12px;"><h3>Description</h3><p>${item.description}</p></div>`;
+					if (item.locationId) {
+						const location = store.get('locations', item.locationId);
+						if (location) detailsHTML += `<div style="margin-bottom: 12px;"><h3>Location</h3><p>${location.name}</p></div>`;
+					}
+				}
+
+				if (item.createdAt) {
+					detailsHTML += `<div style="font-size: 0.85em; color: var(--muted-fg); margin-top: 16px; padding-top: 8px; border-top: 1px solid var(--border);">Added ${new Date(item.createdAt).toLocaleDateString()}</div>`;
+				}
+
+				detailsHTML += `</div>`;
+				content.innerHTML = detailsHTML;
+				panel.classList.remove('hidden');
+			}
+
 			// Modal Controller
 			const modal = document.getElementById('modal-add');
 			const form = document.getElementById('form-add');
@@ -1445,12 +1562,18 @@
 			// Close detail panel
 			document.getElementById('btn-close-detail').addEventListener('click', hideDetailPanel);
 
-			// Category filter (for future enhancement)
+			// Category filter
 			document.querySelectorAll('.category-item').forEach(item => {
 				item.addEventListener('click', () => {
 					document.querySelectorAll('.category-item').forEach(i => i.classList.remove('active'));
 					item.classList.add('active');
-					// Can implement filtering logic here
+					
+					const category = item.dataset.category;
+					if (category === 'all') {
+						hideDetailPanel();
+					} else {
+						showCategoryList(category);
+					}
 				});
 			});
 
