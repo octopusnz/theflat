@@ -766,44 +766,51 @@
 				async loadStaticMap() {
 					// Try to load PNG first
 					try {
-						const response = await fetch('/map.png');
-						if (response.ok) {
-							const pngBlob = await response.blob();
-							const pngUrl = URL.createObjectURL(pngBlob);
-							this.data.mapSvg = pngUrl;
-							this.data.mapType = 'raster';
-							this.data.mapWidth = 11548;
-							this.data.mapHeight = 7724;
-							this.data.isStaticMap = true;
-							return true;
-						}
-					} catch (e) {
-						// PNG not found, try SVG
+					console.log('[DEBUG] Attempting to load map.png...');
+					const response = await fetch('/map.png');
+					if (response.ok) {
+						const pngBlob = await response.blob();
+						const pngUrl = URL.createObjectURL(pngBlob);
+						this.data.mapSvg = pngUrl;
+						this.data.mapType = 'raster';
+						this.data.mapWidth = 11548;
+						this.data.mapHeight = 7724;
+						this.data.isStaticMap = true;
+						console.log('[DEBUG] map.png loaded successfully, Blob URL:', pngUrl);
+						return true;
 					}
-
-					// Fallback to SVG
-					try {
-						const response = await fetch('/map.svg');
-						if (response.ok) {
-							const svgText = await response.text();
-							this.data.mapSvg = svgText;
-							this.data.mapType = 'svg';
-							this.data.isStaticMap = true;
-							return true;
-						}
-					} catch (e) {
-						// SVG not found, will use default grid
-					}
-					return false;
+				} catch (e) {
+					console.error('[ERROR] Failed to load map.png:', e);
+					// PNG not found, try SVG
 				}
 
-				save() {
-					// Note: This doesn't save to the server automatically
-					// Users need to export and commit the JSON file
-					this.updateBadges();
+				// Fallback to SVG
+				try {
+					console.log('[DEBUG] Attempting to load map.svg...');
+					const response = await fetch('/map.svg');
+					if (response.ok) {
+						const svgText = await response.text();
+						this.data.mapSvg = svgText;
+						this.data.mapType = 'svg';
+						this.data.isStaticMap = true;
+						console.log('[DEBUG] map.svg loaded successfully');
+						return true;
+					}
+				} catch (e) {
+					console.error('[ERROR] Failed to load map.svg:', e);
+					// SVG not found, will use default grid
 				}
+				console.log('[DEBUG] No map file found, using default grid');
+				return false;
+			}
 
-				exportData() {
+			save() {
+				// Note: This doesn't save to the server automatically
+				// Users need to export and commit the JSON file
+				this.updateBadges();
+			}
+
+			exportData() {
 					const dataStr = JSON.stringify(this.data, null, 2);
 					const dataBlob = new Blob([dataStr], { type: 'application/json' });
 					const url = URL.createObjectURL(dataBlob);
@@ -937,8 +944,16 @@
 			}
 // Load data and initialize app
 async function initApp() {
-	await store.load();
-	mapController.renderMap();
+	try {
+		console.log('[DEBUG] initApp starting...');
+		await store.load();
+		console.log('[DEBUG] Data loaded. Locations:', store.data.locations?.length || 0);
+		console.log('[DEBUG] Map data available:', !!store.data.mapSvg);
+		mapController.renderMap();
+		console.log('[DEBUG] Map rendered successfully');
+	} catch (e) {
+		console.error('[ERROR] initApp failed:', e);
+	}
 }
 
 			// Initialize data store
@@ -1091,6 +1106,7 @@ async function initApp() {
 				}
 
 				renderMap() {
+				console.log('[DEBUG] renderMap() called, mapSvg:', !!store.data.mapSvg, 'mapType:', store.data.mapType);
 				// Clear existing SVG content first
 				this.svg.innerHTML = '';
 				
@@ -1207,10 +1223,12 @@ async function initApp() {
 		}
 
 		render() {
+			console.log('[DEBUG] render() called, locationsLayer:', !!this.locationsLayer);
 			if (!this.locationsLayer) return;
 			
 			this.locationsLayer.innerHTML = '';
 			const locations = store.getAll('locations');
+			console.log('[DEBUG] Rendering', locations.length, 'locations');
 			
 			locations.forEach(location => {
 				const x = location.x || Math.random() * 900 + 50;
