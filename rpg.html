@@ -293,33 +293,30 @@
 				background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
 			}
 
-			@media (prefers-color-scheme: dark) {
-				.map-view {
-					background: linear-gradient(135deg, #0c1429 0%, #172033 100%);
-				}
-			}
+		.map-view svg {
+			overflow: hidden;
+		}
 
 			.map-svg {
 				width: 100%;
 				height: 100%;
 				cursor: grab;
-			}
+			shape-rendering: optimizeSpeed;
+		}
 
-			.map-svg:active {
-				cursor: grabbing;
-			}
+		.map-svg:active {
+			cursor: grabbing;
+		}
 
-			#main-group {
-				will-change: transform;
-				transform-origin: 0 0;
-			}
-
-			.map-location {
-				cursor: pointer;
+		#main-group {
+			will-change: transform;
+			transform-origin: 0 0;
+			backface-visibility: hidden;
+			-webkit-backface-visibility: hidden;
+			transform-style: preserve-3d;
+			-webkit-transform-style: preserve-3d;
 				transition: all 0.2s;
-			}
-
-			.map-location:hover {
+			pointer-events: bounding-box;
 				filter: brightness(1.2);
 			}
 
@@ -978,10 +975,22 @@
 				zoom(factor) {
 					this.scale *= factor;
 					this.scale = Math.max(0.5, Math.min(5, this.scale));
-					this.updateTransform();
+				
+				// Disable transitions during zoom for better performance
+				if (this.mainGroup) {
+					this.mainGroup.style.transition = 'none';
 				}
-
-				resetView() {
+				
+				this.updateTransform();
+				
+				// Re-enable transitions after a frame
+				if (this.mainGroup) {
+					setTimeout(() => {
+						if (this.mainGroup) {
+							this.mainGroup.style.transition = '';
+						}
+					}, 16);
+				}
 					this.scale = 1;
 					this.translateX = 0;
 					this.translateY = 0;
@@ -1124,22 +1133,23 @@
 						const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
 						text.setAttribute('x', x);
 						text.setAttribute('y', y - 15);
-						text.textContent = location.name;
-						
-						g.appendChild(circle);
-						g.appendChild(text);
-						
-						g.addEventListener('click', () => {
-							showLocationDetails(location.id);
-						});
-						
-						this.locationsLayer.appendChild(g);
+					text.setAttribute('pointer-events', 'none');
+					text.textContent = location.name;
+					
+					g.appendChild(circle);
+					g.appendChild(text);
+					
+					g.addEventListener('click', () => {
+						showLocationDetails(location.id);
 					});
-				}
+					
+					this.locationsLayer.appendChild(g);
+				});
 			}
+		}
 
-			// Detail Panel Controller
-			function showLocationDetails(locationId) {
+		// Detail Panel Controller
+		function showLocationDetails(locationId) {
 				const location = store.get('locations', locationId);
 				if (!location) return;
 
