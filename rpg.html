@@ -318,13 +318,18 @@
 		}
 
 		#main-group {
-			will-change: transform;
-			transform-origin: 0 0;
-			backface-visibility: hidden;
-			-webkit-backface-visibility: hidden;
-			transform-style: preserve-3d;
-			-webkit-transform-style: preserve-3d;
-		}
+		transform-origin: 0 0;
+		backface-visibility: hidden;
+		-webkit-backface-visibility: hidden;
+		transform-style: preserve-3d;
+		-webkit-transform-style: preserve-3d;
+		/* Optimize rendering for complex SVGs */
+		image-rendering: optimizeSpeed;
+		shape-rendering: optimizeSpeed;
+		/* will-change applied dynamically during transforms only */
+	}
+
+	/* Optimize map locations for performance */
 
 		.map-location {
 			cursor: pointer;
@@ -980,19 +985,20 @@
 					document.getElementById('btn-zoom-out').addEventListener('click', () => this.zoom(0.8));
 					document.getElementById('btn-reset-view').addEventListener('click', () => this.resetView());
 
-					// Pan controls
-					this.svg.addEventListener('mousedown', (e) => this.startDrag(e));
-					this.svg.addEventListener('mousemove', (e) => this.drag(e));
-					this.svg.addEventListener('mouseup', () => this.endDrag());
-					this.svg.addEventListener('mouseleave', () => this.endDrag());
-				}
-
-				zoom(factor) {
-					this.scale *= factor;
-					this.scale = Math.max(0.5, Math.min(5, this.scale));
+				// Pan controls with passive option for better scroll performance
+				this.svg.addEventListener('mousedown', (e) => this.startDrag(e));
+				this.svg.addEventListener('mousemove', (e) => this.drag(e), { passive: false });
+				if (this.transformTimeout) return;
+				
+				this.scale *= factor;
+				this.scale = Math.max(0.5, Math.min(5, this.scale));
 				this.updateTransform();
+				
+				// Throttle: wait 80ms before allowing next zoom
+				this.transformTimeout = setTimeout(() => {
+					this.transformTimeout = null;
+				}, 80);
 			}
-
 			resetView() {
 				this.scale = 1;
 				this.translateX = 0;
@@ -1011,10 +1017,14 @@
 			drag(e) {
 				if (!this.isDragging) return;
 				e.preventDefault();
-				this.translateX = e.clientX - this.startX;
-				this.translateY = e.clientY - this.startY;
-				this.updateTransform();
-				}
+			
+			// Update position values immediately
+			this.translateX = e.clientX - this.startX;
+			this.translateY = e.clientY - this.startY;
+			
+			// Throttle transform updates during drag
+			this.updateTransform();
+		}
 
 		endDrag() {
 			this.isDragging = false;
@@ -1022,18 +1032,78 @@
 		}
 
 		updateTransform() {
-			if (this.mainGroup) {
-				// Use CSS transform with translate3d for hardware acceleration
-				this.mainGroup.style.transform = 
-					`translate3d(${this.translateX}px, ${this.translateY}px, 0) scale(${this.scale})`;
-			} else {
-				// Fallback for default grid view
-				if (this.locationsLayer) {
-					this.locationsLayer.style.transform = 
-						`translate3d(${this.translateX}px, ${this.translateY}px, 0) scale(${this.scale})`;
-				}
+			// Use RAF for smooth 60fps updates
+			if (this.rafId) {
+				cancelAnimationFrame(this.rafId);
 			}
+			
+			this.rafId = requestAnimationFrame(() => {
+				const target = this.mainGroup || this.locationsLayer;
+				if (!target) return;
+				
+				// Apply transform with no transition for instant feedback
+				target.style.transform = 
+					`translate3d(${this.translateX}px, ${this.translateY}px, 0) scale(${this.scale})`;
+				
+				// Mark as transforming and set will-change
+				if (!this.isTransforming) {
+					this.isTransforming = true;
+					target.style.willChange = 'transform';
+				}
+				
+				// Remove will-change after transform completes to save memory
+				clearTimeout(this.willChangeTimeout);
+				this.willChangeTimeout = setTimeout(() => {
+					target.style.willChange = 'auto';
+					this.isTransforming = false;
+				}, 200);
+				
+				this.rafId = null;
+			});
 		}
+
+
+	optimizeSvgForPerformance(svgElement) {
+		// Optimize SVG rendering for better zoom/pan performance
+		svgElement.setAttribute('shape-rendering', 'optimizeSpeed');
+		svgElement.setAttribute('image-rendering', 'optimizeSpeed');
+		
+		// Remove animations that slow down transforms
+		const animations = svgElement.querySelectorAll('animate, animateTransform, animateMotion');
+		animations.forEach(anim => anim.remove());
+		
+		// Log filter count for performance awareness
+		const filters = svgElement.querySelectorAll('filter');
+		if (filters.length > 5) {
+			console.log(`Performance: Found ${filters.length} filters in SVG. Consider rasterizing.`);
+		}
+		
+		// Flatten deeply nested groups (>3 levels) for better rendering
+		this.flattenDeepGroups(svgElement, 0);
+	}
+
+	flattenDeepGroups(element, depth) {
+		if (depth > 3) {
+			// Flatten groups that are too deeply nested
+			const groups = element.querySelectorAll('g');
+			groups.forEach(g => {
+				if (g.children.length === 1 && g.children[0].tagName === 'g') {
+					const childGroup = g.children[0];
+					while (childGroup.firstChild) {
+						g.appendChild(childGroup.firstChild);
+					}
+					childGroup.remove();
+				}
+			});
+			return;
+		}
+		
+		Array.from(element.children).forEach(child => {
+			if (child.tagName === 'g') {
+				this.flattenDeepGroups(child, depth + 1);
+			}
+		});
+	}
 
 		renderMap() {
 			// Render custom map if available
@@ -1043,14 +1113,9 @@
 							const svgDoc = parser.parseFromString(store.data.mapSvg, 'image/svg+xml');
 							const customSvg = svgDoc.documentElement;
 							
-							// Get viewBox from custom SVG
-							const viewBox = customSvg.getAttribute('viewBox') || '0 0 1000 600';
-							this.svg.setAttribute('viewBox', viewBox);
-							
-							// Clear existing content
-							this.svg.innerHTML = '';
-							
-							// Create main group for all content (this will be transformed)
+						// Optimize SVG for performance
+						this.optimizeSvgForPerformance(customSvg);
+						
 							const mainGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 							mainGroup.setAttribute('id', 'main-group');
 							
