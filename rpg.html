@@ -941,39 +941,6 @@ async function initApp() {
 	mapController.renderMap();
 }
 
-// Export functionality
-document.getElementById('btn-export').addEventListener('click', () => {
-	store.exportData();
-});
-
-// Import functionality
-document.getElementById('btn-import').addEventListener('change', async (e) => {
-	const file = e.target.files[0];
-	if (file) {
-		const success = await store.importData(file);
-		if (success) {
-			mapController.render();
-			alert('Data imported successfully!');
-		}
-		// Reset input so same file can be imported again
-		e.target.value = '';
-	}
-});
-
-// Upload Map functionality
-document.getElementById('btn-upload-map').addEventListener('change', async (e) => {
-	const file = e.target.files[0];
-	if (file) {
-		const success = await store.uploadMapSvg(file);
-		if (success) {
-			mapController.renderMap();
-			alert('Map uploaded successfully! Don\'t forget to export your data to save the map.');
-		}
-		// Reset input so same file can be uploaded again
-		e.target.value = '';
-	}
-});
-
 			// Initialize data store
 			const store = new DataStore();
 
@@ -1618,6 +1585,39 @@ function hideDetailPanel() {
 
 	// Initialize
 	const mapController = new MapController();
+	
+	// Export functionality
+	document.getElementById('btn-export').addEventListener('click', () => {
+		store.exportData();
+	});
+
+	// Import functionality
+	document.getElementById('btn-import').addEventListener('change', async (e) => {
+		const file = e.target.files[0];
+		if (file) {
+			const success = await store.importData(file);
+			if (success) {
+				mapController.render();
+				alert('Data imported successfully!');
+			}
+			// Reset input so same file can be imported again
+			e.target.value = '';
+		}
+	});
+
+	// Upload Map functionality
+	document.getElementById('btn-upload-map').addEventListener('change', async (e) => {
+		const file = e.target.files[0];
+		if (file) {
+			const success = await store.uploadMapSvg(file);
+			if (success) {
+				mapController.renderMap();
+				alert('Map uploaded successfully! Don\'t forget to export your data to save the map.');
+			}
+			// Reset input so same file can be uploaded again
+			e.target.value = '';
+		}
+	});
 	
 	// Start the app
 	initApp();
