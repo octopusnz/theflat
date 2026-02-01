@@ -167,7 +167,31 @@
 
 		.nav-links {
 			display: flex;
-			gap: 16px;
+			gap: 8px;
+		}
+
+		.nav-btn {
+			background: none;
+			border: 2px solid var(--border);
+			color: var(--fg);
+			padding: 8px 12px;
+			border-radius: 6px;
+			cursor: pointer;
+			font-size: 0.875rem;
+			font-weight: 500;
+			transition: all 0.2s;
+		}
+
+		.nav-btn:hover,
+		.nav-btn.active {
+			background: var(--hover);
+			border-color: var(--link);
+			color: var(--link);
+		}
+
+		.nav-btn:focus-visible {
+			outline: 2px solid var(--focus);
+			outline-offset: 2px;
 		}
 
 		.nav-links a {
@@ -506,9 +530,10 @@
 		width: 100%;
 		height: 100%;
 		background: rgba(0, 0, 0, 0.5);
-		z-index: 1000;
+		z-index: 100;
 		align-items: center;
 		justify-content: center;
+		padding: 16px;
 	}
 
 	.modal.active {
@@ -819,11 +844,372 @@
 		}
 	}
 
+	/* Page Navigation */
+	.page {
+		display: none;
+		flex: 1;
+		flex-direction: column;
+		overflow: hidden;
+	}
+
+	.page.active {
+		display: flex;
+	}
+
+	.page-header {
+		background: var(--bg);
+		border-bottom: 2px solid var(--border);
+		padding: 16px;
+		flex-shrink: 0;
+	}
+
+	.page-header h2 {
+		margin: 0;
+		font-size: 1.25rem;
+	}
+
+	.page-content {
+		flex: 1;
+		overflow-y: auto;
+		-webkit-overflow-scrolling: touch;
+		padding: 16px;
+	}
+
+	/* Search Page */
+	.search-controls {
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+		margin-bottom: 20px;
+	}
+
+	.search-input-group {
+		display: flex;
+		gap: 8px;
+	}
+
+	.search-input {
+		flex: 1;
+		padding: 10px 12px;
+		border: 2px solid var(--border);
+		border-radius: 6px;
+		font-size: 1rem;
+		background: var(--bg);
+		color: var(--fg);
+		transition: border-color 0.2s;
+	}
+
+	.search-input:focus {
+		outline: none;
+		border-color: var(--link);
+	}
+
+	.search-filters {
+		display: flex;
+		gap: 8px;
+		align-items: center;
+	}
+
+	.search-filters label {
+		font-weight: 500;
+	}
+
+	.search-select {
+		padding: 10px 12px;
+		border: 2px solid var(--border);
+		border-radius: 6px;
+		font-size: 0.875rem;
+		background: var(--bg);
+		color: var(--fg);
+		cursor: pointer;
+		transition: border-color 0.2s;
+	}
+
+	.search-select:focus {
+		outline: none;
+		border-color: var(--link);
+	}
+
+	.search-results {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+		gap: 12px;
+	}
+
+	.search-result-item {
+		padding: 12px;
+		border: 1px solid var(--border);
+		border-radius: 6px;
+		cursor: pointer;
+		transition: all 0.2s;
+		background: var(--bg);
+	}
+
+	.search-result-item:hover {
+		background: var(--hover);
+		border-color: var(--link);
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+	}
+
+	.search-result-item h4 {
+		margin: 0 0 8px;
+		font-size: 1rem;
+		color: var(--link);
+	}
+
+	.search-result-item p {
+		margin: 4px 0;
+		font-size: 0.875rem;
+		color: var(--muted-fg);
+	}
+
+	/* Party Inventory Page */
+	.inventory-sections {
+		display: flex;
+		flex-direction: column;
+		gap: 24px;
+	}
+
+	.currency-section {
+		border: 2px solid var(--border);
+		border-radius: 8px;
+		padding: 16px;
+	}
+
+	.currency-section h3 {
+		margin: 0 0 16px;
+		font-size: 1.1rem;
+	}
+
+	.currency-inputs {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+		gap: 12px;
+	}
+
+	.currency-item {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+	}
+
+	.currency-item label {
+		font-weight: 500;
+		font-size: 0.875rem;
+	}
+
+	.currency-input {
+		padding: 10px;
+		border: 2px solid var(--border);
+		border-radius: 6px;
+		font-size: 1rem;
+		background: var(--bg);
+		color: var(--fg);
+		transition: border-color 0.2s;
+	}
+
+	.currency-input:focus {
+		outline: none;
+		border-color: var(--link);
+	}
+
+	.items-section {
+		border: 2px solid var(--border);
+		border-radius: 8px;
+		padding: 16px;
+	}
+
+	.items-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 16px;
+	}
+
+	.items-header h3 {
+		margin: 0;
+		font-size: 1.1rem;
+	}
+
+	.btn-add-item {
+		padding: 10px 16px;
+		background: #000000;
+		color: #ffffff;
+		border: none;
+		border-radius: 6px;
+		font-weight: 600;
+		font-size: 0.875rem;
+		cursor: pointer;
+		transition: all 0.2s;
+	}
+
+	.btn-add-item:hover {
+		background: #1a1a1a;
+		transform: translateY(-2px);
+	}
+
+	@media (prefers-color-scheme: dark) {
+		.btn-add-item {
+			background: #ffffff;
+			color: #000000;
+		}
+
+		.btn-add-item:hover {
+			background: #e0e0e0;
+		}
+	}
+
+	.inventory-items {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.inventory-item {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 12px;
+		border: 1px solid var(--border);
+		border-radius: 6px;
+		background: var(--hover);
+	}
+
+	.inventory-item-info h4 {
+		margin: 0 0 4px;
+		font-size: 1rem;
+	}
+
+	.inventory-item-info p {
+		margin: 0;
+		font-size: 0.875rem;
+		color: var(--muted-fg);
+	}
+
+	.inventory-item-controls {
+		display: flex;
+		gap: 8px;
+		align-items: center;
+	}
+
+	.inventory-item-qty {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		border: 1px solid var(--border);
+		border-radius: 4px;
+		padding: 4px;
+	}
+
+	.inventory-qty-btn {
+		background: none;
+		border: none;
+		color: var(--fg);
+		cursor: pointer;
+		font-size: 1rem;
+		width: 20px;
+		height: 20px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0;
+	}
+
+	.inventory-qty-btn:hover {
+		color: var(--link);
+	}
+
+	.inventory-qty-display {
+		min-width: 30px;
+		text-align: center;
+		font-weight: 500;
+	}
+
+	.btn-remove-item {
+		background: none;
+		border: 1px solid var(--border);
+		color: var(--fg);
+		padding: 6px 12px;
+		border-radius: 4px;
+		cursor: pointer;
+		font-size: 0.875rem;
+		transition: all 0.2s;
+	}
+
+	.btn-remove-item:hover {
+		background: #dc2626;
+		color: white;
+		border-color: #dc2626;
+	}
+
+	.empty-state {
+		text-align: center;
+		padding: 32px 16px;
+		color: var(--muted-fg);
+	}
+
+	@media (prefers-color-scheme: dark) {
+		.nav-btn:hover,
+		.nav-btn.active {
+			background: var(--hover);
+			border-color: var(--link);
+			color: var(--link);
+		}
+	}
+
+	@media (max-width: 768px) {
+		.page-content {
+			padding: 12px;
+		}
+
+		.search-results {
+			grid-template-columns: 1fr;
+		}
+
+		.currency-inputs {
+			grid-template-columns: 1fr;
+		}
+
+		.items-header {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 12px;
+		}
+
+		.btn-add-item {
+			width: 100%;
+		}
+
+		.inventory-item {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 12px;
+		}
+
+		.inventory-item-controls {
+			width: 100%;
+			justify-content: space-between;
+		}
+
+		.modal-content {
+			max-width: 100%;
+			max-height: 90vh;
+		}
+
+		.nav-btn {
+			padding: 6px 10px;
+			font-size: 0.75rem;
+		}
+	}
+
 	@media (prefers-reduced-motion: reduce) {
 		.btn,
 		.category-item,
 		.map-location,
-		.sidebar {
+		.sidebar,
+		.search-result-item,
+		.inventory-item {
 			transition: none;
 		}
 
@@ -846,7 +1232,10 @@
 			<button id="btn-menu" aria-label="Toggle menu">☰</button>
 			<h1>RPG Campaign Tracker</h1>
 			<nav class="nav-links">
-				<a href="/">Home</a>
+				<button class="nav-btn" data-page="home">Home</button>
+				<button class="nav-btn" data-page="map">World Map</button>
+				<button class="nav-btn" data-page="search">Search</button>
+				<button class="nav-btn" data-page="inventory">Party Inventory</button>
 			</nav>
 		</header>
 		<div class="mobile-overlay" id="mobile-overlay"></div>
@@ -945,6 +1334,85 @@
 					<div class="equipment-loading">Loading equipment data...</div>
 				</div>
 			</aside>
+
+			<!-- Search Page -->
+			<div class="page hidden" id="search-page">
+				<div class="page-header">
+					<h2>Search D&D 5e Content</h2>
+				</div>
+				<div class="page-content">
+					<div class="search-controls">
+						<div class="search-input-group">
+							<input type="text" id="search-query" class="search-input" placeholder="Search items..." autocomplete="off">
+						</div>
+						<div class="search-filters">
+							<label for="search-type">Type:</label>
+							<select id="search-type" class="search-select">
+								<option value="equipment">Equipment</option>
+							</select>
+						</div>
+					</div>
+					<div class="search-results" id="search-results">
+						<div class="empty-state">Enter a search term to begin</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Party Inventory Page -->
+			<div class="page hidden" id="inventory-page">
+				<div class="page-header">
+					<h2>Party Inventory</h2>
+				</div>
+				<div class="page-content">
+					<div class="inventory-sections">
+						<!-- Currency Section -->
+						<div class="currency-section">
+							<h3>Currency</h3>
+							<div class="currency-inputs">
+								<div class="currency-item">
+									<label>Gold (gp)</label>
+									<input type="number" id="currency-gold" class="currency-input" min="0" value="0">
+								</div>
+								<div class="currency-item">
+									<label>Silver (sp)</label>
+									<input type="number" id="currency-silver" class="currency-input" min="0" value="0">
+								</div>
+								<div class="currency-item">
+									<label>Copper (cp)</label>
+									<input type="number" id="currency-copper" class="currency-input" min="0" value="0">
+								</div>
+							</div>
+						</div>
+
+						<!-- Items Section -->
+						<div class="items-section">
+							<div class="items-header">
+								<h3>Items</h3>
+								<button class="btn-add-item" id="btn-add-item">+ Add Item</button>
+							</div>
+							<div class="inventory-items" id="inventory-items">
+								<div class="empty-state">No items in inventory. Click "Add Item" to begin.</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Add Item Modal -->
+					<div class="modal hidden" id="add-item-modal">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h3>Add Equipment to Inventory</h3>
+								<button class="btn-close" id="btn-close-add-item-modal">&times;</button>
+							</div>
+							<div class="modal-body">
+								<input type="text" id="add-item-search" class="search-input" placeholder="Search equipment..." autocomplete="off">
+								<div class="add-item-results" id="add-item-results">
+									<div class="empty-state">Start typing to search equipment</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
 
 		<!-- Add New Modal -->
@@ -2298,6 +2766,310 @@ async function showEquipmentDetails(equipment) {
 	document.querySelectorAll('.category-item').forEach(item => {
 		item.addEventListener('click', closeSidebar);
 	});
+
+	// ============================================
+	// Page Navigation
+	// ============================================
+	
+	let currentPage = 'map';
+	const mapContainer = document.querySelector('.container');
+	const pages = {
+		map: mapContainer,
+		home: document.getElementById('search-page'), // Reusing search as home-like
+		search: document.getElementById('search-page'),
+		inventory: document.getElementById('inventory-page')
+	};
+
+	function showPage(pageName) {
+		// Hide all pages
+		mapContainer.style.display = pageName === 'map' ? 'flex' : 'none';
+		document.getElementById('search-page').classList.toggle('active', pageName === 'search');
+		document.getElementById('inventory-page').classList.toggle('active', pageName === 'inventory');
+
+		// Update nav buttons
+		document.querySelectorAll('.nav-btn').forEach(btn => {
+			const btnPage = btn.dataset.page === 'home' ? 'map' : btn.dataset.page;
+			btn.classList.toggle('active', btnPage === pageName);
+		});
+
+		currentPage = pageName;
+		closeSidebar();
+	}
+
+	// Handle navigation button clicks
+	document.querySelectorAll('.nav-btn').forEach(btn => {
+		btn.addEventListener('click', () => {
+			const page = btn.dataset.page;
+			if (page === 'home') {
+				showPage('map');
+			} else {
+				showPage(page);
+			}
+		});
+	});
+
+	// Set initial active state for map (World Map)
+	document.querySelector('[data-page="map"]').classList.add('active');
+
+	// ============================================
+	// Party Inventory Management
+	// ============================================
+
+	class InventoryManager {
+		constructor() {
+			this.storageKey = 'partyInventory';
+			this.inventory = this.loadInventory();
+			this.initEventListeners();
+		}
+
+		loadInventory() {
+			const stored = localStorage.getItem(this.storageKey);
+			if (stored) {
+				return JSON.parse(stored);
+			}
+			return {
+				gold: 0,
+				silver: 0,
+				copper: 0,
+				items: []
+			};
+		}
+
+		saveInventory() {
+			localStorage.setItem(this.storageKey, JSON.stringify(this.inventory));
+			this.renderInventory();
+		}
+
+		initEventListeners() {
+			// Currency inputs
+			document.getElementById('currency-gold').addEventListener('change', (e) => {
+				this.inventory.gold = parseInt(e.target.value) || 0;
+				this.saveInventory();
+			});
+			document.getElementById('currency-silver').addEventListener('change', (e) => {
+				this.inventory.silver = parseInt(e.target.value) || 0;
+				this.saveInventory();
+			});
+			document.getElementById('currency-copper').addEventListener('change', (e) => {
+				this.inventory.copper = parseInt(e.target.value) || 0;
+				this.saveInventory();
+			});
+
+			// Add item button
+			document.getElementById('btn-add-item').addEventListener('click', () => {
+				this.showAddItemModal();
+			});
+
+			// Close add item modal
+			document.getElementById('btn-close-add-item-modal').addEventListener('click', () => {
+				this.closeAddItemModal();
+			});
+
+			// Search in add item modal
+			document.getElementById('add-item-search').addEventListener('input', (e) => {
+				this.searchEquipmentForAdd(e.target.value);
+			});
+
+			// Load initial data
+			this.renderInventory();
+		}
+
+		renderInventory() {
+			// Update currency displays
+			document.getElementById('currency-gold').value = this.inventory.gold;
+			document.getElementById('currency-silver').value = this.inventory.silver;
+			document.getElementById('currency-copper').value = this.inventory.copper;
+
+			// Render items
+			const itemsContainer = document.getElementById('inventory-items');
+			if (this.inventory.items.length === 0) {
+				itemsContainer.innerHTML = '<div class="empty-state">No items in inventory. Click "Add Item" to begin.</div>';
+				return;
+			}
+
+			itemsContainer.innerHTML = this.inventory.items.map((item, index) => `
+				<div class="inventory-item">
+					<div class="inventory-item-info">
+						<h4>${item.name}</h4>
+						<p>${item.rarity ? item.rarity : 'Unspecified'} • ${item.equipment_category?.name || 'Item'}</p>
+					</div>
+					<div class="inventory-item-controls">
+						<div class="inventory-item-qty">
+							<button class="inventory-qty-btn" data-index="${index}" data-action="decrease">−</button>
+							<div class="inventory-qty-display">${item.quantity}</div>
+							<button class="inventory-qty-btn" data-index="${index}" data-action="increase">+</button>
+						</div>
+						<button class="btn-remove-item" data-index="${index}">Remove</button>
+					</div>
+				</div>
+			`).join('');
+
+			// Attach event listeners
+			document.querySelectorAll('.inventory-qty-btn').forEach(btn => {
+				btn.addEventListener('click', (e) => {
+					const index = parseInt(e.target.dataset.index);
+					const action = e.target.dataset.action;
+					if (action === 'increase') {
+						this.inventory.items[index].quantity++;
+					} else if (action === 'decrease' && this.inventory.items[index].quantity > 1) {
+						this.inventory.items[index].quantity--;
+					}
+					this.saveInventory();
+				});
+			});
+
+			document.querySelectorAll('.btn-remove-item').forEach(btn => {
+				btn.addEventListener('click', (e) => {
+					const index = parseInt(e.target.dataset.index);
+					this.inventory.items.splice(index, 1);
+					this.saveInventory();
+				});
+			});
+		}
+
+		showAddItemModal() {
+			const modal = document.getElementById('add-item-modal');
+			modal.classList.add('active');
+			document.getElementById('add-item-search').focus();
+		}
+
+		closeAddItemModal() {
+			const modal = document.getElementById('add-item-modal');
+			modal.classList.remove('active');
+			document.getElementById('add-item-search').value = '';
+			document.getElementById('add-item-results').innerHTML = '<div class="empty-state">Start typing to search equipment</div>';
+		}
+
+		async searchEquipmentForAdd(query) {
+			const resultsContainer = document.getElementById('add-item-results');
+			if (query.trim().length === 0) {
+				resultsContainer.innerHTML = '<div class="empty-state">Start typing to search equipment</div>';
+				return;
+			}
+
+			resultsContainer.innerHTML = '<div class="equipment-loading">Searching...</div>';
+
+			try {
+				const equipment = await store.getEquipmentList();
+				const filtered = equipment.filter(item => 
+					item.name.toLowerCase().includes(query.toLowerCase())
+				).slice(0, 20);
+
+				if (filtered.length === 0) {
+					resultsContainer.innerHTML = '<div class="empty-state">No equipment found</div>';
+					return;
+				}
+
+				resultsContainer.innerHTML = filtered.map(item => `
+					<div class="add-item-result">
+						<div class="add-item-result-name">${item.name}</div>
+						<div class="add-item-result-qty">
+							<input type="number" class="add-item-qty-input" value="1" min="1" data-item-index="${equipment.indexOf(item)}">
+							<button class="btn-add-to-inventory" data-item-index="${equipment.indexOf(item)}">Add</button>
+						</div>
+					</div>
+				`).join('');
+
+				// Attach event listeners
+				document.querySelectorAll('.btn-add-to-inventory').forEach(btn => {
+					btn.addEventListener('click', async (e) => {
+						const itemIndex = parseInt(e.target.dataset.itemIndex);
+						const qty = parseInt(e.target.parentElement.querySelector('.add-item-qty-input').value) || 1;
+						await this.addItemToInventory(equipment[itemIndex], qty);
+						e.target.textContent = 'Added!';
+						e.target.disabled = true;
+						setTimeout(() => {
+							this.closeAddItemModal();
+						}, 500);
+					});
+				});
+			} catch (error) {
+				console.error('Error searching equipment:', error);
+				resultsContainer.innerHTML = '<div class="empty-state">Error loading equipment data</div>';
+			}
+		}
+
+		async addItemToInventory(item, quantity = 1) {
+			// Check if item already exists
+			const existingItem = this.inventory.items.find(i => i.index === item.index);
+			if (existingItem) {
+				existingItem.quantity += quantity;
+			} else {
+				this.inventory.items.push({
+					...item,
+					quantity: quantity
+				});
+			}
+			this.saveInventory();
+		}
+	}
+
+	// ============================================
+	// Search Page Management
+	// ============================================
+
+	class SearchPageManager {
+		constructor() {
+			this.fullEquipmentList = [];
+			this.initEventListeners();
+		}
+
+		initEventListeners() {
+			const searchInput = document.getElementById('search-query');
+			const typeSelect = document.getElementById('search-type');
+
+			searchInput.addEventListener('input', () => this.performSearch());
+			typeSelect.addEventListener('change', () => this.performSearch());
+		}
+
+		async performSearch() {
+			const query = document.getElementById('search-query').value.trim();
+			const type = document.getElementById('search-type').value;
+			const resultsContainer = document.getElementById('search-results');
+
+			if (query.length === 0) {
+				resultsContainer.innerHTML = '<div class="empty-state">Enter a search term to begin</div>';
+				return;
+			}
+
+			if (query.length < 2) {
+				return;
+			}
+
+			resultsContainer.innerHTML = '<div class="equipment-loading">Searching...</div>';
+
+			try {
+				let results = [];
+				if (type === 'equipment') {
+					const equipment = await store.getEquipmentList();
+					results = equipment.filter(item =>
+						item.name.toLowerCase().includes(query.toLowerCase())
+					);
+				}
+
+				if (results.length === 0) {
+					resultsContainer.innerHTML = '<div class="empty-state">No results found</div>';
+					return;
+				}
+
+				resultsContainer.innerHTML = results.map(item => `
+					<div class="search-result-item">
+						<h4>${item.name}</h4>
+						<p><strong>Type:</strong> ${item.equipment_category?.name || 'Unknown'}</p>
+						${item.rarity ? `<p><strong>Rarity:</strong> ${item.rarity}</p>` : ''}
+						<p><strong>Index:</strong> ${item.index}</p>
+					</div>
+				`).join('');
+			} catch (error) {
+				console.error('Error performing search:', error);
+				resultsContainer.innerHTML = '<div class="empty-state">Error loading data</div>';
+			}
+		}
+	}
+
+	// Initialize managers
+	window.inventoryManager = new InventoryManager();
+	window.searchPageManager = new SearchPageManager();
 	
 	// Start the app
 	initApp();
