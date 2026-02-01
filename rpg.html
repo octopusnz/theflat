@@ -847,9 +847,15 @@
 	/* Page Navigation */
 	.page {
 		display: none;
-		flex: 1;
+		position: fixed;
+		top: 50px;
+		left: 280px;
+		right: 0;
+		bottom: 0;
+		background: var(--bg);
 		flex-direction: column;
 		overflow: hidden;
+		z-index: 31;
 	}
 
 	.page.active {
@@ -861,6 +867,8 @@
 		border-bottom: 2px solid var(--border);
 		padding: 16px;
 		flex-shrink: 0;
+		position: relative;
+		z-index: 32;
 	}
 
 	.page-header h2 {
@@ -873,67 +881,112 @@
 		overflow-y: auto;
 		-webkit-overflow-scrolling: touch;
 		padding: 16px;
+		background: var(--bg);
 	}
 
 	/* Search Page */
-	.search-controls {
+	.search-page-content {
 		display: flex;
 		flex-direction: column;
-		gap: 12px;
-		margin-bottom: 20px;
-	}
-
-	.search-input-group {
-		display: flex;
-		gap: 8px;
-	}
-
-	.search-input {
-		flex: 1;
-		padding: 10px 12px;
-		border: 2px solid var(--border);
-		border-radius: 6px;
-		font-size: 1rem;
+		padding: 0 !important;
 		background: var(--bg);
+	}
+
+	.search-hero {
+		background: var(--bg);
+		border-bottom: 2px solid var(--border);
+		padding: 40px 20px;
+		text-align: center;
 		color: var(--fg);
-		transition: border-color 0.2s;
+		flex-shrink: 0;
+		width: 100%;
 	}
 
-	.search-input:focus {
-		outline: none;
-		border-color: var(--link);
+	.search-hero h1 {
+		margin: 0 0 30px;
+		font-size: 1.5rem;
+		font-weight: 600;
+		letter-spacing: 0;
+		color: var(--fg);
 	}
 
-	.search-filters {
+	.search-bar-container {
+		max-width: 500px;
+		margin: 0 auto;
+	}
+
+	.search-input-wrapper {
 		display: flex;
 		gap: 8px;
-		align-items: center;
-	}
-
-	.search-filters label {
-		font-weight: 500;
-	}
-
-	.search-select {
-		padding: 10px 12px;
-		border: 2px solid var(--border);
-		border-radius: 6px;
-		font-size: 0.875rem;
 		background: var(--bg);
+		border-radius: 6px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+		overflow: visible;
+		align-items: stretch;
+		border: 2px solid var(--border);
+	}
+
+	.search-input-wrapper:focus-within {
+		border-color: var(--link);
+		box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+	}
+
+	.search-input-hero {
+		flex: 1;
+		padding: 12px 16px;
+		border: none;
+		font-size: 0.95rem;
+		background: transparent;
+		color: var(--fg);
+		outline: none;
+		font-family: inherit;
+		min-width: 0;
+	}
+
+	.search-input-hero::placeholder {
+		color: var(--muted-fg);
+	}
+
+	.search-input-hero:focus {
+		outline: none;
+	}
+
+	.search-type-dropdown {
+		padding: 12px 12px;
+		border: none;
+		border-left: 1px solid var(--border);
+		font-size: 0.8rem;
+		background: transparent;
 		color: var(--fg);
 		cursor: pointer;
-		transition: border-color 0.2s;
+		font-family: inherit;
+		font-weight: 500;
+		min-width: 90px;
+		outline: none;
 	}
 
-	.search-select:focus {
+	.search-type-dropdown:hover {
+		background: var(--hover);
+	}
+
+	.search-type-dropdown:focus {
 		outline: none;
-		border-color: var(--link);
+		background: var(--hover);
+	}
+
+	/* Search Results Container */
+	#search-results {
+		padding: 30px 20px;
+		background: var(--bg);
+		flex: 1;
 	}
 
 	.search-results {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
 		gap: 12px;
+		max-width: 1200px;
+		margin: 0 auto;
 	}
 
 	.search-result-item {
@@ -962,6 +1015,47 @@
 		margin: 4px 0;
 		font-size: 0.875rem;
 		color: var(--muted-fg);
+	}
+
+	@media (max-width: 768px) {
+		.search-hero {
+			padding: 24px 12px;
+		}
+
+		.search-hero h1 {
+			font-size: 1.25rem;
+			margin-bottom: 20px;
+		}
+
+		.search-bar-container {
+			max-width: 100%;
+		}
+
+		.search-input-wrapper {
+			flex-direction: row;
+			gap: 6px;
+		}
+
+		.search-input-hero {
+			padding: 10px 12px;
+			font-size: 0.9rem;
+		}
+
+		.search-type-dropdown {
+			padding: 10px 8px;
+			font-size: 0.75rem;
+			border-left: 1px solid var(--border);
+			min-width: 70px;
+		}
+
+		#search-results {
+			padding: 20px 12px;
+		}
+
+		.search-results {
+			grid-template-columns: 1fr;
+			gap: 10px;
+		}
 	}
 
 	/* Party Inventory Page */
@@ -1201,6 +1295,11 @@
 			padding: 6px 10px;
 			font-size: 0.75rem;
 		}
+
+		.page {
+			left: 0;
+			right: 0;
+		}
 	}
 
 	@media (prefers-reduced-motion: reduce) {
@@ -1337,19 +1436,16 @@
 
 			<!-- Search Page -->
 			<div class="page hidden" id="search-page">
-				<div class="page-header">
-					<h2>Search D&D 5e Content</h2>
-				</div>
-				<div class="page-content">
-					<div class="search-controls">
-						<div class="search-input-group">
-							<input type="text" id="search-query" class="search-input" placeholder="Search items..." autocomplete="off">
-						</div>
-						<div class="search-filters">
-							<label for="search-type">Type:</label>
-							<select id="search-type" class="search-select">
-								<option value="equipment">Equipment</option>
-							</select>
+				<div class="page-content search-page-content">
+					<div class="search-hero">
+						<h1>D&D 5e Search</h1>
+						<div class="search-bar-container">
+							<div class="search-input-wrapper">
+								<input type="text" id="search-query" class="search-input-hero" placeholder="Search equipment, spells, items..." autocomplete="off">
+								<select id="search-type" class="search-type-dropdown">
+									<option value="equipment">Equipment</option>
+								</select>
+							</div>
 						</div>
 					</div>
 					<div class="search-results" id="search-results">
@@ -2781,10 +2877,31 @@ async function showEquipmentDetails(equipment) {
 	};
 
 	function showPage(pageName) {
-		// Hide all pages
-		mapContainer.style.display = pageName === 'map' ? 'flex' : 'none';
-		document.getElementById('search-page').classList.toggle('active', pageName === 'search');
-		document.getElementById('inventory-page').classList.toggle('active', pageName === 'inventory');
+		// Hide all pages and show only the active one
+		const searchPage = document.getElementById('search-page');
+		const inventoryPage = document.getElementById('inventory-page');
+		
+		// For search page
+		if (pageName === 'search') {
+			searchPage.classList.add('active');
+			searchPage.classList.remove('hidden');
+			inventoryPage.classList.remove('active');
+			inventoryPage.classList.add('hidden');
+		} 
+		// For inventory page
+		else if (pageName === 'inventory') {
+			inventoryPage.classList.add('active');
+			inventoryPage.classList.remove('hidden');
+			searchPage.classList.remove('active');
+			searchPage.classList.add('hidden');
+		} 
+		// For map
+		else if (pageName === 'map') {
+			searchPage.classList.remove('active');
+			searchPage.classList.add('hidden');
+			inventoryPage.classList.remove('active');
+			inventoryPage.classList.add('hidden');
+		}
 
 		// Update nav buttons
 		document.querySelectorAll('.nav-btn').forEach(btn => {
