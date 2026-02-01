@@ -623,6 +623,7 @@
 			flex-direction: column;
 			flex: 1;
 			overflow-y: auto;
+			-webkit-overflow-scrolling: touch;
 		}
 
 		.detail-panel {
@@ -638,6 +639,11 @@
 
 		.detail-panel:not(.hidden) {
 			right: 0;
+		}
+		
+		.map-view {
+			-webkit-overflow-scrolling: touch;
+			overflow: auto;
 		}
 	}
 
@@ -1360,8 +1366,8 @@ function showLocationDetails(locationId) {
 		html += '<h3>NPCs</h3>';
 		html += '<ul class="npc-list">';
 		relatedNPCs.forEach(npc => {
-			html += '<li class="npc-item">';
-			html += '<div class="npc-name">' + npc.name + '</div>';
+			html += '<li class="npc-item" style="cursor: pointer;" onclick="showItemDetails(\'npcs\', ' + npc.id + ')">';
+			html += '<div class="npc-name" style="color: var(--link); text-decoration: underline;">' + npc.name + '</div>';
 			html += '<div class="npc-role">' + (npc.role || 'Unknown role') + '</div>';
 			html += '</li>';
 		});
@@ -1374,8 +1380,8 @@ function showLocationDetails(locationId) {
 		html += '<h3>Items</h3>';
 		html += '<ul class="item-list">';
 		relatedItems.forEach(item => {
-			html += '<li class="item-item">';
-			html += '<div class="item-name">' + item.name + '</div>';
+			html += '<li class="item-item" style="cursor: pointer;" onclick="showItemDetails(\'items\', ' + item.id + ')">';
+			html += '<div class="item-name" style="color: var(--link); text-decoration: underline;">' + item.name + '</div>';
 			html += '<div class="item-type">' + (item.type || 'Unknown type') + '</div>';
 			html += '</li>';
 		});
@@ -1410,6 +1416,7 @@ function showLocationDetails(locationId) {
 				
 				panel.style.width = `${panelWidth}px`;
 				panel.style.height = `${panelHeight}px`;
+				panel.style.minHeight = `${panelHeight}px`;
 				
 				// Position at the left edge of visual viewport (offsetX is where vv starts)
 				// We want panel to appear at offsetX in the layout viewport
