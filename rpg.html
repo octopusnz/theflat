@@ -1749,6 +1749,9 @@ async function showEquipmentPanel() {
 	const panel = document.getElementById('equipment-panel');
 	const resultsDiv = document.getElementById('equipment-results');
 	
+	// Hide detail panel first
+	hideDetailPanel();
+	
 	panel.classList.remove('hidden');
 	panel.classList.add('active');
 	
