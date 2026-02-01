@@ -198,12 +198,30 @@
 			flex-shrink: 0;
 		}
 
-		.sidebar h2 {
-			margin: 0 0 16px;
-			font-size: 1rem;
+.sidebar-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 16px;
+	}
+
+	.sidebar h2 {
+		margin: 0;
+		font-size: 1rem;
 		color: var(--muted-fg);
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
+	}
+
+	.sidebar-close {
+		display: none;
+		background: none;
+		border: none;
+		color: var(--fg);
+		font-size: 1.5rem;
+		cursor: pointer;
+		padding: 4px 8px;
+		line-height: 1;
 	}
 
 	.category-list {
@@ -579,6 +597,10 @@
 			display: block;
 		}
 
+		.sidebar-close {
+			display: block;
+		}
+
 		.sidebar {
 			position: fixed;
 			left: -280px;
@@ -599,16 +621,23 @@
 		.category-list {
 			display: flex;
 			flex-direction: column;
+			flex: 1;
+			overflow-y: auto;
 		}
 
 		.detail-panel {
 			width: 100%;
 			position: fixed;
 			top: 0;
-			right: 0;
+			right: -100%;
 			height: 100vh;
 			z-index: 50;
 			box-shadow: -4px 0 12px rgba(0, 0, 0, 0.1);
+			transition: right 0.3s;
+		}
+
+		.detail-panel:not(.hidden) {
+			right: 0;
 		}
 	}
 
@@ -647,7 +676,10 @@
 		<!-- Sidebar -->
 		<div class="container">
 			<aside class="sidebar" id="sidebar">
-				<h2>Categories</h2>
+				<div class="sidebar-header">
+					<h2>Categories</h2>
+					<button class="sidebar-close" id="btn-close-sidebar" aria-label="Close menu">&times;</button>
+				</div>
 				<ul class="category-list">
 					<li class="category-item active" data-category="all">
 						<span>All</span>
@@ -706,7 +738,7 @@
 			</div>
 
 			<!-- Detail Panel -->
-			<aside class="detail-panel" id="detail-panel">
+			<aside class="detail-panel hidden" id="detail-panel">
 				<div class="detail-header">
 					<h2 id="detail-title">Select a location</h2>
 					<button class="btn-close" id="btn-close-detail" aria-label="Close details">&times;</button>
@@ -1022,16 +1054,11 @@ async function initApp() {
 					this.svg.addEventListener('mousedown', (e) => this.startDrag(e));
 					this.svg.addEventListener('mousemove', (e) => this.drag(e), { passive: false });
 					document.addEventListener('mouseup', (e) => this.endDrag(e));
-				}
 
-				zoom(factor) {
-					// Throttle zoom events to prevent rapid-fire updates
-					if (this.transformTimeout) return;
-					
-					this.scale *= factor;
-					this.scale = Math.max(0.5, Math.min(5, this.scale));
-					this.updateTransform();
-					
+				// Touch support for mobile panning
+				this.svg.addEventListener('touchstart', (e) => this.startDrag(e.touches[0]), { passive: true });
+				this.svg.addEventListener('touchmove', (e) => this.drag(e.touches[0]), { passive: false });
+				this.svg.addEventListener('touchend', (e) => this.endDrag(e), { passive: true });
 					// Throttle: wait 80ms before allowing next zoom
 					this.transformTimeout = setTimeout(() => {
 						this.transformTimeout = null;
@@ -1681,23 +1708,28 @@ function hideDetailPanel() {
 	const sidebar = document.getElementById('sidebar');
 	const menuBtn = document.getElementById('btn-menu');
 	const overlay = document.getElementById('mobile-overlay');
+	const closeSidebarBtn = document.getElementById('btn-close-sidebar');
+
+	function closeSidebar() {
+		sidebar.classList.remove('active');
+		overlay.classList.remove('active');
+	}
 
 	menuBtn.addEventListener('click', () => {
 		sidebar.classList.toggle('active');
 		overlay.classList.toggle('active');
 	});
 
-	overlay.addEventListener('click', () => {
-		sidebar.classList.remove('active');
-		overlay.classList.remove('active');
-	});
+	overlay.addEventListener('click', closeSidebar);
+
+	// Close button for sidebar
+	if (closeSidebarBtn) {
+		closeSidebarBtn.addEventListener('click', closeSidebar);
+	}
 
 	// Close menu when clicking on a category
 	document.querySelectorAll('.category-item').forEach(item => {
-		item.addEventListener('click', () => {
-			sidebar.classList.remove('active');
-			overlay.classList.remove('active');
-		});
+		item.addEventListener('click', closeSidebar);
 	});
 	
 	// Start the app
