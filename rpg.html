@@ -128,15 +128,11 @@
 			header {
 				background: var(--bg);
 				border-bottom: 2px solid var(--border);
-				padding: 16px 24px;
-				display: flex;
-				justify-content: space-between;
-				align-items: center;
-				flex-shrink: 0;
-			}
-
-			h1 {
-				margin: 0;
+			padding: 8px 12px;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			flex-shrink: 0;
 				font-size: 1.5rem;
 			}
 
@@ -175,12 +171,7 @@
 				width: 280px;
 				background: var(--bg);
 				border-right: 2px solid var(--border);
-				padding: 20px;
-				overflow-y: auto;
-				flex-shrink: 0;
-			}
-
-			.sidebar h2 {
+			padding: 12px;
 				margin: 0 0 16px;
 				font-size: 1.1rem;
 				color: var(--muted-fg);
@@ -274,10 +265,7 @@
 			.map-toolbar {
 				background: var(--bg);
 				border-bottom: 2px solid var(--border);
-				padding: 12px 20px;
-				display: flex;
-				gap: 12px;
-				align-items: center;
+			padding: 8px 12px;
 			}
 
 			.btn-toolbar {
@@ -360,65 +348,64 @@
 	.detail-panel {
 			width: 400px;
 			background: var(--bg);
-				border-left: 2px solid var(--border);
-				padding: 24px;
-				overflow-y: auto;
-				flex-shrink: 0;
-			}
+		border-left: 2px solid var(--border);
+		padding: 16px;
+		overflow-y: auto;
+		flex-shrink: 0;
+	}
 
-			.detail-panel.hidden {
-				display: none;
-			}
+	.detail-panel.hidden {
+		display: none;
+	}
 
-			.detail-header {
-				display: flex;
-				justify-content: space-between;
-				align-items: flex-start;
-				margin-bottom: 20px;
-			}
+	.detail-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		margin-bottom: 20px;
+	}
 
-			.detail-header h2 {
-				margin: 0;
-				font-size: 1.5rem;
-			}
+	.detail-header h2 {
+		margin: 0;
+		font-size: 1.5rem;
+	}
 
-			.btn-close {
-				background: none;
-				border: none;
-				color: var(--muted-fg);
-				font-size: 1.5rem;
-				cursor: pointer;
-				padding: 4px 8px;
-				line-height: 1;
-			}
+	.btn-close {
+		background: none;
+		border: none;
+		color: var(--muted-fg);
+		font-size: 1.5rem;
+		cursor: pointer;
+		padding: 4px 8px;
+		line-height: 1;
+	}
 
-			.btn-close:hover {
-				color: var(--fg);
-			}
+	.btn-close:hover {
+		color: var(--fg);
+	}
 
-			.detail-section {
-				margin-bottom: 24px;
-			}
+	.detail-section {
+		margin-bottom: 24px;
+	}
 
-			.detail-section h3 {
-				margin: 0 0 12px;
-				font-size: 1rem;
-				color: var(--muted-fg);
-				text-transform: uppercase;
-				letter-spacing: 0.05em;
-			}
+	.detail-section h3 {
+		margin: 0 0 12px;
+		font-size: 1rem;
+		color: var(--muted-fg);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+	.detail-section p {
+		margin: 0;
+		line-height: 1.6;
+	}
 
-			.detail-section p {
-				margin: 0;
-				line-height: 1.6;
-			}
-
-			.npc-list,
-			.item-list {
-				list-style: none;
-				padding: 0;
-				margin: 0;
-			}
+	.npc-list,
+	.item-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
 
 			.npc-item,
 			.item-item {
@@ -694,12 +681,7 @@
 		<h1>RPG Campaign Tracker</h1>
 		<nav class="nav-links">
 			<a href="/">Home</a>
-			<a href="/rpg">RPG Tracker</a>
-		</nav>
-	</header>
 
-	<div class="mobile-overlay" id="mobile-overlay"></div>
-		<div class="container">
 			<!-- Sidebar -->
 			<aside class="sidebar" id="sidebar">
 				<h2>Categories</h2>
@@ -1321,9 +1303,16 @@ async function initApp() {
 			console.log('[DEBUG] Rendering', locations.length, 'locations');
 			
 			locations.forEach(location => {
-				const x = location.x || Math.random() * 900 + 50;
-				const y = location.y || Math.random() * 500 + 50;
-				
+			// Place markers randomly in the center area of the map
+			// Map dimensions: 11548×7724
+			// Center area: roughly 40% of map width and height, centered
+			const centerX = 11548 / 2;
+			const centerY = 7724 / 2;
+			const rangeX = 11548 * 0.4;
+			const rangeY = 7724 * 0.4;
+			
+			const x = location.x || (centerX - rangeX/2 + Math.random() * rangeX);
+			const y = location.y || (centerY - rangeY/2 + Math.random() * rangeY);
 			console.log('[DEBUG] Creating marker for', location.name, 'at', x, y);
 			
 			const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
