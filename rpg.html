@@ -1323,7 +1323,8 @@ async function initApp() {
 		g.addEventListener('click', () => {
 			// Reset zoom on mobile when tapping location markers
 			if (window.innerWidth <= 768) {
-				this.resetView();
+				console.log('[DEBUG] Resetting zoom on mobile tap');
+				mapController.resetView();
 			}
 			showLocationDetails(location.id);
 		});
