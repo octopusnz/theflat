@@ -1290,6 +1290,7 @@ async function initApp() {
 			const locations = store.getAll('locations');
 			console.log('[DEBUG] Rendering', locations.length, 'locations');
 			
+			const mapController = this;
 			locations.forEach(location => {
 			// Place markers randomly in the center area of the map
 			// Map dimensions: 11548×7724
@@ -1321,6 +1322,7 @@ async function initApp() {
 		g.appendChild(text);
 		
 		g.addEventListener('click', () => {
+			console.log('[DEBUG] Location marker clicked, innerWidth:', window.innerWidth);
 			// Reset zoom on mobile when tapping location markers
 			if (window.innerWidth <= 768) {
 				console.log('[DEBUG] Resetting zoom on mobile tap');
