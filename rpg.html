@@ -336,15 +336,16 @@
 				position: relative;
 				overflow: hidden;
 				background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
-			}
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
 
 		.map-view svg {
 			overflow: hidden;
-		}
-
-		.map-svg {
 			width: 100%;
 			height: 100%;
+			display: block;
 			cursor: grab;
 		}
 
@@ -646,6 +647,23 @@
 			-webkit-overflow-scrolling: touch;
 			overflow: auto;
 		}
+
+		header {
+			padding: 2px 4px;
+		}
+
+		h1 {
+			font-size: 1.1rem;
+		}
+
+		.map-toolbar {
+			padding: 2px 4px;
+		}
+
+		.btn-toolbar {
+			padding: 6px 10px;
+			font-size: 0.8rem;
+		}
 	}
 
 	@media (max-width: 768px) and (orientation: landscape) {
@@ -659,11 +677,12 @@
 		
 		.sidebar-header {
 			flex-shrink: 0;
-			margin-bottom: 4px;
+			margin-bottom: 2px;
+			padding: 4px;
 		}
 		
 		.sidebar-header h2 {
-			font-size: 0.85rem;
+			font-size: 0.75rem;
 			margin: 0;
 		}
 		
@@ -672,23 +691,41 @@
 			min-height: 0 !important;
 			overflow-y: scroll !important;
 			-webkit-overflow-scrolling: touch !important;
-			margin-bottom: 4px;
+			margin-bottom: 2px;
 		}
 		
 		.category-item {
-			padding: 8px;
-			margin: 2px 0;
+			padding: 6px;
+			margin: 1px 0;
+			font-size: 0.85rem;
 		}
 		
 		.sidebar .btn {
 			flex-shrink: 0;
 			margin-top: 2px;
-			padding: 6px 10px;
-			font-size: 0.8rem;
+			padding: 4px 8px;
+			font-size: 0.7rem;
 		}
 		
 		.sidebar hr {
-			margin: 4px 0;
+			margin: 2px 0;
+		}
+
+		header {
+			padding: 2px 4px;
+		}
+
+		h1 {
+			font-size: 1rem;
+		}
+
+		.map-toolbar {
+			padding: 1px 2px;
+		}
+
+		.btn-toolbar {
+			padding: 4px 8px;
+			font-size: 0.75rem;
 		}
 	}
 
@@ -757,7 +794,7 @@
 				<hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border);">
 				<label class="btn" id="btn-upload-map-label">
 					Upload Map
-					<input type="file" id="btn-upload-map" accept=".svg,.jpg,.jpeg,.png,.gif,.webp,image/*" style="display: none;">
+					<input type="file" id="btn-upload-map" accept=".jpg,.jpeg,.png,.gif,.webp,image/*" style="display: none;">
 				</label>
 				<button class="btn" id="btn-export">Export Data</button>
 				<label class="btn" id="btn-import-label">
@@ -773,7 +810,7 @@
 					<button class="btn-toolbar" id="btn-reset-view">Reset View</button>
 				</div>
 				<div class="map-view" id="map-view">
-					<svg class="map-svg" id="map-svg" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid meet">
+					<svg class="map-svg" id="map-svg" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice">
 						<!-- Map background -->
 						<defs>
 							<pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
@@ -900,23 +937,7 @@
 					// PNG not found, try SVG
 				}
 
-				// Fallback to SVG
-				try {
-	
-					const response = await fetch('/map.svg');
-					if (response.ok) {
-						const svgText = await response.text();
-						this.data.mapSvg = svgText;
-						this.data.mapType = 'svg';
-						this.data.isStaticMap = true;
-	
-						return true;
-					}
-				} catch (e) {
-					console.error('[ERROR] Failed to load map.svg:', e);
-					// SVG not found, will use default grid
-				}
-	
+				// Fallback to PNG loading for static map
 				return false;
 			}
 
@@ -959,68 +980,54 @@
 					}
 				}
 
-				async uploadMapSvg(file) {
+				async uploadMap(file) {
 					try {
-						// Check if it's an SVG or raster image
-						if (file.type === 'image/svg+xml' || file.name.endsWith('.svg')) {
-							// Handle SVG
-							const text = await file.text();
-							
-							if (!text.trim().startsWith('<svg') && !text.trim().startsWith('<?xml')) {
-								throw new Error('File does not appear to be a valid SVG');
-							}
-							
-							this.data.mapSvg = text;
-							this.data.mapType = 'svg';
-							this.data.isStaticMap = false;
-						} else if (file.type.startsWith('image/')) {
-							// Handle raster images (JPG, PNG, etc.)
-							const reader = new FileReader();
-							
-							return new Promise((resolve, reject) => {
-								reader.onload = (e) => {
-									const img = new Image();
-									img.onload = () => {
-										this.data.mapSvg = e.target.result; // Store as data URL
-										this.data.mapType = 'raster';
-										this.data.isStaticMap = false;
-										this.data.mapWidth = img.width;
-										this.data.mapHeight = img.height;
-										resolve(true);
-									};
-									img.onerror = () => {
-										reject(new Error('Failed to load image'));
-									};
-									img.src = e.target.result;
-								};
-								reader.onerror = () => reject(new Error('Failed to read file'));
-								reader.readAsDataURL(file);
-							});
-						} else {
-							throw new Error('Unsupported file type');
-						}
+					// Handle raster images only (JPG, PNG, etc.)
+					if (file.type.startsWith('image/')) {
+						const reader = new FileReader();
 						
-						return true;
-					} catch (e) {
-						console.error('Error uploading map:', e);
-						alert('Error uploading map. Please ensure it\'s a valid image file.');
-						return false;
+						return new Promise((resolve, reject) => {
+							reader.onload = (e) => {
+								const img = new Image();
+								img.onload = () => {
+									this.data.mapSvg = e.target.result; // Store as data URL
+									this.data.mapType = 'raster';
+									this.data.isStaticMap = false;
+									this.data.mapWidth = img.width;
+									this.data.mapHeight = img.height;
+									resolve(true);
+								};
+								img.onerror = () => {
+									reject(new Error('Failed to load image'));
+								};
+								img.src = e.target.result;
+							};
+							reader.onerror = () => reject(new Error('Failed to read file'));
+							reader.readAsDataURL(file);
+						});
+					} else {
+						throw new Error('Only image files (PNG, JPG, etc.) are supported.');
 					}
+				} catch (e) {
+					console.error('Error uploading map:', e);
+					alert('Error uploading map: ' + e.message);
+					return false;
 				}
+			}
 
-				add(type, item) {
-					if (!this.data[type]) {
-						this.data[type] = [];
-					}
-					// Generate a proper integer ID
-					const maxId = this.data[type].reduce((max, item) => 
-						Math.max(max, item.id || 0), 0);
-					item.id = maxId + 1;
-					item.createdAt = new Date().toISOString();
-					this.data[type].push(item);
-					this.save();
-					return item;
+			add(type, item) {
+				if (!this.data[type]) {
+					this.data[type] = [];
 				}
+				// Generate a proper integer ID
+				const maxId = this.data[type].reduce((max, item) => 
+					Math.max(max, item.id || 0), 0);
+				item.id = maxId + 1;
+				item.createdAt = new Date().toISOString();
+				this.data[type].push(item);
+				this.save();
+				return item;
+			}
 
 				get(type, id) {
 					return this.data[type]?.find(item => item.id === id);
@@ -1189,42 +1196,7 @@ async function initApp() {
 					});
 				}
 
-				optimizeSvgForPerformance(svgElement) {
-					// Optimize SVG rendering for better zoom/pan performance
-					svgElement.setAttribute('shape-rendering', 'optimizeSpeed');
-					svgElement.setAttribute('image-rendering', 'optimizeSpeed');
-					
-					// Remove animations that slow down transforms
-					const animations = svgElement.querySelectorAll('animate, animateTransform, animateMotion');
-					animations.forEach(anim => anim.remove());
-					
-					// Log filter count for performance awareness
-// Flatten deeply nested groups (>3 levels) for better rendering
-					this.flattenDeepGroups(svgElement, 0);
-				}
 
-				flattenDeepGroups(element, depth) {
-					if (depth > 3) {
-						// Flatten groups that are too deeply nested
-						const groups = element.querySelectorAll('g');
-						groups.forEach(g => {
-							if (g.children.length === 1 && g.children[0].tagName === 'g') {
-								const childGroup = g.children[0];
-								while (childGroup.firstChild) {
-									g.appendChild(childGroup.firstChild);
-								}
-								childGroup.remove();
-							}
-						});
-						return;
-					}
-					
-					Array.from(element.children).forEach(child => {
-						if (child.tagName === 'g') {
-							this.flattenDeepGroups(child, depth + 1);
-						}
-					});
-				}
 
 				renderMap() {
 	
@@ -1232,40 +1204,7 @@ async function initApp() {
 				this.svg.innerHTML = '';
 				
 				// Render custom map if available
-				if (store.data.mapSvg) {
-					if (store.data.mapType === 'svg') {
-						const parser = new DOMParser();
-						const svgDoc = parser.parseFromString(store.data.mapSvg, 'image/svg+xml');
-						const customSvg = svgDoc.documentElement;
-						
-						// Get dimensions from SVG if available
-						const width = customSvg.getAttribute('width') || 1000;
-						const height = customSvg.getAttribute('height') || 600;
-						this.svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-						
-						// Optimize SVG for performance
-						this.optimizeSvgForPerformance(customSvg);
-						
-						const mainGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-						mainGroup.setAttribute('id', 'main-group');
-						
-						// Import all SVG content into main group
-						Array.from(customSvg.children).forEach(child => {
-							const imported = document.importNode(child, true);
-							mainGroup.appendChild(imported);
-						});
-						
-						// Create and add locations layer on top
-						const locationsLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-						locationsLayer.setAttribute('id', 'locations-layer');
-						mainGroup.appendChild(locationsLayer);
-						
-						// Add main group to SVG
-						this.svg.appendChild(mainGroup);
-						this.mainGroup = mainGroup;
-						this.locationsLayer = locationsLayer;
-						
-					} else if (store.data.mapType === 'raster') {
+				if (store.data.mapSvg && store.data.mapType === 'raster') {
 						// Handle raster images (JPG, PNG, etc.)
 						const width = store.data.mapWidth || 1000;
 						const height = store.data.mapHeight || 600;
@@ -1274,7 +1213,7 @@ async function initApp() {
 						this.svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
 						this.svg.setAttribute('width', '100%');
 						this.svg.setAttribute('height', '100%');
-						this.svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+						this.svg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
 						
 						// Create main group for all content
 						const mainGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -1299,12 +1238,7 @@ async function initApp() {
 						this.svg.appendChild(mainGroup);
 						this.mainGroup = mainGroup;
 						this.locationsLayer = locationsLayer;
-					}
-				} else {
-					// Default map with grid
-					this.svg.setAttribute('viewBox', '0 0 1000 600');
-					
-					// Create defs with grid pattern
+			} else {
 					const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
 					const pattern = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
 					pattern.setAttribute('id', 'grid');
@@ -1836,7 +1770,7 @@ function hideDetailPanel() {
 	document.getElementById('btn-upload-map').addEventListener('change', async (e) => {
 		const file = e.target.files[0];
 		if (file) {
-			const success = await store.uploadMapSvg(file);
+			const success = await store.uploadMap(file);
 			if (success) {
 				mapController.renderMap();
 				alert('Map uploaded successfully! Don\'t forget to export your data to save the map.');
