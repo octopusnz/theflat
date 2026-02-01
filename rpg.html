@@ -129,15 +129,15 @@
 				background: var(--bg);
 				border-bottom: 2px solid var(--border);
 			padding: 8px 12px;
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-			flex-shrink: 0;
-		}
+			}
 
-		h1 {
-			margin: 0;
-			font-size: 1.25rem;
+			h1 {
+				margin: 0;
+				font-size: 1.5rem;
+			}
+
+			.nav-links {
+				display: flex;
 				gap: 16px;
 			}
 
@@ -171,7 +171,10 @@
 				width: 280px;
 				background: var(--bg);
 				border-right: 2px solid var(--border);
-			padding: 12px;
+				padding: 20px;
+				overflow-y: auto;
+				flex-shrink: 0;
+			}
 
 			.sidebar h2 {
 				margin: 0 0 16px;
@@ -350,22 +353,25 @@
 	.detail-panel {
 			width: 400px;
 			background: var(--bg);
-		border-left: 2px solid var(--border);
-		padding: 16px;
-		overflow-y: auto;
-		flex-shrink: 0;
-	}
+				border-left: 2px solid var(--border);
+				padding: 24px;
+				overflow-y: auto;
+				flex-shrink: 0;
+			}
 
-	.detail-panel.hidden {
-		display: none;
-	}
+			.detail-panel.hidden {
+				display: none;
+			}
 
-	.detail-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: flex-start;
-		margin-bottom: 20px;
-	}
+			.detail-header {
+				display: flex;
+				justify-content: space-between;
+				align-items: flex-start;
+				margin-bottom: 20px;
+			}
+
+			.detail-header h2 {
+				margin: 0;
 				font-size: 1.5rem;
 			}
 
@@ -592,11 +598,7 @@
 			<h1>RPG Campaign Tracker</h1>
 			<nav class="nav-links">
 				<a href="/">Home</a>
-				<a href="/rpg">RPG Tracker</a>
-			</nav>
-		</header>
 
-		<div class="container">
 			<!-- Sidebar -->
 			<aside class="sidebar" id="sidebar">
 				<h2>Categories</h2>
@@ -1217,15 +1219,21 @@ async function initApp() {
 			console.log('[DEBUG] Rendering', locations.length, 'locations');
 			
 			locations.forEach(location => {
-				const x = location.x || Math.random() * 900 + 50;
-				const y = location.y || Math.random() * 500 + 50;
-				
-			console.log('[DEBUG] Creating marker for', location.name, 'at', x, y);
+			// Place markers randomly in the center area of the map
+			// Map dimensions: 11548×7724
+			// Center area: roughly 40% of map width and height, centered
+			const centerX = 11548 / 2;
+			const centerY = 7724 / 2;
+			const rangeX = 11548 * 0.4;
+			const rangeY = 7724 * 0.4;
 			
-			const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-			g.classList.add('map-location');
-			g.setAttribute('data-id', location.id);
+			const x = location.x || (centerX - rangeX/2 + Math.random() * rangeX);
+			const y = location.y || (centerY - rangeY/2 + Math.random() * rangeY);
 			
+		console.log('[DEBUG] Creating marker for', location.name, 'at', x, y);
+		
+		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+		g.classList.add('map-location');
 			const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
 			circle.setAttribute('cx', x);
 			circle.setAttribute('cy', y);
