@@ -1378,6 +1378,10 @@ async function initApp() {
 						touch2.clientY - touch1.clientY
 					);
 					this.lastScale = this.scale;
+					
+					// Store the pinch center point in screen coordinates
+					this.pinchCenterX = (touch1.clientX + touch2.clientX) / 2;
+					this.pinchCenterY = (touch1.clientY + touch2.clientY) / 2;
 				}
 			}
 
@@ -1396,9 +1400,17 @@ async function initApp() {
 					);
 					
 					if (this.lastDistance > 0) {
+						// Calculate new scale
+						const oldScale = this.scale;
 						const scale = distance / this.lastDistance;
 						this.scale = this.lastScale * scale;
 						this.scale = Math.max(0.5, Math.min(5, this.scale));
+						
+						// Adjust translation to zoom toward pinch center
+						const scaleDiff = this.scale - oldScale;
+						this.translateX -= this.pinchCenterX * scaleDiff / oldScale;
+						this.translateY -= this.pinchCenterY * scaleDiff / oldScale;
+						
 						this.updateTransform();
 					}
 				}
