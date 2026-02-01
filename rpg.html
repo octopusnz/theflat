@@ -341,22 +341,42 @@
 			justify-content: center;
 		}
 
-		.map-view svg {
-			overflow: hidden;
-			width: 100%;
-			height: 100%;
-			display: block;
-			cursor: grab;
-		}
+	.map-view.loading::after {
+		content: '';
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		width: 40px;
+		height: 40px;
+		border: 3px solid var(--border);
+		border-top-color: var(--link);
+		border-radius: 50%;
+		animation: spin 0.8s linear infinite;
+		z-index: 10;
+	}
 
-		.map-svg:active {
-			cursor: grabbing;
-		}
+	@keyframes spin {
+		to { transform: translate(-50%, -50%) rotate(360deg); }
+	}
 
-		#main-group {
-		transform-origin: 0 0;
-		backface-visibility: hidden;
-		-webkit-backface-visibility: hidden;
+	.map-view svg {
+		overflow: hidden;
+		width: 100%;
+		height: 100%;
+		display: block;
+	}
+
+	.map-svg {
+		width: 100%;
+		height: 100%;
+		cursor: grab;
+		opacity: 0;
+		transition: opacity 0.3s ease-in;
+	}
+
+	.map-svg.ready {
+		opacity: 1;
 		transform-style: preserve-3d;
 		-webkit-transform-style: preserve-3d;
 		/* Optimize rendering for complex SVGs */
@@ -1200,84 +1220,110 @@ async function initApp() {
 
 				renderMap() {
 	
-				// Clear existing SVG content first
-				this.svg.innerHTML = '';
-				
-				// Render custom map if available
-				if (store.data.mapSvg && store.data.mapType === 'raster') {
-						// Handle raster images (JPG, PNG, etc.)
-						const width = store.data.mapWidth || 1000;
-						const height = store.data.mapHeight || 600;
-						
-						// Update viewBox and SVG size
-						this.svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-						this.svg.setAttribute('width', '100%');
-						this.svg.setAttribute('height', '100%');
-						this.svg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
-						
-						// Create main group for all content
-						const mainGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-						mainGroup.setAttribute('id', 'main-group');
-						
-						// Add image as background
-						const image = document.createElementNS('http://www.w3.org/2000/svg', 'image');
-						image.setAttribute('href', store.data.mapSvg);
-						image.setAttribute('x', '0');
-						image.setAttribute('y', '0');
-						image.setAttribute('width', width);
-						image.setAttribute('height', height);
-						image.setAttribute('preserveAspectRatio', 'none');
-						mainGroup.appendChild(image);
-						
-						// Create and add locations layer on top
-						const locationsLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-						locationsLayer.setAttribute('id', 'locations-layer');
-						mainGroup.appendChild(locationsLayer);
-						
-						// Add main group to SVG
-						this.svg.appendChild(mainGroup);
-						this.mainGroup = mainGroup;
-						this.locationsLayer = locationsLayer;
-			} else {
-					const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-					const pattern = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
-					pattern.setAttribute('id', 'grid');
-					pattern.setAttribute('width', '50');
-					pattern.setAttribute('height', '50');
-					pattern.setAttribute('patternUnits', 'userSpaceOnUse');
+			// Show loading state
+			const mapView = document.getElementById('map-view');
+			mapView.classList.add('loading');
+
+			// Clear existing SVG content first
+			this.svg.innerHTML = '';
+			this.svg.classList.remove('ready');
+			
+			// Render custom map if available
+			if (store.data.mapSvg && store.data.mapType === 'raster') {
+					// Handle raster images (JPG, PNG, etc.)
+					const width = store.data.mapWidth || 1000;
+					const height = store.data.mapHeight || 600;
 					
-					const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-					path.setAttribute('d', 'M 50 0 L 0 0 0 50');
-					path.setAttribute('fill', 'none');
-					path.setAttribute('stroke', 'rgba(100,100,100,0.1)');
-					path.setAttribute('stroke-width', '1');
-					pattern.appendChild(path);
-					defs.appendChild(pattern);
+					// Update viewBox and SVG size
+					this.svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+					this.svg.setAttribute('width', '100%');
+					this.svg.setAttribute('height', '100%');
+					this.svg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
 					
+					// Create main group for all content
 					const mainGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 					mainGroup.setAttribute('id', 'main-group');
 					
-					// Add grid background
-					const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-					rect.setAttribute('width', '1000');
-					rect.setAttribute('height', '600');
-					rect.setAttribute('fill', 'url(#grid)');
-					mainGroup.appendChild(rect);
+					// Add image as background
+					const image = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+					image.setAttribute('href', store.data.mapSvg);
+					image.setAttribute('x', '0');
+					image.setAttribute('y', '0');
+					image.setAttribute('width', width);
+					image.setAttribute('height', height);
+					image.setAttribute('preserveAspectRatio', 'none');
+					
+					// Wait for image to load before showing
+					image.addEventListener('load', () => {
+						mapView.classList.remove('loading');
+						this.svg.classList.add('ready');
+					}, { once: true });
+					
+					// Fallback: remove loading state after timeout (in case image load event doesn't fire)
+					const loadTimeout = setTimeout(() => {
+						mapView.classList.remove('loading');
+						this.svg.classList.add('ready');
+					}, 5000);
+					
+					// Clear timeout if image loads
+					image.addEventListener('load', () => clearTimeout(loadTimeout), { once: true });
+					
+					mainGroup.appendChild(image);
 					
 					// Create and add locations layer on top
 					const locationsLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 					locationsLayer.setAttribute('id', 'locations-layer');
 					mainGroup.appendChild(locationsLayer);
 					
-					this.svg.appendChild(defs);
+					// Add main group to SVG
 					this.svg.appendChild(mainGroup);
 					this.mainGroup = mainGroup;
 					this.locationsLayer = locationsLayer;
-			}
-			this.render();
-		}
+			} else {
+				// Default map with grid (fallback)
+				this.svg.setAttribute('viewBox', '0 0 1000 600');
+				
+				// Create defs with grid pattern
+				const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+				const pattern = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
+				pattern.setAttribute('id', 'grid');
+				pattern.setAttribute('width', '50');
+				pattern.setAttribute('height', '50');
+				pattern.setAttribute('patternUnits', 'userSpaceOnUse');
+				
+				const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+				path.setAttribute('d', 'M 50 0 L 0 0 0 50');
+				path.setAttribute('fill', 'none');
+				path.setAttribute('stroke', 'rgba(100,100,100,0.1)');
+				path.setAttribute('stroke-width', '1');
+				pattern.appendChild(path);
+				defs.appendChild(pattern);
+				
+				const mainGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+				mainGroup.setAttribute('id', 'main-group');
+				
+				// Add grid background
+				const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+				rect.setAttribute('width', '1000');
+				rect.setAttribute('height', '600');
+				rect.setAttribute('fill', 'url(#grid)');
+				mainGroup.appendChild(rect);
+				
+				// Create and add locations layer on top
+				const locationsLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+				locationsLayer.setAttribute('id', 'locations-layer');
+				mainGroup.appendChild(locationsLayer);
+				
+				this.svg.appendChild(defs);
+				this.svg.appendChild(mainGroup);
+				this.mainGroup = mainGroup;
+				this.locationsLayer = locationsLayer;
 
-		render() {
+				// Show the grid (no image to wait for)
+				mapView.classList.remove('loading');
+				this.svg.classList.add('ready');
+		}
+		this.render();
 
 			if (!this.locationsLayer) return;
 			
