@@ -128,36 +128,65 @@
 			header {
 				background: var(--bg);
 				border-bottom: 2px solid var(--border);
+			padding: 4px 8px;
+			display: flex;
+			align-items: center;
+			gap: 12px;
+		}
+
+		h1 {
+			margin: 0;
+			font-size: 1.25rem;
+			flex: 1;
+		}
+
+		#btn-menu {
+			display: none;
+			background: none;
+			border: none;
+			color: var(--fg);
+			font-size: 1.5rem;
+			cursor: pointer;
+			padding: 4px 8px;
+		}
+
+		.mobile-overlay {
+			display: none;
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(0, 0, 0, 0.5);
+			z-index: 40;
+		}
+
+		.mobile-overlay.active {
+			display: block;
+		}
+
+		.nav-links {
+			display: flex;
+			gap: 16px;
+		}
+
+		.nav-links a {
+			text-decoration: none;
 			padding: 8px 12px;
-			}
+			border-radius: 6px;
+			transition: background 0.2s;
+		}
 
-			h1 {
-				margin: 0;
-				font-size: 1.5rem;
-			}
+		.nav-links a:hover {
+			background: var(--hover);
+		}
 
-			.nav-links {
-				display: flex;
-				gap: 16px;
-			}
-
-			.nav-links a {
-				text-decoration: none;
-				padding: 8px 12px;
-				border-radius: 6px;
-				transition: background 0.2s;
-			}
-
-			.nav-links a:hover {
-				background: var(--hover);
-			}
-
-			.btn-import,
-			.btn-export {
-				padding: 8px 16px;
-				font-size: 0.875rem;
-				display: inline-block;
-			}
+		.btn-import,
+		.btn-export {
+			padding: 8px 16px;
+			font-size: 0.875rem;
+			display: inline-block;
+		}
 
 			/* Main Container */
 			.container {
@@ -171,12 +200,7 @@
 				width: 280px;
 				background: var(--bg);
 				border-right: 2px solid var(--border);
-				padding: 20px;
-				overflow-y: auto;
-				flex-shrink: 0;
-			}
-
-			.sidebar h2 {
+			padding: 12px;
 				margin: 0 0 16px;
 				font-size: 1.1rem;
 				color: var(--muted-fg);
@@ -270,10 +294,7 @@
 			.map-toolbar {
 				background: var(--bg);
 				border-bottom: 2px solid var(--border);
-			padding: 8px 12px;
-			}
-
-			.btn-toolbar {
+			padding: 4px 8px;
 				padding: 8px 16px;
 				background: var(--bg);
 				color: var(--fg);
@@ -351,16 +372,16 @@
 	}
 
 	.detail-panel {
-			width: 400px;
-			background: var(--bg);
-				border-left: 2px solid var(--border);
-				padding: 24px;
-				overflow-y: auto;
-				flex-shrink: 0;
-			}
+		width: 400px;
+		background: var(--bg);
+		border-left: 2px solid var(--border);
+		padding: 12px;
+		overflow-y: auto;
+		flex-shrink: 0;
+	}
 
-			.detail-panel.hidden {
-				display: none;
+	.detail-panel.hidden {
+		display: none;
 			}
 
 			.detail-header {
@@ -552,12 +573,16 @@
 			}
 
 			@media (max-width: 768px) {
-				.sidebar {
-					position: fixed;
-					left: -280px;
-					top: 0;
-					height: 100vh;
-					z-index: 50;
+			#btn-menu {
+				display: block;
+			}
+
+			.sidebar {
+				position: fixed;
+				left: -280px;
+				top: 0;
+				height: 100vh;
+				height: 100dvh;
 					transition: left 0.3s;
 					box-shadow: 4px 0 12px rgba(0, 0, 0, 0.1);
 				}
@@ -595,11 +620,13 @@
 		<a href="#main-content" class="skip-link">Skip to main content</a>
 
 		<header>
+			<button id="btn-menu" aria-label="Toggle menu">☰</button>
 			<h1>RPG Campaign Tracker</h1>
 			<nav class="nav-links">
 				<a href="/">Home</a>
 			</nav>
 		</header>
+		<div class="mobile-overlay" id="mobile-overlay"></div>
 
 		<!-- Sidebar -->
 		<div class="container">
@@ -1633,6 +1660,29 @@ function hideDetailPanel() {
 			// Reset input so same file can be uploaded again
 			e.target.value = '';
 		}
+	});
+
+	// Mobile menu toggle
+	const sidebar = document.getElementById('sidebar');
+	const menuBtn = document.getElementById('btn-menu');
+	const overlay = document.getElementById('mobile-overlay');
+
+	menuBtn.addEventListener('click', () => {
+		sidebar.classList.toggle('active');
+		overlay.classList.toggle('active');
+	});
+
+	overlay.addEventListener('click', () => {
+		sidebar.classList.remove('active');
+		overlay.classList.remove('active');
+	});
+
+	// Close menu when clicking on a category
+	document.querySelectorAll('.category-item').forEach(item => {
+		item.addEventListener('click', () => {
+			sidebar.classList.remove('active');
+			overlay.classList.remove('active');
+		});
 	});
 	
 	// Start the app
