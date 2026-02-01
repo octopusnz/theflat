@@ -373,6 +373,7 @@
 		cursor: grab;
 		opacity: 0;
 		transition: opacity 0.3s ease-in;
+		touch-action: none;
 	}
 
 	.map-svg.ready {
@@ -1128,16 +1129,16 @@ async function initApp() {
 					document.getElementById('btn-zoom-out').addEventListener('click', () => this.zoom(0.8));
 					document.getElementById('btn-reset-view').addEventListener('click', () => this.resetView());
 
-					// Pan controls with passive option for better scroll performance
-					this.svg.addEventListener('mousedown', (e) => this.startDrag(e));
-					this.svg.addEventListener('mousemove', (e) => this.drag(e), { passive: false });
-					document.addEventListener('mouseup', (e) => this.endDrag(e));
+					// Mouse pan controls
+					this.svg.addEventListener('mousedown', (e) => this.startDrag(e), { passive: true });
+					document.addEventListener('mousemove', (e) => this.drag(e), { passive: false });
+					document.addEventListener('mouseup', (e) => this.endDrag(e), { passive: true });
 
-				// Touch support for mobile panning
-				this.svg.addEventListener('touchstart', (e) => this.startDrag(e.touches[0]), { passive: true });
-				this.svg.addEventListener('touchmove', (e) => this.drag(e.touches[0]), { passive: false });
-				this.svg.addEventListener('touchend', (e) => this.endDrag(e), { passive: true });
-		}
+					// Touch support for mobile panning
+					this.svg.addEventListener('touchstart', (e) => this.startDrag(e.touches[0]), { passive: true });
+					document.addEventListener('touchmove', (e) => this.drag(e.touches[0]), { passive: false });
+					document.addEventListener('touchend', (e) => this.endDrag(e), { passive: true });
+			}
 
 		zoom(factor) {
 				// Apply zoom immediately
@@ -1165,25 +1166,30 @@ async function initApp() {
 				this.startX = e.clientX - this.translateX;
 				this.startY = e.clientY - this.translateY;
 				this.svg.style.cursor = 'grabbing';
-					e.preventDefault();
-				}
+				// Prevent text selection during drag
+				if (e.preventDefault) e.preventDefault();
+			}
 
-				drag(e) {
-					if (!this.isDragging) return;
-					e.preventDefault();
-					
-					// Update position values immediately
-					this.translateX = e.clientX - this.startX;
-					this.translateY = e.clientY - this.startY;
-					
-					// Throttle transform updates during drag
-					this.updateTransform();
-				}
+			drag(e) {
+				if (!this.isDragging) return;
+				
+				// Prevent default behavior while dragging (scrolling, etc)
+				if (e.preventDefault) e.preventDefault();
+				
+				// Update position values immediately
+				this.translateX = e.clientX - this.startX;
+				this.translateY = e.clientY - this.startY;
+				
+				// Throttle transform updates during drag
+				this.updateTransform();
+			}
 
-				endDrag(e) {
-					this.isDragging = false;
-					this.svg.style.cursor = 'grab';
-				}
+			endDrag(e) {
+				if (!this.isDragging) return;
+				this.isDragging = false;
+				this.svg.style.cursor = 'grab';
+				if (e.preventDefault) e.preventDefault();
+			}
 
 				updateTransform() {
 					// Use RAF for smooth 60fps updates
