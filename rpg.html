@@ -1401,23 +1401,28 @@ function showLocationDetails(locationId) {
 				
 				// Set the panel to fill the visual viewport at normal scale
 				panel.style.transform = `scale(${inverseScale})`;
-				panel.style.transformOrigin = 'top right';
+				panel.style.transformOrigin = 'top left';
 				
-				// The panel's CSS width needs to be expanded to compensate for the scale-down
-				// After scaling by inverseScale, we want it to appear as vvWidth
-				// So before scaling it should be vvWidth * scale
-				panel.style.width = `${vvWidth * scale}px`;
-				panel.style.height = `${vvHeight * scale}px`;
+				// The panel's width before scaling should be vvWidth * scale
+				// so after scaling by inverseScale, it becomes vvWidth
+				const panelWidth = vvWidth * scale;
+				const panelHeight = vvHeight * scale;
 				
-				// Position at the right edge of visual viewport
-				// offsetX is where the visual viewport starts in layout viewport coordinates
-				panel.style.right = `${-offsetX}px`;
+				panel.style.width = `${panelWidth}px`;
+				panel.style.height = `${panelHeight}px`;
+				
+				// Position at the left edge of visual viewport (offsetX is where vv starts)
+				// We want panel to appear at offsetX in the layout viewport
+				panel.style.left = `${offsetX}px`;
 				panel.style.top = `${offsetY}px`;
+				panel.style.right = 'auto';
 			} else {
 				// Reset to normal when not zoomed
 				panel.style.transform = 'none';
+				panel.style.transformOrigin = 'top right';
 				panel.style.width = '100%';
 				panel.style.height = '100vh';
+				panel.style.left = 'auto';
 				panel.style.right = '0';
 				panel.style.top = '0';
 			}
