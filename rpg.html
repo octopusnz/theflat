@@ -1386,17 +1386,15 @@ function showLocationDetails(locationId) {
 	content.innerHTML = html;
 	panel.classList.remove('hidden');
 	
-	// Reset device zoom when detail panel opens
-	const viewportMeta = document.querySelector('meta[name="viewport"]');
-	if (viewportMeta) {
-		console.log('[DEBUG] Current viewport:', viewportMeta.getAttribute('content'));
-		viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1');
-		console.log('[DEBUG] Viewport set to reset zoom');
-		// Restore ability to zoom after a short delay
-		setTimeout(() => {
-			viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=10');
-			console.log('[DEBUG] Viewport restored for zoom');
-		}, 100);
+	// Counter device zoom by detecting actual zoom level
+	const actualZoom = window.outerWidth / window.innerWidth;
+	if (actualZoom > 1) {
+		console.log('[DEBUG] Device zoom detected:', actualZoom);
+		// Apply inverse scale to counter the zoom
+		panel.style.transform = `scale(${1 / actualZoom})`;
+		panel.style.transformOrigin = 'top right';
+	} else {
+		panel.style.transform = 'scale(1)';
 	}
 }
 
