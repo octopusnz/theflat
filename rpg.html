@@ -181,20 +181,6 @@
 			background: var(--hover);
 		}
 
-		.btn-import,
-		.btn-export {
-		padding: 10px 16px;
-		font-size: 0.9375rem;
-		display: block;
-		width: 100%;
-		margin-top: 8px;
-	}
-
-	.btn-import:first-of-type,
-	.btn-export:first-of-type {
-		margin-top: 0;
-	}
-
 	/* Main Container */
 	.container {
 				display: flex;
@@ -269,6 +255,13 @@
 		cursor: pointer;
 		transition: all 0.2s ease;
 		text-align: center;
+		display: block;
+		width: 100%;
+		margin-top: 8px;
+	}
+
+	.btn:first-of-type {
+		margin-top: 0;
 	}
 
 	.btn:hover {
@@ -679,17 +672,16 @@
 				</ul>
 				<button class="btn" id="btn-add-new">+ Add New</button>
 				<hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border);">
-				<label class="btn" id="btn-upload-map-label" style="margin-bottom: 8px; cursor: pointer;">
+				<label class="btn" id="btn-upload-map-label">
 					Upload Map
 					<input type="file" id="btn-upload-map" accept=".svg,.jpg,.jpeg,.png,.gif,.webp,image/*" style="display: none;">
 				</label>
-				<button class="btn btn-export" id="btn-export">Export Data</button>
-				<label class="btn btn-import" id="btn-import-label" style="margin-top: 8px; cursor: pointer;">
+				<button class="btn" id="btn-export">Export Data</button>
+				<label class="btn" id="btn-import-label">
 					Import Data
 					<input type="file" id="btn-import" accept=".json" style="display: none;">
 				</label>
 			</aside>
-
 		<!-- Map Container -->
 		<div class="map-container" id="main-content">
 				<div class="map-toolbar">
