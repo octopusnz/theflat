@@ -182,6 +182,10 @@
 			transition: all 0.2s;
 		}
 
+		.nav-btn[data-page="home"] {
+			display: none;
+		}
+
 		.nav-btn:hover,
 		.nav-btn.active {
 			background: var(--hover);
@@ -764,11 +768,23 @@
 		}
 
 		header {
-			padding: 2px 4px;
+			padding: 4px 6px;
+			gap: 6px;
 		}
 
 		h1 {
-			font-size: 1.1rem;
+			display: none;
+		}
+
+		.nav-links {
+			gap: 4px;
+			flex: 1;
+		}
+
+		.nav-btn {
+			padding: 6px 8px;
+			font-size: 0.65rem;
+			border: 1px solid var(--border);
 		}
 
 		.map-toolbar {
