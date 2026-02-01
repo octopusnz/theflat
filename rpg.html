@@ -183,13 +183,20 @@
 
 		.btn-import,
 		.btn-export {
-			padding: 8px 16px;
-			font-size: 0.875rem;
-			display: inline-block;
-		}
+		padding: 10px 16px;
+		font-size: 0.9375rem;
+		display: block;
+		width: 100%;
+		margin-top: 8px;
+	}
 
-			/* Main Container */
-			.container {
+	.btn-import:first-of-type,
+	.btn-export:first-of-type {
+		margin-top: 0;
+	}
+
+	/* Main Container */
+	.container {
 				display: flex;
 				flex: 1;
 				overflow: hidden;
@@ -251,14 +258,14 @@
 	}
 
 	.btn {
-		padding: 12px;
+		padding: 10px 16px;
 		background: #000000;
 		color: #ffffff;
 		text-decoration: none;
 		border: none;
 		border-radius: 8px;
 		font-weight: 600;
-		font-size: 1rem;
+		font-size: 0.9375rem;
 		cursor: pointer;
 		transition: all 0.2s ease;
 		text-align: center;
@@ -298,9 +305,9 @@
 				background: var(--bg);
 				border-bottom: 2px solid var(--border);
 			padding: 4px 8px;
-				padding: 8px 16px;
-				background: var(--bg);
-				color: var(--fg);
+		}
+
+		.btn-toolbar {
 				border: 2px solid var(--border);
 				border-radius: 6px;
 				font-size: 0.875rem;
@@ -588,14 +595,27 @@
 			z-index: 50;
 			transition: left 0.3s;
 			box-shadow: 4px 0 12px rgba(0, 0, 0, 0.1);
+			display: flex;
+			flex-direction: column;
 		}
 
 		.sidebar.active {
 			left: 0;
 		}
 
+		.category-list {
+			display: flex;
+			flex-direction: column;
+		}
+
 		.detail-panel {
 			width: 100%;
+			position: fixed;
+			top: 0;
+			right: 0;
+			height: 100vh;
+			z-index: 50;
+			box-shadow: -4px 0 12px rgba(0, 0, 0, 0.1);
 		}
 	}
 
@@ -612,7 +632,7 @@
 			transform: none;
 		}
 	}
-		</style>
+	</style>
 	</head>
 	<body>
 		<!-- Google Tag Manager (noscript) -->
