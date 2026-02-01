@@ -373,7 +373,7 @@
 		cursor: grab;
 		opacity: 0;
 		transition: opacity 0.3s ease-in;
-		touch-action: none;
+		touch-action: manipulation;
 	}
 
 	.map-svg.ready {
@@ -1119,6 +1119,8 @@ async function initApp() {
 					this.transformTimeout = null;
 					this.willChangeTimeout = null;
 					this.isTransforming = false;
+					this.lastDistance = 0;
+					this.lastScale = 1;
 
 					this.initializeEvents();
 				}
@@ -1131,14 +1133,14 @@ async function initApp() {
 
 					// Mouse pan controls
 					this.svg.addEventListener('mousedown', (e) => this.startDrag(e), { passive: true });
-					document.addEventListener('mousemove', (e) => this.drag(e), { passive: false });
+					this.svg.addEventListener('mousemove', (e) => this.drag(e), { passive: false });
 					document.addEventListener('mouseup', (e) => this.endDrag(e), { passive: true });
 
-					// Touch support for mobile panning
-					this.svg.addEventListener('touchstart', (e) => this.startDrag(e.touches[0]), { passive: true });
-					document.addEventListener('touchmove', (e) => this.drag(e.touches[0]), { passive: false });
-					document.addEventListener('touchend', (e) => this.endDrag(e), { passive: true });
-			}
+					// Touch support for mobile panning and pinch zoom
+					this.svg.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: true });
+					this.svg.addEventListener('touchmove', (e) => this.handleTouchMove(e), { passive: false });
+					this.svg.addEventListener('touchend', (e) => this.handleTouchEnd(e), { passive: true });
+				}
 
 		zoom(factor) {
 				// Apply zoom immediately
@@ -1189,6 +1191,60 @@ async function initApp() {
 				this.isDragging = false;
 				this.svg.style.cursor = 'grab';
 				if (e.preventDefault) e.preventDefault();
+			}
+
+			handleTouchStart(e) {
+				if (e.touches.length === 1) {
+					// Single touch - pan
+					this.startDrag(e.touches[0]);
+				} else if (e.touches.length === 2) {
+					// Two fingers - pinch zoom
+					this.isDragging = false;
+					const touch1 = e.touches[0];
+					const touch2 = e.touches[1];
+					this.lastDistance = Math.hypot(
+						touch2.clientX - touch1.clientX,
+						touch2.clientY - touch1.clientY
+					);
+					this.lastScale = this.scale;
+				}
+			}
+
+			handleTouchMove(e) {
+				if (e.touches.length === 1) {
+					// Single touch - pan
+					this.drag(e.touches[0]);
+				} else if (e.touches.length === 2) {
+					// Two fingers - pinch zoom
+					e.preventDefault();
+					const touch1 = e.touches[0];
+					const touch2 = e.touches[1];
+					const distance = Math.hypot(
+						touch2.clientX - touch1.clientX,
+						touch2.clientY - touch1.clientY
+					);
+					
+					if (this.lastDistance > 0) {
+						const scale = distance / this.lastDistance;
+						this.scale = this.lastScale * scale;
+						this.scale = Math.max(0.5, Math.min(5, this.scale));
+						this.updateTransform();
+					}
+				}
+			}
+
+			handleTouchEnd(e) {
+				if (e.touches.length < 2) {
+					// Exiting multi-touch
+					this.lastDistance = 0;
+					if (e.touches.length === 1) {
+						// Back to single touch pan
+						this.startDrag(e.touches[0]);
+					} else {
+						// No more touches
+						this.endDrag(e);
+					}
+				}
 			}
 
 				updateTransform() {
