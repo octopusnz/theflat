@@ -626,14 +626,21 @@
 
 			.container {
 				flex-direction: column;
-				}
-			}
+		}
 
-			@media (max-width: 450px) {
-				.sidebar {
-					width: 100%;
-					left: -100%;
-				}
+		.map-toolbar {
+			padding: 4px 8px;
+		}
+
+		.btn-toolbar {
+			padding: 6px 12px;
+			font-size: 0.75rem;
+		}
+
+		header {
+			padding: 6px 8px;
+		}
+	}
 
 				.detail-panel {
 					width: 100%;
@@ -651,21 +658,30 @@
 				.nav-links {
 					font-size: 0.875rem;
 				}
+
+		.btn-toolbar {
+			padding: 4px 8px;
+			font-size: 0.7rem;
+		}
+
+		.map-toolbar {
+			padding: 4px 6px;
+			gap: 6px;
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			.btn,
+			.category-item,
+			.map-location,
+			.sidebar {
+				transition: none;
 			}
 
-			@media (prefers-reduced-motion: reduce) {
-				.btn,
-				.category-item,
-				.map-location,
-				.sidebar {
-					transition: none;
-				}
-
-				.btn:hover {
-					-webkit-transform: none;
-					transform: none;
-				}
+			.btn:hover {
+				-webkit-transform: none;
+				transform: none;
 			}
+		}
 		</style>
 	</head>
 	<body>
