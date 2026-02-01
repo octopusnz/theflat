@@ -400,6 +400,7 @@
 		padding: 12px;
 		overflow-y: auto;
 		flex-shrink: 0;
+		font-size: 16px;
 	}
 
 	.detail-panel.hidden {
@@ -1385,13 +1386,6 @@ function showLocationDetails(locationId) {
 	
 	content.innerHTML = html;
 	panel.classList.remove('hidden');
-	
-	// Counter device zoom on detail panel to keep text readable at normal size
-	if (window.visualViewport) {
-		const zoomLevel = window.visualViewport.scale;
-		const inverseZoom = 1 / zoomLevel;
-		panel.style.zoom = inverseZoom;
-	}
 }
 
 function hideDetailPanel() {
