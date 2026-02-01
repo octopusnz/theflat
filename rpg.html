@@ -15,7 +15,7 @@
 		<link rel="icon" href="/favicon.ico" type="image/x-icon">
 
 		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=10" id="viewport">
 		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com; connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline'; frame-src https://www.googletagmanager.com;">
 		<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 		<meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)">
@@ -1386,6 +1386,16 @@ function showLocationDetails(locationId) {
 	
 	content.innerHTML = html;
 	panel.classList.remove('hidden');
+	
+	// Reset device zoom when detail panel opens
+	const viewportMeta = document.querySelector('meta[name="viewport"]');
+	if (viewportMeta) {
+		viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1');
+		// Restore ability to zoom after a short delay
+		setTimeout(() => {
+			viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=10');
+		}, 100);
+	}
 }
 
 function hideDetailPanel() {
