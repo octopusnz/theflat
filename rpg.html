@@ -650,30 +650,35 @@
 
 	@media (max-width: 768px) and (orientation: landscape) {
 		.sidebar {
-			height: 100vh;
-			height: 100dvh;
+			height: 100vh !important;
+			height: 100dvh !important;
 			overflow: hidden;
+			display: flex !important;
+			flex-direction: column !important;
 		}
 		
 		.sidebar-header {
 			flex-shrink: 0;
+			margin-bottom: 8px;
 		}
 		
 		.category-list {
-			flex: 1;
-			min-height: 0;
-			overflow-y: auto !important;
-			-webkit-overflow-scrolling: touch;
+			flex: 1 1 auto !important;
+			min-height: 0 !important;
+			overflow-y: scroll !important;
+			-webkit-overflow-scrolling: touch !important;
+			margin-bottom: 8px;
 		}
 		
 		.sidebar .btn {
 			flex-shrink: 0;
+			margin-top: 4px;
+			padding: 8px 12px;
+			font-size: 0.85rem;
 		}
 		
-		.map-container {
-			height: 100vh;
-			height: 100dvh;
-			overflow: hidden;
+		.sidebar hr {
+			margin: 8px 0;
 		}
 	}
 
@@ -1435,36 +1440,38 @@ function showLocationDetails(locationId) {
 				// Calculate inverse scale
 				const inverseScale = 1 / scale;
 				
+				// The panel needs to be scaled down, so we make it larger before scaling
+				// We want the final result to be exactly vvWidth x vvHeight
+				const panelWidth = vvWidth * scale;
+				const panelHeight = vvHeight * scale;
+				
 				// Set the panel to fill the visual viewport at normal scale
 				panel.style.transform = `scale(${inverseScale})`;
 				panel.style.transformOrigin = 'top left';
 				
-				// The panel's width before scaling should be vvWidth * scale
-				// so after scaling by inverseScale, it becomes vvWidth
-				const panelWidth = vvWidth * scale;
-				const panelHeight = vvHeight * scale;
-				
+				// Set dimensions
 				panel.style.width = `${panelWidth}px`;
 				panel.style.height = `${panelHeight}px`;
-				panel.style.maxWidth = '100%';
-				panel.style.maxHeight = '100%';
 				
-				// Position at the left edge of visual viewport (offsetX is where vv starts)
-				// We want panel to appear at offsetX in the layout viewport
+				// Position at the visual viewport location
 				panel.style.left = `${offsetX}px`;
 				panel.style.top = `${offsetY}px`;
 				panel.style.right = 'auto';
+				
+				// Ensure no overflow
+				panel.style.overflow = 'hidden';
+				panel.style.overflowY = 'auto';
 			} else {
 				// Reset to normal when not zoomed
 				panel.style.transform = 'none';
 				panel.style.transformOrigin = 'top right';
 				panel.style.width = '100%';
 				panel.style.height = '100vh';
-				panel.style.maxWidth = 'none';
-				panel.style.maxHeight = 'none';
 				panel.style.left = 'auto';
 				panel.style.right = '0';
 				panel.style.top = '0';
+				panel.style.overflow = 'hidden';
+				panel.style.overflowY = 'auto';
 			}
 		}
 	}
