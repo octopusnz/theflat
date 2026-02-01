@@ -1230,11 +1230,29 @@
 
 				async getEquipmentDetail(url) {
 					try {
-						const response = await fetch(`https://www.dnd5eapi.co${url}`);
-						if (!response.ok) throw new Error('Failed to fetch equipment details');
-						return await response.json();
+						// Construct the full URL
+						const fullUrl = `https://www.dnd5eapi.co${url}`;
+						console.log('[DEBUG] Fetching equipment detail from:', fullUrl);
+						
+						const response = await fetch(fullUrl, {
+							method: 'GET',
+							headers: {
+								'Accept': 'application/json'
+							},
+							mode: 'cors',
+							credentials: 'omit'
+						});
+						console.log('[DEBUG] Response status:', response.status, response.statusText);
+						
+						if (!response.ok) {
+							throw new Error(`API returned ${response.status}: ${response.statusText}`);
+						}
+						
+						const data = await response.json();
+						console.log('[DEBUG] Equipment detail loaded:', data);
+						return data;
 					} catch (error) {
-						console.error('Error fetching equipment details:', error);
+						console.error('[ERROR] Failed to fetch equipment details:', error.message, error);
 						throw error;
 					}
 				}
@@ -1772,8 +1790,11 @@ function displayEquipmentList(equipment) {
 		item.addEventListener('click', async () => {
 			const index = item.dataset.index;
 			const selectedEquipment = window.fullEquipmentList.find(e => e.index === index);
+			console.log('[DEBUG] Equipment item clicked:', { index, selectedEquipment });
 			if (selectedEquipment && selectedEquipment.url) {
 				await showEquipmentDetails(selectedEquipment);
+			} else {
+				console.error('[ERROR] Equipment not found or missing URL:', { index, selectedEquipment });
 			}
 		});
 	});
@@ -1781,6 +1802,7 @@ function displayEquipmentList(equipment) {
 
 async function showEquipmentDetails(equipment) {
 	try {
+		console.log('[DEBUG] Loading details for equipment:', equipment);
 		const details = await store.getEquipmentDetail(equipment.url);
 		const panel = document.getElementById('detail-panel');
 		const title = document.getElementById('detail-title');
@@ -1877,8 +1899,14 @@ async function showEquipmentDetails(equipment) {
 		panel.classList.remove('hidden');
 		
 	} catch (error) {
-		console.error('Error loading equipment details:', error);
-		alert('Error loading equipment details. Please try again.');
+		console.error('[ERROR] Failed to load equipment details:', error.message, error);
+		const panel = document.getElementById('detail-panel');
+		const title = document.getElementById('detail-title');
+		const content = document.getElementById('detail-content');
+		
+		title.textContent = equipment?.name || 'Equipment';
+		content.innerHTML = '<div class="empty-state"><p>Error loading equipment details: ' + error.message + '</p><p style="font-size: 0.9em; color: var(--muted-fg);">Check browser console for more details.</p><button class="btn" style="width: 100%; margin-top: 20px;" onclick="showEquipmentPanel()">Back to Equipment</button></div>';
+		panel.classList.remove('hidden');
 	}
 }
 
