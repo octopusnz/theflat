@@ -1390,8 +1390,7 @@ function showLocationDetails(locationId) {
 	if (window.visualViewport) {
 		const zoomLevel = window.visualViewport.scale;
 		const inverseZoom = 1 / zoomLevel;
-		panel.style.transform = `scale(${inverseZoom})`;
-		panel.style.transformOrigin = 'top right';
+		panel.style.zoom = inverseZoom;
 	}
 }
 
