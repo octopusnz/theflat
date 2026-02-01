@@ -1751,8 +1751,10 @@ function displayEquipmentList(equipment) {
 		return;
 	}
 	
-	// Store equipment list for search
-	window.currentEquipmentList = equipment;
+	// Store the FULL equipment list for search (only set if not already set, to preserve master list)
+	if (!window.fullEquipmentList) {
+		window.fullEquipmentList = equipment;
+	}
 	
 	const html = equipment.map(item => {
 		const name = item.name || item.index || 'Unknown';
@@ -1769,7 +1771,7 @@ function displayEquipmentList(equipment) {
 	resultsDiv.querySelectorAll('.equipment-item').forEach(item => {
 		item.addEventListener('click', async () => {
 			const index = item.dataset.index;
-			const selectedEquipment = window.currentEquipmentList.find(e => e.index === index);
+			const selectedEquipment = window.fullEquipmentList.find(e => e.index === index);
 			if (selectedEquipment && selectedEquipment.url) {
 				await showEquipmentDetails(selectedEquipment);
 			}
@@ -1790,34 +1792,82 @@ async function showEquipmentDetails(equipment) {
 		title.textContent = details.name || equipment.name;
 		
 		let html = '<div class="detail-section">';
-		html += '<h3>D&D 5e Equipment</h3>';
+		html += '<h3>Equipment Details</h3>';
 		
-		if (details.equipment_category) {
+		// Equipment Categories
+		if (details.equipment_category?.name) {
 			html += '<p><strong>Category:</strong> ' + details.equipment_category.name + '</p>';
 		}
 		
-		if (details.gear_category) {
-			html += '<p><strong>Gear Category:</strong> ' + details.gear_category.name + '</p>';
+		if (details.gear_category?.name) {
+			html += '<p><strong>Gear Type:</strong> ' + details.gear_category.name + '</p>';
 		}
 		
-		if (details.desc && Array.isArray(details.desc)) {
+		// Weapon-specific fields
+		if (details.weapon_category) {
+			html += '<p><strong>Weapon Type:</strong> ' + details.weapon_category + '</p>';
+		}
+		
+		if (details.weapon_range) {
+			html += '<p><strong>Range:</strong> ' + details.weapon_range + '</p>';
+		}
+		
+		if (details.category_range) {
+			html += '<p><strong>Classification:</strong> ' + details.category_range + '</p>';
+		}
+		
+		// Damage
+		if (details.damage) {
+			let damageText = details.damage.damage_dice || 'unknown';
+			if (details.damage.damage_type?.name) {
+				damageText += ' ' + details.damage.damage_type.name;
+			}
+			html += '<p><strong>Damage:</strong> ' + damageText + '</p>';
+		}
+		
+		// Range information
+		if (details.range?.normal) {
+			html += '<p><strong>Range:</strong> ' + details.range.normal + ' ft</p>';
+		}
+		
+		if (details.range?.long) {
+			html += '<p><strong>Long Range:</strong> ' + details.range.long + ' ft</p>';
+		}
+		
+		// Weight
+		if (details.weight !== undefined && details.weight !== null) {
+			html += '<p><strong>Weight:</strong> ' + details.weight + ' lb</p>';
+		}
+		
+		// Cost
+		if (details.cost?.quantity !== undefined) {
+			const unit = details.cost.unit || 'gp';
+			html += '<p><strong>Cost:</strong> ' + details.cost.quantity + ' ' + unit + '</p>';
+		}
+		
+		// Description
+		if (details.desc && Array.isArray(details.desc) && details.desc.length > 0) {
 			html += '<p>' + details.desc.join('</p><p>') + '</p>';
 		}
 		
-		if (details.weight !== undefined) {
-			html += '<p><strong>Weight:</strong> ' + details.weight + ' lbs</p>';
+		// Special properties
+		if (details.special && Array.isArray(details.special) && details.special.length > 0) {
+			html += '<p><strong>Special:</strong> ' + details.special.join(', ') + '</p>';
 		}
 		
-		if (details.cost) {
-			html += '<p><strong>Cost:</strong> ' + details.cost.quantity + ' ' + details.cost.unit + '</p>';
+		// Weapon properties (Heavy, Two-Handed, etc)
+		if (details.properties && Array.isArray(details.properties) && details.properties.length > 0) {
+			const propNames = details.properties.map(p => p.name || p.index).join(', ');
+			html += '<p><strong>Properties:</strong> ' + propNames + '</p>';
 		}
 		
-		if (details.damage) {
-			html += '<p><strong>Damage:</strong> ' + details.damage.damage_dice + 'd' + details.damage.damage_type.name + '</p>';
-		}
-		
-		if (details.armor_class) {
-			html += '<p><strong>AC:</strong> ' + details.armor_class.base + '</p>';
+		// Contents (for containers)
+		if (details.contents && Array.isArray(details.contents) && details.contents.length > 0) {
+			html += '<p><strong>Contains:</strong></p><ul>';
+			details.contents.forEach(item => {
+				html += '<li>' + (item.item?.name || item.name || 'Unknown') + '</li>';
+			});
+			html += '</ul>';
 		}
 		
 		html += '</div>';
@@ -2103,14 +2153,16 @@ async function showEquipmentDetails(equipment) {
 	const equipmentSearchInput = document.getElementById('equipment-search');
 	
 	equipmentSearchInput.addEventListener('input', (e) => {
-		const query = e.target.value.toLowerCase();
-		const equipment = window.currentEquipmentList || [];
+		const query = e.target.value.toLowerCase().trim();
+		const equipment = window.fullEquipmentList || [];
 		
 		if (!query) {
+			// Show all equipment when search is cleared
 			displayEquipmentList(equipment);
 			return;
 		}
 		
+		// Filter from the full list
 		const filtered = equipment.filter(item => {
 			const name = (item.name || item.index || '').toLowerCase();
 			const category = (item.equipment_category?.name || '').toLowerCase();
