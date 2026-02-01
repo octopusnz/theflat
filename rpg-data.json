@@ -5,8 +5,8 @@
       "name": "The Golden City",
       "description": "A bustling metropolis known for its grand markets and towering spires. The streets are paved with yellow cobblestones that shimmer in the sunlight.",
       "history": "Founded over 500 years ago by the legendary King Aldrich after the Great War. The city has served as the capital of the kingdom ever since.",
-      "x": 500,
-      "y": 300,
+      "x": 5774,
+      "y": 3862,
       "createdAt": "2026-01-31T00:00:00.000Z"
     },
     {
@@ -14,8 +14,8 @@
       "name": "Dark Forest",
       "description": "An ancient woodland filled with mystery and danger. The trees here grow unnaturally tall, blocking out most sunlight.",
       "history": "Said to be cursed by an old witch centuries ago. Many who enter never return.",
-      "x": 250,
-      "y": 400,
+      "x": 2887,
+      "y": 5149,
       "createdAt": "2026-01-31T00:00:00.000Z"
     },
     {
@@ -23,8 +23,8 @@
       "name": "Frostpeak Mountains",
       "description": "Treacherous mountain range covered in eternal snow. Home to ancient dragons and hidden monasteries.",
       "history": "The dwarven kingdoms once thrived here before the dragons came.",
-      "x": 750,
-      "y": 150,
+      "x": 8660,
+      "y": 1936,
       "createdAt": "2026-01-31T00:00:00.000Z"
     }
   ],
