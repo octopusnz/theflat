@@ -1110,24 +1110,34 @@ async function initApp() {
 				this.svg.addEventListener('touchstart', (e) => this.startDrag(e.touches[0]), { passive: true });
 				this.svg.addEventListener('touchmove', (e) => this.drag(e.touches[0]), { passive: false });
 				this.svg.addEventListener('touchend', (e) => this.endDrag(e), { passive: true });
-					// Throttle: wait 80ms before allowing next zoom
-					this.transformTimeout = setTimeout(() => {
-						this.transformTimeout = null;
-					}, 80);
-				}
+		}
 
-				resetView() {
-					this.scale = 1;
-					this.translateX = 0;
-					this.translateY = 0;
-					this.updateTransform();
-				}
+		zoom(factor) {
+				// Apply zoom immediately
+				this.scale *= factor;
+				this.scale = Math.max(0.5, Math.min(5, this.scale));
+				this.updateTransform();
+				
+				// Throttle rapid subsequent zooms to prevent overwhelming
+				if (this.transformTimeout) return;
+				
+				this.transformTimeout = setTimeout(() => {
+					this.transformTimeout = null;
+				}, 50); // Reduced to 50ms for better responsiveness
+			}
 
-				startDrag(e) {
-					this.isDragging = true;
-					this.startX = e.clientX - this.translateX;
-					this.startY = e.clientY - this.translateY;
-					this.svg.style.cursor = 'grabbing';
+			resetView() {
+				this.scale = 1;
+				this.translateX = 0;
+				this.translateY = 0;
+				this.updateTransform();
+			}
+
+			startDrag(e) {
+				this.isDragging = true;
+				this.startX = e.clientX - this.translateX;
+				this.startY = e.clientY - this.translateY;
+				this.svg.style.cursor = 'grabbing';
 					e.preventDefault();
 				}
 
