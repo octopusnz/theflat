@@ -1322,12 +1322,6 @@ async function initApp() {
 		g.appendChild(text);
 		
 		g.addEventListener('click', () => {
-			console.log('[DEBUG] Location marker clicked, innerWidth:', window.innerWidth);
-			// Reset zoom on mobile when tapping location markers
-			if (window.innerWidth <= 768) {
-				console.log('[DEBUG] Resetting zoom on mobile tap');
-				mapController.resetView();
-			}
 			showLocationDetails(location.id);
 		});
 		
@@ -1391,6 +1385,14 @@ function showLocationDetails(locationId) {
 	
 	content.innerHTML = html;
 	panel.classList.remove('hidden');
+	
+	// Counter device zoom on detail panel to keep text readable at normal size
+	if (window.visualViewport) {
+		const zoomLevel = window.visualViewport.scale;
+		const inverseZoom = 1 / zoomLevel;
+		panel.style.transform = `scale(${inverseZoom})`;
+		panel.style.transformOrigin = 'top right';
+	}
 }
 
 function hideDetailPanel() {
