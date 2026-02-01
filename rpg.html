@@ -650,15 +650,24 @@
 
 	@media (max-width: 768px) and (orientation: landscape) {
 		.sidebar {
-			max-height: 100vh;
-			max-height: 100dvh;
+			height: 100vh;
+			height: 100dvh;
+			overflow: hidden;
+		}
+		
+		.sidebar-header {
+			flex-shrink: 0;
 		}
 		
 		.category-list {
-			max-height: calc(100vh - 200px);
-			max-height: calc(100dvh - 200px);
-			overflow-y: auto;
+			flex: 1;
+			min-height: 0;
+			overflow-y: auto !important;
 			-webkit-overflow-scrolling: touch;
+		}
+		
+		.sidebar .btn {
+			flex-shrink: 0;
 		}
 		
 		.map-container {
@@ -1437,7 +1446,8 @@ function showLocationDetails(locationId) {
 				
 				panel.style.width = `${panelWidth}px`;
 				panel.style.height = `${panelHeight}px`;
-				panel.style.minHeight = `100dvh`;
+				panel.style.maxWidth = '100%';
+				panel.style.maxHeight = '100%';
 				
 				// Position at the left edge of visual viewport (offsetX is where vv starts)
 				// We want panel to appear at offsetX in the layout viewport
@@ -1450,6 +1460,8 @@ function showLocationDetails(locationId) {
 				panel.style.transformOrigin = 'top right';
 				panel.style.width = '100%';
 				panel.style.height = '100vh';
+				panel.style.maxWidth = 'none';
+				panel.style.maxHeight = 'none';
 				panel.style.left = 'auto';
 				panel.style.right = '0';
 				panel.style.top = '0';
