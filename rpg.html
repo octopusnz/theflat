@@ -831,7 +831,7 @@
 				async loadStaticMap() {
 					// Try to load PNG first
 					try {
-					console.log('[DEBUG] Attempting to load map.png...');
+
 					const response = await fetch('/map.png?t=' + Date.now());
 					if (response.ok) {
 						const pngBlob = await response.blob();
@@ -841,7 +841,7 @@
 						this.data.mapWidth = 11548;
 						this.data.mapHeight = 7724;
 						this.data.isStaticMap = true;
-						console.log('[DEBUG] map.png loaded successfully, Blob URL:', pngUrl);
+
 						return true;
 					}
 				} catch (e) {
@@ -851,21 +851,21 @@
 
 				// Fallback to SVG
 				try {
-					console.log('[DEBUG] Attempting to load map.svg...');
+	
 					const response = await fetch('/map.svg');
 					if (response.ok) {
 						const svgText = await response.text();
 						this.data.mapSvg = svgText;
 						this.data.mapType = 'svg';
 						this.data.isStaticMap = true;
-						console.log('[DEBUG] map.svg loaded successfully');
+	
 						return true;
 					}
 				} catch (e) {
 					console.error('[ERROR] Failed to load map.svg:', e);
 					// SVG not found, will use default grid
 				}
-				console.log('[DEBUG] No map file found, using default grid');
+	
 				return false;
 			}
 
@@ -1010,12 +1010,12 @@
 // Load data and initialize app
 async function initApp() {
 	try {
-		console.log('[DEBUG] initApp starting...');
+
 		await store.load();
-		console.log('[DEBUG] Data loaded. Locations:', store.data.locations?.length || 0);
-		console.log('[DEBUG] Map data available:', !!store.data.mapSvg);
+
+
 		mapController.renderMap();
-		console.log('[DEBUG] Map rendered successfully');
+
 	} catch (e) {
 		console.error('[ERROR] initApp failed:', e);
 	}
@@ -1166,7 +1166,7 @@ async function initApp() {
 				}
 
 				renderMap() {
-				console.log('[DEBUG] renderMap() called, mapSvg:', !!store.data.mapSvg, 'mapType:', store.data.mapType);
+	
 				// Clear existing SVG content first
 				this.svg.innerHTML = '';
 				
@@ -1283,12 +1283,12 @@ async function initApp() {
 		}
 
 		render() {
-			console.log('[DEBUG] render() called, locationsLayer:', !!this.locationsLayer);
+
 			if (!this.locationsLayer) return;
 			
 			this.locationsLayer.innerHTML = '';
 			const locations = store.getAll('locations');
-			console.log('[DEBUG] Rendering', locations.length, 'locations');
+
 			
 			const mapController = this;
 			locations.forEach(location => {
@@ -1303,7 +1303,7 @@ async function initApp() {
 			const x = location.x || (centerX - rangeX/2 + Math.random() * rangeX);
 			const y = location.y || (centerY - rangeY/2 + Math.random() * rangeY);
 			
-		console.log('[DEBUG] Creating marker for', location.name, 'at', x, y);
+
 		
 		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 		g.classList.add('map-location');
@@ -1386,15 +1386,27 @@ function showLocationDetails(locationId) {
 	content.innerHTML = html;
 	panel.classList.remove('hidden');
 	
-	// Counter device zoom by detecting actual zoom level
-	const actualZoom = window.outerWidth / window.innerWidth;
-	if (actualZoom > 1) {
-		console.log('[DEBUG] Device zoom detected:', actualZoom);
-		// Apply inverse scale to counter the zoom
-		panel.style.transform = `scale(${1 / actualZoom})`;
-		panel.style.transformOrigin = 'top right';
-	} else {
-		panel.style.transform = 'scale(1)';
+	// Use visualViewport API to counter device zoom
+	function updateDetailPanelZoom() {
+		if (window.visualViewport) {
+			const scale = window.visualViewport.scale;
+			const offsetX = window.visualViewport.offsetLeft;
+			const offsetY = window.visualViewport.offsetTop;
+			
+
+			
+			// Reset transform and use zoom property instead
+			panel.style.transform = 'none';
+			panel.style.zoom = 1 / scale;
+		}
+	}
+	
+	updateDetailPanelZoom();
+	
+	// Listen for viewport changes (zoom events)
+	if (window.visualViewport) {
+		window.visualViewport.addEventListener('resize', updateDetailPanelZoom);
+		window.visualViewport.addEventListener('scroll', updateDetailPanelZoom);
 	}
 }
 
