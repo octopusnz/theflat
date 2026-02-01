@@ -1321,6 +1321,10 @@ async function initApp() {
 		g.appendChild(text);
 		
 		g.addEventListener('click', () => {
+			// Reset zoom on mobile when tapping location markers
+			if (window.innerWidth <= 768) {
+				this.resetView();
+			}
 			showLocationDetails(location.id);
 		});
 		
