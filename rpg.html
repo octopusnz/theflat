@@ -558,23 +558,111 @@
 				}
 			}
 
-			@media (max-width: 768px) {
-				.sidebar {
-					position: fixed;
-					left: -280px;
-					top: 0;
-					height: 100vh;
-					z-index: 50;
-					transition: left 0.3s;
-					box-shadow: 4px 0 12px rgba(0, 0, 0, 0.1);
-				}
+.btn-menu {
+			display: none;
+			background: none;
+			border: none;
+			color: var(--fg);
+			font-size: 1.5rem;
+			cursor: pointer;
+			padding: 8px 12px;
+			margin-right: auto;
+		}
 
-				.sidebar.active {
-					left: 0;
+		.btn-menu:hover {
+			color: var(--link);
+		}
+
+		.mobile-overlay {
+			display: none;
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(0, 0, 0, 0.5);
+			z-index: 40;
+		}
+
+		.mobile-overlay.active {
+			display: block;
+		}
+
+		@media (max-width: 768px) {
+			.btn-menu {
+				display: block;
+			}
+
+			header {
+				flex-wrap: wrap;
+			}
+
+			.sidebar {
+				position: fixed;
+				left: -280px;
+				top: 0;
+				width: 280px;
+				height: 100vh;
+				z-index: 51;
+				transition: left 0.3s ease;
+				box-shadow: 4px 0 12px rgba(0, 0, 0, 0.1);
+				overflow-y: auto;
+			}
+
+			.sidebar.active {
+				left: 0;
+			}
+
+			.detail-panel {
+				position: fixed;
+				right: -400px;
+				top: 0;
+				width: 400px;
+				height: 100vh;
+				z-index: 51;
+				transition: right 0.3s ease;
+				box-shadow: -4px 0 12px rgba(0, 0, 0, 0.1);
+			}
+
+			.detail-panel.hidden {
+				display: block !important;
+				right: -400px;
+			}
+
+			.detail-panel:not(.hidden) {
+				right: 0;
+			}
+
+			.map-container {
+				width: 100%;
+			}
+
+			.container {
+				flex-direction: column;
+				}
+			}
+
+			@media (max-width: 450px) {
+				.sidebar {
+					width: 100%;
+					left: -100%;
 				}
 
 				.detail-panel {
 					width: 100%;
+					right: -100%;
+				}
+
+				.detail-panel.hidden {
+					right: -100%;
+				}
+
+				h1 {
+					font-size: 1.2rem;
+				}
+
+				.nav-links {
+					font-size: 0.875rem;
 				}
 			}
 
@@ -602,13 +690,15 @@
 		<a href="#main-content" class="skip-link">Skip to main content</a>
 
 		<header>
-			<h1>RPG Campaign Tracker</h1>
-			<nav class="nav-links">
-				<a href="/">Home</a>
-				<a href="/rpg">RPG Tracker</a>
-			</nav>
-		</header>
+		<button class="btn-menu" id="btn-menu" aria-label="Toggle sidebar">☰</button>
+		<h1>RPG Campaign Tracker</h1>
+		<nav class="nav-links">
+			<a href="/">Home</a>
+			<a href="/rpg">RPG Tracker</a>
+		</nav>
+	</header>
 
+	<div class="mobile-overlay" id="mobile-overlay"></div>
 		<div class="container">
 			<!-- Sidebar -->
 			<aside class="sidebar" id="sidebar">
@@ -950,6 +1040,7 @@ async function initApp() {
 		console.log('[DEBUG] Map data available:', !!store.data.mapSvg);
 		mapController.renderMap();
 		console.log('[DEBUG] Map rendered successfully');
+		initMobileNavigation();
 	} catch (e) {
 		console.error('[ERROR] initApp failed:', e);
 	}
@@ -1262,6 +1353,51 @@ async function initApp() {
 }
 }
 
+		// Mobile Navigation
+		function initMobileNavigation() {
+			const btnMenu = document.getElementById('btn-menu');
+			const sidebar = document.getElementById('sidebar');
+			const overlay = document.getElementById('mobile-overlay');
+			const detailPanel = document.getElementById('detail-panel');
+			
+			function closeSidebar() {
+				sidebar.classList.remove('active');
+				overlay.classList.remove('active');
+			}
+			
+			function closeDetailPanel() {
+				detailPanel.classList.add('hidden');
+				overlay.classList.remove('active');
+			}
+			
+			btnMenu.addEventListener('click', () => {
+				sidebar.classList.toggle('active');
+				if (!detailPanel.classList.contains('hidden')) {
+					detailPanel.classList.add('hidden');
+				}
+				overlay.classList.toggle('active');
+			});
+			
+			overlay.addEventListener('click', () => {
+				if (sidebar.classList.contains('active')) {
+					closeSidebar();
+				} else if (!detailPanel.classList.contains('hidden')) {
+					closeDetailPanel();
+				}
+			});
+			
+			// Close sidebar when a category is clicked
+			document.querySelectorAll('.category-item').forEach(item => {
+				item.addEventListener('click', closeSidebar);
+			});
+			
+			// Close detail panel when close button is clicked
+			const btnClose = document.getElementById('btn-close');
+			if (btnClose) {
+				btnClose.addEventListener('click', closeDetailPanel);
+			}
+		}
+
 // Detail Panel Controller
 function showLocationDetails(locationId) {
 	const location = store.get('locations', locationId);
@@ -1317,11 +1453,26 @@ function showLocationDetails(locationId) {
 	
 	content.innerHTML = html;
 	panel.classList.remove('hidden');
+	
+	// Close sidebar and show overlay on mobile
+	const sidebar = document.getElementById('sidebar');
+	if (sidebar && sidebar.classList.contains('active')) {
+		sidebar.classList.remove('active');
+	}
+	
+	const overlay = document.getElementById('mobile-overlay');
+	if (overlay) {
+		overlay.classList.add('active');
+	}
 }
 
 function hideDetailPanel() {
-		document.getElementById('detail-panel').classList.add('hidden');
+	document.getElementById('detail-panel').classList.add('hidden');
+	const overlay = document.getElementById('mobile-overlay');
+	if (overlay) {
+		overlay.classList.remove('active');
 	}
+}
 	function showCategoryList(category) {
 		const panel = document.getElementById('detail-panel');
 		const title = document.getElementById('detail-title');
@@ -1335,6 +1486,16 @@ function hideDetailPanel() {
 		if (items.length === 0) {
 			content.innerHTML = '<div class="empty-state"><p>No ' + category + ' yet. Click + Add New to create one.</p></div>';
 			panel.classList.remove('hidden');
+			
+			// Close sidebar and show overlay on mobile
+			const sidebar = document.getElementById('sidebar');
+			if (sidebar && sidebar.classList.contains('active')) {
+				sidebar.classList.remove('active');
+			}
+			const overlay = document.getElementById('mobile-overlay');
+			if (overlay) {
+				overlay.classList.add('active');
+			}
 			return;
 		}
 
@@ -1366,6 +1527,16 @@ function hideDetailPanel() {
 		});
 
 		panel.classList.remove('hidden');
+		
+		// Close sidebar and show overlay on mobile
+		const sidebar = document.getElementById('sidebar');
+		if (sidebar && sidebar.classList.contains('active')) {
+			sidebar.classList.remove('active');
+		}
+		const overlay = document.getElementById('mobile-overlay');
+		if (overlay) {
+			overlay.classList.add('active');
+		}
 	}
 
 			function showItemDetails(category, itemId) {
