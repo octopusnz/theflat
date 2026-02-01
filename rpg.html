@@ -1230,55 +1230,57 @@ async function initApp() {
 			
 			// Render custom map if available
 			if (store.data.mapSvg && store.data.mapType === 'raster') {
-					// Handle raster images (JPG, PNG, etc.)
-					const width = store.data.mapWidth || 1000;
-					const height = store.data.mapHeight || 600;
-					
-					// Update viewBox and SVG size
-					this.svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-					this.svg.setAttribute('width', '100%');
-					this.svg.setAttribute('height', '100%');
-					this.svg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
-					
-					// Create main group for all content
-					const mainGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-					mainGroup.setAttribute('id', 'main-group');
-					
-					// Add image as background
-					const image = document.createElementNS('http://www.w3.org/2000/svg', 'image');
-					image.setAttribute('href', store.data.mapSvg);
-					image.setAttribute('x', '0');
-					image.setAttribute('y', '0');
-					image.setAttribute('width', width);
-					image.setAttribute('height', height);
-					image.setAttribute('preserveAspectRatio', 'none');
-					
-					// Wait for image to load before showing
-					image.addEventListener('load', () => {
-						mapView.classList.remove('loading');
-						this.svg.classList.add('ready');
-					}, { once: true });
-					
-					// Fallback: remove loading state after timeout (in case image load event doesn't fire)
-					const loadTimeout = setTimeout(() => {
-						mapView.classList.remove('loading');
-						this.svg.classList.add('ready');
-					}, 5000);
-					
-					// Clear timeout if image loads
-					image.addEventListener('load', () => clearTimeout(loadTimeout), { once: true });
-					
-					mainGroup.appendChild(image);
-					
-					// Create and add locations layer on top
-					const locationsLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-					locationsLayer.setAttribute('id', 'locations-layer');
-					mainGroup.appendChild(locationsLayer);
-					
-					// Add main group to SVG
-					this.svg.appendChild(mainGroup);
-					this.mainGroup = mainGroup;
-					this.locationsLayer = locationsLayer;
+				// Handle raster images (JPG, PNG, etc.)
+				const width = store.data.mapWidth || 1000;
+				const height = store.data.mapHeight || 600;
+				
+				// Update viewBox and SVG size
+				this.svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+				this.svg.setAttribute('width', '100%');
+				this.svg.setAttribute('height', '100%');
+				this.svg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+				
+				// Create main group for all content
+				const mainGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+				mainGroup.setAttribute('id', 'main-group');
+				
+				// Add image as background
+				const image = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+				image.setAttribute('href', store.data.mapSvg);
+				image.setAttribute('x', '0');
+				image.setAttribute('y', '0');
+				image.setAttribute('width', width);
+				image.setAttribute('height', height);
+				image.setAttribute('preserveAspectRatio', 'none');
+				
+				mainGroup.appendChild(image);
+				
+				// Create and add locations layer on top
+				const locationsLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+				locationsLayer.setAttribute('id', 'locations-layer');
+				mainGroup.appendChild(locationsLayer);
+				
+				// Add main group to SVG
+				this.svg.appendChild(mainGroup);
+				this.mainGroup = mainGroup;
+				this.locationsLayer = locationsLayer;
+				
+				// Wait for image to load before showing
+				image.addEventListener('load', () => {
+					mapView.classList.remove('loading');
+					this.svg.classList.add('ready');
+					this.render(); // Render locations after image is loaded and visible
+				}, { once: true });
+				
+				// Fallback: remove loading state after timeout (in case image load event doesn't fire)
+				const loadTimeout = setTimeout(() => {
+					mapView.classList.remove('loading');
+					this.svg.classList.add('ready');
+					this.render(); // Render locations after timeout
+				}, 5000);
+				
+				// Clear timeout if image loads
+				image.addEventListener('load', () => clearTimeout(loadTimeout), { once: true });
 			} else {
 				// Default map with grid (fallback)
 				this.svg.setAttribute('viewBox', '0 0 1000 600');
@@ -1322,54 +1324,46 @@ async function initApp() {
 				// Show the grid (no image to wait for)
 				mapView.classList.remove('loading');
 				this.svg.classList.add('ready');
+				this.render(); // Render locations for default grid
+			}
 		}
-		this.render();
 
-			if (!this.locationsLayer) return;
-			
-			this.locationsLayer.innerHTML = '';
+		render() {
 			const locations = store.getAll('locations');
-
-			
-			const mapController = this;
-			locations.forEach(location => {
-			// Place markers randomly in the center area of the map
-			// Map dimensions: 11548×7724
-			// Center area: roughly 40% of map width and height, centered
-			const centerX = 11548 / 2;
-			const centerY = 7724 / 2;
+			const centerX = 5774;
+			const centerY = 3862;
 			const rangeX = 11548 * 0.4;
 			const rangeY = 7724 * 0.4;
-			
-			const x = location.x || (centerX - rangeX/2 + Math.random() * rangeX);
-			const y = location.y || (centerY - rangeY/2 + Math.random() * rangeY);
-			
 
-		
-		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-		g.classList.add('map-location');
-			const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-			circle.setAttribute('cx', x);
-			circle.setAttribute('cy', y);
-			circle.setAttribute('r', 80); // Increased from 8 to 80 for 11548×7724 map
-			
-			const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-			text.setAttribute('x', x);
-			text.setAttribute('y', y - 120); // Increased offset from -15 to -120
-			text.setAttribute('font-size', '120'); // Added explicit font size
-		text.textContent = location.name;
-		
-		g.appendChild(circle);
-		g.appendChild(text);
-		
-		g.addEventListener('click', () => {
-			showLocationDetails(location.id);
-		});
-		
-		this.locationsLayer.appendChild(g);
-	});
-}
-}
+			locations.forEach((location) => {
+				const x = location.x || (centerX - rangeX/2 + Math.random() * rangeX);
+				const y = location.y || (centerY - rangeY/2 + Math.random() * rangeY);
+				
+				const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+				g.classList.add('map-location');
+				
+				const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+				circle.setAttribute('cx', x);
+				circle.setAttribute('cy', y);
+				circle.setAttribute('r', 80); // Increased from 8 to 80 for 11548×7724 map
+				
+				const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+				text.setAttribute('x', x);
+				text.setAttribute('y', y - 120); // Increased offset from -15 to -120
+				text.setAttribute('font-size', '120'); // Added explicit font size
+				text.textContent = location.name;
+				
+				g.appendChild(circle);
+				g.appendChild(text);
+				
+				g.addEventListener('click', () => {
+					showLocationDetails(location.id);
+				});
+				
+				this.locationsLayer.appendChild(g);
+			});
+		}
+	}
 
 // Detail Panel Controller
 function showLocationDetails(locationId) {
