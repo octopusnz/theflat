@@ -1173,7 +1173,7 @@
 					document.getElementById('badge-all').textContent = total;
 				}
 
-				// Equipment API caching
+				// Equipment API caching with local file fallback
 				async getEquipmentList() {
 					const cacheKey = 'dnd5e_equipment_cache';
 					const cacheTTL = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
@@ -1189,7 +1189,21 @@
 						}
 					}
 					
-					// Fetch fresh data from API
+					// Try to load from local file first (updated daily by GitHub Actions)
+					try {
+						const response = await fetch('/equipment.json');
+						if (response.ok) {
+							const data = await response.json();
+							// Cache the data
+							localStorage.setItem(cacheKey, JSON.stringify(data));
+							localStorage.setItem(cacheKey + '_time', Date.now().toString());
+							return data;
+						}
+					} catch (error) {
+						console.debug('Could not load local equipment file, falling back to API');
+					}
+					
+					// Fallback to API if local file not available
 					try {
 						const response = await fetch('https://www.dnd5eapi.co/api/2014/equipment');
 						if (!response.ok) throw new Error('API request failed');
@@ -1202,7 +1216,7 @@
 						
 						return data;
 					} catch (error) {
-						console.error('Error fetching equipment data:', error);
+						console.error('Error fetching equipment data from API:', error);
 						
 						// Return cached data if available, even if expired
 						if (cached) {

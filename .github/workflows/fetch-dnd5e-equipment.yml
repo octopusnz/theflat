@@ -1,0 +1,66 @@
+name: Fetch D&D 5e Equipment
+
+on:
+  schedule:
+    # Run daily at 01:00 UTC (after GitHub stats at 00:00)
+    - cron: '0 1 * * *'
+  workflow_dispatch: # Allow manual trigger
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/fetch-dnd5e-equipment.yml'
+
+jobs:
+  fetch-equipment:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fetch D&D 5e Equipment Data
+        run: |
+          API_URL="https://www.dnd5eapi.co/api/2014/equipment"
+          OUTPUT_FILE="equipment.json"
+          
+          echo "Fetching equipment data from $API_URL..."
+          
+          # Fetch equipment data
+          curl -s "$API_URL" | jq '.' > "$OUTPUT_FILE"
+          
+          if [ $? -eq 0 ]; then
+              # Count items fetched
+              ITEM_COUNT=$(jq '.results | length' "$OUTPUT_FILE" 2>/dev/null || echo "unknown")
+              UPDATED_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+              
+              echo "Equipment data updated successfully!"
+              echo "Items fetched: $ITEM_COUNT"
+              
+              # Add metadata
+              temp_file=$(mktemp)
+              jq --arg updated "$UPDATED_TIME" '.updated_at = $updated' "$OUTPUT_FILE" > "$temp_file"
+              mv "$temp_file" "$OUTPUT_FILE"
+              
+              echo "File saved to: $OUTPUT_FILE"
+          else
+              echo "Error fetching equipment data"
+              exit 1
+          fi
+
+      - name: Commit and push if changed
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          
+          # Check if there are changes
+          if git diff --quiet equipment.json; then
+              echo "No changes to equipment data"
+          else
+              git add equipment.json
+              git commit -m "chore: update D&D 5e equipment data"
+              git push
+              echo "Equipment data committed and pushed"
+          fi
