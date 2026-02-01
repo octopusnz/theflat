@@ -1386,27 +1386,53 @@ function showLocationDetails(locationId) {
 	content.innerHTML = html;
 	panel.classList.remove('hidden');
 	
-	// Use visualViewport API to counter device zoom
+	// Use visualViewport API to properly display panel at normal scale
 	function updateDetailPanelZoom() {
-		if (window.visualViewport) {
+		if (window.visualViewport && window.innerWidth <= 768) {
 			const scale = window.visualViewport.scale;
-			const offsetX = window.visualViewport.offsetLeft;
-			const offsetY = window.visualViewport.offsetTop;
 			
-
-			
-			// Reset transform and use zoom property instead
-			panel.style.transform = 'none';
-			panel.style.zoom = 1 / scale;
+			if (scale > 1) {
+				// Apply inverse scale and adjust positioning
+				const inverseScale = 1 / scale;
+				
+				// Scale the panel content back to normal size
+				panel.style.transform = `scale(${inverseScale})`;
+				panel.style.transformOrigin = 'top right';
+				
+				// Adjust width to compensate for scale
+				panel.style.width = `${100 * scale}%`;
+				
+				// Adjust right position based on visual viewport offset
+				const offsetX = window.visualViewport.offsetLeft;
+				panel.style.right = `${-offsetX}px`;
+			} else {
+				// Reset to normal when not zoomed
+				panel.style.transform = 'none';
+				panel.style.width = '100%';
+				panel.style.right = '0';
+			}
 		}
 	}
 	
 	updateDetailPanelZoom();
 	
-	// Listen for viewport changes (zoom events)
+	// Listen for viewport changes
 	if (window.visualViewport) {
-		window.visualViewport.addEventListener('resize', updateDetailPanelZoom);
-		window.visualViewport.addEventListener('scroll', updateDetailPanelZoom);
+		const updateHandler = () => updateDetailPanelZoom();
+		window.visualViewport.addEventListener('resize', updateHandler);
+		window.visualViewport.addEventListener('scroll', updateHandler);
+		
+		// Clean up listeners when panel closes
+		const originalClose = panel.querySelector('#btn-close-detail');
+		if (originalClose) {
+			const oldHandler = originalClose.onclick;
+			originalClose.onclick = function(e) {
+				window.visualViewport.removeEventListener('resize', updateHandler);
+				window.visualViewport.removeEventListener('scroll', updateHandler);
+				if (oldHandler) oldHandler.call(this, e);
+				else hideDetailPanel();
+			};
+		}
 	}
 }
 
