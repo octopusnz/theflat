@@ -549,6 +549,75 @@
 		color: var(--fg);
 	}
 
+	/* Equipment Search Styles */
+	.equipment-panel {
+		display: none;
+		flex-direction: column;
+		height: 100%;
+	}
+
+	.equipment-panel.active {
+		display: flex;
+	}
+
+	.equipment-search-box {
+		padding: 12px;
+		border-bottom: 1px solid var(--border);
+		flex-shrink: 0;
+	}
+
+	.equipment-search-box input {
+		width: 100%;
+		padding: 10px 12px;
+		border: 1px solid var(--border);
+		border-radius: 6px;
+		background: var(--bg);
+		color: var(--fg);
+		font-size: 1rem;
+	}
+
+	.equipment-search-box input::placeholder {
+		color: var(--muted-fg);
+	}
+
+	.equipment-results {
+		flex: 1;
+		overflow-y: auto;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	.equipment-item {
+		padding: 12px;
+		margin: 8px 12px;
+		background: var(--hover);
+		border: 1px solid var(--border);
+		border-radius: 6px;
+		cursor: pointer;
+		transition: all 0.2s;
+	}
+
+	.equipment-item:hover {
+		background: var(--border);
+		transform: translateX(4px);
+	}
+
+	.equipment-item-name {
+		font-weight: 600;
+		color: var(--link);
+		margin-bottom: 4px;
+	}
+
+	.equipment-item-type {
+		font-size: 0.875rem;
+		color: var(--muted-fg);
+	}
+
+	.equipment-loading {
+		padding: 20px;
+		text-align: center;
+		color: var(--muted-fg);
+	}
+
 	.form-group input,
 	.form-group textarea,
 	.form-group select {
@@ -810,6 +879,10 @@
 						<span>Events</span>
 						<span class="badge" id="badge-events">0</span>
 					</li>
+					<li class="category-item" data-category="equipment">
+						<span>D&D Equipment</span>
+						<span class="badge" id="badge-equipment">∞</span>
+					</li>
 				</ul>
 				<button class="btn" id="btn-add-new">+ Add New</button>
 				<hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border);">
@@ -856,6 +929,20 @@
 					<div class="empty-state">
 						<p>Click on a location on the map to view details</p>
 					</div>
+				</div>
+			</aside>
+
+			<!-- Equipment Search Panel -->
+			<aside class="detail-panel hidden equipment-panel" id="equipment-panel">
+				<div class="detail-header">
+					<h2>D&D 5e Equipment</h2>
+					<button class="btn-close" id="btn-close-equipment" aria-label="Close equipment">&times;</button>
+				</div>
+				<div class="equipment-search-box">
+					<input type="text" id="equipment-search" placeholder="Search equipment..." autocomplete="off">
+				</div>
+				<div class="equipment-results" id="equipment-results">
+					<div class="equipment-loading">Loading equipment data...</div>
 				</div>
 			</aside>
 		</div>
@@ -1084,6 +1171,58 @@
 					const total = this.data.locations.length + this.data.npcs.length + 
 						              this.data.items.length + this.data.events.length;
 					document.getElementById('badge-all').textContent = total;
+				}
+
+				// Equipment API caching
+				async getEquipmentList() {
+					const cacheKey = 'dnd5e_equipment_cache';
+					const cacheTTL = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+					
+					// Check if cached data exists and is fresh
+					const cached = localStorage.getItem(cacheKey);
+					const cacheTime = localStorage.getItem(cacheKey + '_time');
+					
+					if (cached && cacheTime) {
+						const age = Date.now() - parseInt(cacheTime);
+						if (age < cacheTTL) {
+							return JSON.parse(cached);
+						}
+					}
+					
+					// Fetch fresh data from API
+					try {
+						const response = await fetch('https://www.dnd5eapi.co/api/2014/equipment');
+						if (!response.ok) throw new Error('API request failed');
+						
+						const data = await response.json();
+						
+						// Cache the data
+						localStorage.setItem(cacheKey, JSON.stringify(data));
+						localStorage.setItem(cacheKey + '_time', Date.now().toString());
+						
+						return data;
+					} catch (error) {
+						console.error('Error fetching equipment data:', error);
+						
+						// Return cached data if available, even if expired
+						if (cached) {
+							console.warn('Using expired cache due to API error');
+							return JSON.parse(cached);
+						}
+						
+						throw error;
+					}
+				}
+
+				async getEquipmentDetail(url) {
+					try {
+						const response = await fetch(`https://www.dnd5eapi.co${url}`);
+						if (!response.ok) throw new Error('Failed to fetch equipment details');
+						return await response.json();
+					} catch (error) {
+						console.error('Error fetching equipment details:', error);
+						throw error;
+					}
 				}
 			}
 // Load data and initialize app
@@ -1567,6 +1706,118 @@ function hideDetailPanel() {
 		viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=10');
 	}
 }
+
+function hideEquipmentPanel() {
+	const panel = document.getElementById('equipment-panel');
+	panel.classList.add('hidden');
+	panel.classList.remove('active');
+}
+
+async function showEquipmentPanel() {
+	const panel = document.getElementById('equipment-panel');
+	const resultsDiv = document.getElementById('equipment-results');
+	
+	panel.classList.remove('hidden');
+	panel.classList.add('active');
+	
+	// Load equipment list if not already loaded
+	try {
+		const data = await store.getEquipmentList();
+		displayEquipmentList(data.results || data);
+	} catch (error) {
+		resultsDiv.innerHTML = '<div class="equipment-loading">Error loading equipment data. Please try again.</div>';
+	}
+}
+
+function displayEquipmentList(equipment) {
+	const resultsDiv = document.getElementById('equipment-results');
+	
+	if (!equipment || equipment.length === 0) {
+		resultsDiv.innerHTML = '<div class="equipment-loading">No equipment found.</div>';
+		return;
+	}
+	
+	// Store equipment list for search
+	window.currentEquipmentList = equipment;
+	
+	const html = equipment.map(item => {
+		const name = item.name || item.index || 'Unknown';
+		const index = item.index || '';
+		return `<div class="equipment-item" data-index="${index}">
+			<div class="equipment-item-name">${name}</div>
+			<div class="equipment-item-type">${item.equipment_category?.name || 'Equipment'}</div>
+		</div>`;
+	}).join('');
+	
+	resultsDiv.innerHTML = html;
+	
+	// Add click handlers to show details
+	resultsDiv.querySelectorAll('.equipment-item').forEach(item => {
+		item.addEventListener('click', async () => {
+			const index = item.dataset.index;
+			const selectedEquipment = window.currentEquipmentList.find(e => e.index === index);
+			if (selectedEquipment && selectedEquipment.url) {
+				await showEquipmentDetails(selectedEquipment);
+			}
+		});
+	});
+}
+
+async function showEquipmentDetails(equipment) {
+	try {
+		const details = await store.getEquipmentDetail(equipment.url);
+		const panel = document.getElementById('detail-panel');
+		const title = document.getElementById('detail-title');
+		const content = document.getElementById('detail-content');
+		
+		// Hide equipment panel, show detail panel with equipment info
+		hideEquipmentPanel();
+		
+		title.textContent = details.name || equipment.name;
+		
+		let html = '<div class="detail-section">';
+		html += '<h3>D&D 5e Equipment</h3>';
+		
+		if (details.equipment_category) {
+			html += '<p><strong>Category:</strong> ' + details.equipment_category.name + '</p>';
+		}
+		
+		if (details.gear_category) {
+			html += '<p><strong>Gear Category:</strong> ' + details.gear_category.name + '</p>';
+		}
+		
+		if (details.desc && Array.isArray(details.desc)) {
+			html += '<p>' + details.desc.join('</p><p>') + '</p>';
+		}
+		
+		if (details.weight !== undefined) {
+			html += '<p><strong>Weight:</strong> ' + details.weight + ' lbs</p>';
+		}
+		
+		if (details.cost) {
+			html += '<p><strong>Cost:</strong> ' + details.cost.quantity + ' ' + details.cost.unit + '</p>';
+		}
+		
+		if (details.damage) {
+			html += '<p><strong>Damage:</strong> ' + details.damage.damage_dice + 'd' + details.damage.damage_type.name + '</p>';
+		}
+		
+		if (details.armor_class) {
+			html += '<p><strong>AC:</strong> ' + details.armor_class.base + '</p>';
+		}
+		
+		html += '</div>';
+		html += '<div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);"><button class="btn" style="width: 100%;" onclick="showEquipmentPanel()">Back to Equipment</button></div>';
+		
+		content.innerHTML = html;
+		panel.classList.remove('hidden');
+		
+	} catch (error) {
+		console.error('Error loading equipment details:', error);
+		alert('Error loading equipment details. Please try again.');
+	}
+}
+
 	function showCategoryList(category) {
 		const panel = document.getElementById('detail-panel');
 		const title = document.getElementById('detail-title');
@@ -1831,6 +2082,30 @@ function hideDetailPanel() {
 	// Close detail panel
 	document.getElementById('btn-close-detail').addEventListener('click', hideDetailPanel);
 
+	// Close equipment panel
+	document.getElementById('btn-close-equipment').addEventListener('click', hideEquipmentPanel);
+
+	// Equipment search
+	const equipmentSearchInput = document.getElementById('equipment-search');
+	
+	equipmentSearchInput.addEventListener('input', (e) => {
+		const query = e.target.value.toLowerCase();
+		const equipment = window.currentEquipmentList || [];
+		
+		if (!query) {
+			displayEquipmentList(equipment);
+			return;
+		}
+		
+		const filtered = equipment.filter(item => {
+			const name = (item.name || item.index || '').toLowerCase();
+			const category = (item.equipment_category?.name || '').toLowerCase();
+			return name.includes(query) || category.includes(query);
+		});
+		
+		displayEquipmentList(filtered);
+	});
+
 	// Category filter
 	document.querySelectorAll('.category-item').forEach(item => {
 		item.addEventListener('click', () => {
@@ -1840,7 +2115,12 @@ function hideDetailPanel() {
 			const category = item.dataset.category;
 			if (category === 'all') {
 				hideDetailPanel();
+				hideEquipmentPanel();
+			} else if (category === 'equipment') {
+				hideDetailPanel();
+				showEquipmentPanel();
 			} else {
+				hideEquipmentPanel();
 				showCategoryList(category);
 			}
 		});
