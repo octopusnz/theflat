@@ -632,6 +632,7 @@
 			top: 0;
 			right: -100%;
 			height: 100vh;
+			height: 100dvh;
 			z-index: 50;
 			box-shadow: -4px 0 12px rgba(0, 0, 0, 0.1);
 			transition: right 0.3s;
@@ -644,6 +645,26 @@
 		.map-view {
 			-webkit-overflow-scrolling: touch;
 			overflow: auto;
+		}
+	}
+
+	@media (max-width: 768px) and (orientation: landscape) {
+		.sidebar {
+			max-height: 100vh;
+			max-height: 100dvh;
+		}
+		
+		.category-list {
+			max-height: calc(100vh - 200px);
+			max-height: calc(100dvh - 200px);
+			overflow-y: auto;
+			-webkit-overflow-scrolling: touch;
+		}
+		
+		.map-container {
+			height: 100vh;
+			height: 100dvh;
+			overflow: hidden;
 		}
 	}
 
@@ -1416,7 +1437,7 @@ function showLocationDetails(locationId) {
 				
 				panel.style.width = `${panelWidth}px`;
 				panel.style.height = `${panelHeight}px`;
-				panel.style.minHeight = `${panelHeight}px`;
+				panel.style.minHeight = `100dvh`;
 				
 				// Position at the left edge of visual viewport (offsetX is where vv starts)
 				// We want panel to appear at offsetX in the layout viewport
