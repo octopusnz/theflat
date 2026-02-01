@@ -1399,17 +1399,22 @@ function showLocationDetails(locationId) {
 				panel.style.transform = `scale(${inverseScale})`;
 				panel.style.transformOrigin = 'top right';
 				
-				// Adjust width to compensate for scale
+				// Adjust dimensions to compensate for scale
 				panel.style.width = `${100 * scale}%`;
 				
-				// Adjust right position based on visual viewport offset
+				// Position relative to the visual viewport
 				const offsetX = window.visualViewport.offsetLeft;
-				panel.style.right = `${-offsetX}px`;
+				const offsetY = window.visualViewport.offsetTop;
+				
+				// Adjust position - the panel needs to be positioned relative to visual viewport
+				panel.style.right = `${(-offsetX * inverseScale)}px`;
+				panel.style.top = `${offsetY}px`;
 			} else {
 				// Reset to normal when not zoomed
 				panel.style.transform = 'none';
 				panel.style.width = '100%';
 				panel.style.right = '0';
+				panel.style.top = '0';
 			}
 		}
 	}
