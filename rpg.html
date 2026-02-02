@@ -393,12 +393,13 @@
 
 	.map-location {
 		cursor: pointer;
+		will-change: transform;
 	}
 
 	.map-location circle {
 		fill: var(--link);
 		stroke: var(--bg);
-		stroke-width: 15;
+		stroke-width: 2;
 	}
 
 	.map-location text {
@@ -407,10 +408,6 @@
 		font-weight: 600;
 		pointer-events: none;
 		text-anchor: middle;
-		text-shadow: 3px 3px 8px rgba(255, 255, 255, 0.9), -3px -3px 8px rgba(255, 255, 255, 0.9);
-		paint-order: stroke;
-		stroke: rgba(255, 255, 255, 0.8);
-		stroke-width: 4;
 	}
 
 	.detail-panel {
