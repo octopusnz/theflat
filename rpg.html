@@ -3677,16 +3677,16 @@ async loadInventory() {
 			const resultsContainer = document.getElementById('search-results');
 
 			if (query.length === 0) {
-			resultsContainer.innerHTML = '';
-			return;
-		}
+				resultsContainer.innerHTML = '<div class="empty-state">Use the dropdown on the right to choose which part of the rules you would like to search.</div>';
+				return;
+			}
 
-		if (query.length < 2) {
-			resultsContainer.innerHTML = '';
-			return;
-		}
+			if (query.length < 2) {
+				resultsContainer.innerHTML = '<div class="empty-state">Keep typing...</div>';
+				return;
+			}
 
-		resultsContainer.innerHTML = '<div class="equipment-loading">Searching...</div>';
+			resultsContainer.innerHTML = '<div class="equipment-loading">Searching...</div>';
 
 		try {
 			const data = await this.loadData(type);
