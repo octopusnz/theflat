@@ -1949,19 +1949,22 @@ async function initApp() {
 			const target = this.mainGroup || this.svg;
 			target.style.transform = 
 				`translate3d(${this.translateX}px, ${this.translateY}px, 0) scale(${this.scale})`;
-				if (e.touches.length === 1) {
-					// Single touch - pan
-					this.startDrag(e.touches[0]);
-				} else if (e.touches.length === 2) {
-					// Two fingers - pinch zoom
-					this.isDragging = false;
-					const touch1 = e.touches[0];
-					const touch2 = e.touches[1];
-					this.lastDistance = Math.hypot(
-						touch2.clientX - touch1.clientX,
-						touch2.clientY - touch1.clientY
-					);
-					this.lastScale = this.scale;
+		}
+
+		handleTouchStart(e) {
+			if (e.touches.length === 1) {
+				// Single touch - pan
+				this.startDrag(e.touches[0]);
+			} else if (e.touches.length === 2) {
+				// Two fingers - pinch zoom
+				this.isDragging = false;
+				const touch1 = e.touches[0];
+				const touch2 = e.touches[1];
+				this.lastDistance = Math.hypot(
+					touch2.clientX - touch1.clientX,
+					touch2.clientY - touch1.clientY
+				);
+				this.lastScale = this.scale;
 				this.lastTranslateX = this.translateX;
 				this.lastTranslateY = this.translateY;
 				
@@ -1994,16 +1997,16 @@ async function initApp() {
 					// Get SVG viewport to convert screen to SVG space
 					const svgRect = this.svg.getBoundingClientRect();
 					
-					// Calculate the scaling change
-					const actualScaleFactor = clampedScale / this.lastScale;
+					// Calculate the actual scale change that will be applied
+					const scaleRatio = clampedScale / this.lastScale;
 					
 					// Pinch center in viewport coordinates
 					const pinchVpX = this.pinchCenterX - svgRect.left;
 					const pinchVpY = this.pinchCenterY - svgRect.top;
 					
-					// Apply scale and adjust translation to keep pinch point fixed
-					this.translateX = this.lastTranslateX + pinchVpX * (1 - actualScaleFactor);
-					this.translateY = this.lastTranslateY + pinchVpY * (1 - actualScaleFactor);
+					// Adjust translation to keep pinch point centered
+					this.translateX = this.lastTranslateX - pinchVpX * (scaleRatio - 1);
+					this.translateY = this.lastTranslateY - pinchVpY * (scaleRatio - 1);
 					this.scale = clampedScale;
 					
 					this.updateTransform();
