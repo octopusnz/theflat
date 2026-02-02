@@ -2866,7 +2866,15 @@ async function showEquipmentDetails(equipment) {
 		const title = document.getElementById('detail-title');
 		const content = document.getElementById('detail-content');
 
-		let categoryName = category.charAt(0).toUpperCase() + category.slice(1, -1);
+		// Map category names to their display names (matching the sidebar)
+		const categoryNames = {
+			'locations': 'Locations',
+			'npcs': 'NPCs',
+			'items': 'Items',
+			'events': 'Events'
+		};
+		
+		let categoryName = categoryNames[category] || category.charAt(0).toUpperCase() + category.slice(1);
 		let items = store.getAll(category);
 
 		title.textContent = categoryName;
