@@ -2335,7 +2335,9 @@
 				this.locationsLayer = locationsLayer;
 				
 				// Wait for image to load before showing
+				let imageLoaded = false;
 				image.addEventListener('load', () => {
+					imageLoaded = true;
 					mapView.classList.remove('loading');
 					this.svg.classList.add('ready');
 					this.render(); // Render locations after image is loaded and visible
@@ -2343,13 +2345,12 @@
 				
 				// Fallback: remove loading state after timeout (in case image load event doesn't fire)
 				const loadTimeout = setTimeout(() => {
-					mapView.classList.remove('loading');
-					this.svg.classList.add('ready');
-					this.render(); // Render locations after timeout
-				}, 5000);
-				
-				// Clear timeout if image loads
-				image.addEventListener('load', () => clearTimeout(loadTimeout), { once: true });
+					if (!imageLoaded) {
+						mapView.classList.remove('loading');
+						this.svg.classList.add('ready');
+						this.render(); // Render locations after timeout
+					}
+				}, 3000);
 			} else {
 				// Default map with grid (fallback)
 				this.svg.setAttribute('viewBox', '0 0 1000 600');
