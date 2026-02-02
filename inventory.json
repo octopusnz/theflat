@@ -1,0 +1,97 @@
+{
+  "platinum": 2,
+  "gold": 45,
+  "silver": 18,
+  "copper": 7,
+  "items": [
+    {
+      "index": 1,
+      "name": "Longsword",
+      "equipment_category": {
+        "index": "weapons",
+        "name": "Weapons"
+      },
+      "cost": {
+        "quantity": 15,
+        "unit": "gp"
+      },
+      "weight": 3,
+      "damage": {
+        "damage_dice": "1d8",
+        "damage_type": {
+          "index": "slashing",
+          "name": "slashing"
+        }
+      },
+      "quantity": 1,
+      "url": "/api/equipment/1"
+    },
+    {
+      "index": 2,
+      "name": "Shortbow",
+      "equipment_category": {
+        "index": "weapons",
+        "name": "Weapons"
+      },
+      "cost": {
+        "quantity": 25,
+        "unit": "gp"
+      },
+      "weight": 2,
+      "damage": {
+        "damage_dice": "1d6",
+        "damage_type": {
+          "index": "piercing",
+          "name": "piercing"
+        }
+      },
+      "quantity": 1,
+      "url": "/api/equipment/2"
+    },
+    {
+      "index": 3,
+      "name": "Backpack",
+      "equipment_category": {
+        "index": "adventuring-gear",
+        "name": "Adventuring Gear"
+      },
+      "cost": {
+        "quantity": 2,
+        "unit": "gp"
+      },
+      "weight": 5,
+      "quantity": 1,
+      "url": "/api/equipment/3"
+    },
+    {
+      "index": 4,
+      "name": "Rope, hempen (50 feet)",
+      "equipment_category": {
+        "index": "adventuring-gear",
+        "name": "Adventuring Gear"
+      },
+      "cost": {
+        "quantity": 1,
+        "unit": "gp"
+      },
+      "weight": 10,
+      "quantity": 2,
+      "url": "/api/equipment/4"
+    },
+    {
+      "index": 5,
+      "name": "Spellbook",
+      "equipment_category": {
+        "index": "adventuring-gear",
+        "name": "Adventuring Gear"
+      },
+      "cost": {
+        "quantity": 50,
+        "unit": "gp"
+      },
+      "weight": 3,
+      "quantity": 1,
+      "url": "/api/equipment/5"
+    }
+  ]
+}

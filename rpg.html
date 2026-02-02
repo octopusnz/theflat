@@ -3238,14 +3238,28 @@ async function showEquipmentDetails(equipment) {
 	class InventoryManager {
 		constructor() {
 			this.storageKey = 'partyInventory';
-			this.inventory = this.loadInventory();
+			this.inventory = null;
 			this.initEventListeners();
 		}
 
-		loadInventory() {
-			const stored = localStorage.getItem(this.storageKey);
-			if (stored) {
-				return JSON.parse(stored);
+		async init() {
+			this.inventory = await this.loadInventory();
+			this.renderInventory();
+		}
+
+async loadInventory() {
+		const stored = localStorage.getItem(this.storageKey);
+		if (stored) {
+			return JSON.parse(stored);
+		}
+		// Load default inventory from JSON file
+		try {
+			const response = await fetch('inventory.json');
+			if (response.ok) {
+				return await response.json();
+			}
+		} catch (e) {
+			console.warn('Could not load default inventory:', e);
 			}
 			return {
 				platinum: 0,
@@ -3264,20 +3278,28 @@ async function showEquipmentDetails(equipment) {
 		initEventListeners() {
 			// Currency inputs
 			document.getElementById('currency-platinum').addEventListener('change', (e) => {
-				this.inventory.platinum = parseInt(e.target.value) || 0;
-				this.saveInventory();
+				if (this.inventory) {
+					this.inventory.platinum = parseInt(e.target.value) || 0;
+					this.saveInventory();
+				}
 			});
 			document.getElementById('currency-gold').addEventListener('change', (e) => {
-				this.inventory.gold = parseInt(e.target.value) || 0;
-				this.saveInventory();
+				if (this.inventory) {
+					this.inventory.gold = parseInt(e.target.value) || 0;
+					this.saveInventory();
+				}
 			});
 			document.getElementById('currency-silver').addEventListener('change', (e) => {
-				this.inventory.silver = parseInt(e.target.value) || 0;
-				this.saveInventory();
+				if (this.inventory) {
+					this.inventory.silver = parseInt(e.target.value) || 0;
+					this.saveInventory();
+				}
 			});
 			document.getElementById('currency-copper').addEventListener('change', (e) => {
-				this.inventory.copper = parseInt(e.target.value) || 0;
-				this.saveInventory();
+				if (this.inventory) {
+					this.inventory.copper = parseInt(e.target.value) || 0;
+					this.saveInventory();
+				}
 			});
 
 			// Add item button
@@ -3300,6 +3322,8 @@ async function showEquipmentDetails(equipment) {
 		}
 
 		renderInventory() {
+			if (!this.inventory) return;
+			
 			// Update currency displays
 			document.getElementById('currency-platinum').value = this.inventory.platinum || 0;
 			document.getElementById('currency-gold').value = this.inventory.gold;
@@ -3406,12 +3430,25 @@ async function showEquipmentDetails(equipment) {
 					return;
 				}
 
-				resultsContainer.innerHTML = filtered.map(item => `
-					<div class="add-item-result">
-						<div class="add-item-result-name">${item.name}</div>
-						<div class="add-item-result-qty">
-							<input type="number" class="add-item-qty-input" value="1" min="1" data-item-index="${equipment.indexOf(item)}">
-							<button class="btn-add-to-inventory" data-item-index="${equipment.indexOf(item)}">Add</button>
+// Fetch full details for each result to get damage, cost, weight, etc.
+			const fullResults = await Promise.all(
+				filtered.map(async (item) => {
+					try {
+						const details = await store.getEquipmentDetail(item.url);
+						return details;
+					} catch (e) {
+						console.warn('Failed to fetch details for', item.name);
+						return item;
+					}
+				})
+			);
+
+			resultsContainer.innerHTML = fullResults.map((item, idx) => `
+				<div class="add-item-result">
+					<div class="add-item-result-name">${item.name}</div>
+					<div class="add-item-result-qty">
+						<input type="number" class="add-item-qty-input" value="1" min="1" data-item-index="${idx}">
+						<button class="btn-add-to-inventory" data-item-index="${idx}">Add</button>
 						</div>
 					</div>
 				`).join('');
@@ -3421,7 +3458,7 @@ async function showEquipmentDetails(equipment) {
 					btn.addEventListener('click', async (e) => {
 						const itemIndex = parseInt(e.target.dataset.itemIndex);
 						const qty = parseInt(e.target.parentElement.querySelector('.add-item-qty-input').value) || 1;
-						await this.addItemToInventory(equipment[itemIndex], qty);
+						await this.addItemToInventory(fullResults[itemIndex], qty);
 						e.target.textContent = 'Added!';
 						e.target.disabled = true;
 						setTimeout(() => {
@@ -3535,6 +3572,9 @@ async function showEquipmentDetails(equipment) {
 	
 	// Start the app
 	initApp();
+	
+	// Load default inventory if needed
+	window.inventoryManager.init().catch(err => console.error('Failed to init inventory:', err));
 	</script>
 </body>
 </html>
