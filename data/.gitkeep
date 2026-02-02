@@ -1,0 +1,6 @@
+# D&D 5e API Data Cache
+
+This directory contains cached JSON files from the D&D 5e API.
+Files are automatically updated daily by GitHub Actions workflow.
+
+The files are committed to the repository to provide fast offline access.
