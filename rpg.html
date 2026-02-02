@@ -1592,7 +1592,7 @@
 						<span class="badge" id="badge-events">0</span>
 					</li>
 					<li class="category-item" data-category="equipment">
-						<span>D&D Equipment</span>
+						<span>Equipment Search</span>
 						<span class="badge" id="badge-equipment">∞</span>
 					</li>
 				</ul>
@@ -2733,6 +2733,65 @@ async function showEquipmentDetails(equipment) {
 	}
 }
 
+	function showAllCategories() {
+		const panel = document.getElementById('detail-panel');
+		const title = document.getElementById('detail-title');
+		const content = document.getElementById('detail-content');
+
+		title.textContent = 'All Items';
+
+		const categories = ['locations', 'npcs', 'items', 'events'];
+		let allHTML = '';
+
+		categories.forEach(category => {
+			const items = store.getAll(category);
+			if (items.length === 0) return;
+
+			const categoryName = category.charAt(0).toUpperCase() + category.slice(1, -1);
+			allHTML += '<div style="margin-bottom: 24px;">';
+			allHTML += '<h3 style="margin: 0 0 12px; font-size: 1.1rem; color: var(--link); border-bottom: 2px solid var(--border); padding-bottom: 8px;">' + categoryName + ' (' + items.length + ')</h3>';
+			allHTML += '<div style="display: flex; flex-direction: column; gap: 8px;">';
+
+			items.forEach(item => {
+				let html = '<div class="item-list-entry" data-category="' + category + '" data-id="' + item.id + '" style="padding: 12px; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; transition: all 0.2s; background: var(--bg);">';
+				html += '<div style="font-weight: 600; color: var(--link);">' + item.name + '</div>';
+				if (item.role) html += '<div style="font-size: 0.9em; color: var(--muted-fg);">' + item.role + '</div>';
+				if (item.type) html += '<div style="font-size: 0.9em; color: var(--muted-fg);">' + item.type + '</div>';
+				if (item.date) html += '<div style="font-size: 0.9em; color: var(--muted-fg);">' + item.date + '</div>';
+				html += '</div>';
+				allHTML += html;
+			});
+
+			allHTML += '</div></div>';
+		});
+
+		if (allHTML === '') {
+			content.innerHTML = '<div class="empty-state"><p>No items yet. Click + Add New to create one.</p></div>';
+		} else {
+			content.innerHTML = '<div class="item-list-container">' + allHTML + '</div>';
+
+			// Add event listeners to all items
+			content.querySelectorAll('.item-list-entry').forEach(entry => {
+				entry.addEventListener('mouseover', function() {
+					this.style.backgroundColor = 'var(--hover)';
+					this.style.borderColor = 'var(--link)';
+				});
+				entry.addEventListener('mouseout', function() {
+					this.style.backgroundColor = 'var(--bg)';
+					this.style.borderColor = 'var(--border)';
+				});
+
+				entry.addEventListener('click', () => {
+					const itemId = parseInt(entry.dataset.id);
+					const category = entry.dataset.category;
+					showItemDetails(category, itemId);
+				});
+			});
+		}
+
+		panel.classList.remove('hidden');
+	}
+
 	function showCategoryList(category) {
 		const panel = document.getElementById('detail-panel');
 		const title = document.getElementById('detail-title');
@@ -3031,7 +3090,7 @@ async function showEquipmentDetails(equipment) {
 			
 			const category = item.dataset.category;
 			if (category === 'all') {
-				hideDetailPanel();
+				showAllCategories();
 				hideEquipmentPanel();
 			} else if (category === 'equipment') {
 				hideDetailPanel();
