@@ -239,32 +239,29 @@
 			padding: 12px;
 			overflow-y: auto;
 			flex-shrink: 0;
+			transition: margin-left 0.3s, width 0.3s;
 		}
 
-.sidebar-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-bottom: 16px;
-	}
+		.sidebar.hidden {
+			display: none;
+		}
 
-	.sidebar h2 {
-		margin: 0;
-		font-size: 1rem;
-		color: var(--muted-fg);
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-	}
+		.sidebar-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 16px;
+		}
 
-	.sidebar-close {
-		background: none;
-		border: none;
-		color: var(--fg);
-		font-size: 1.5rem;
-		cursor: pointer;
-		padding: 4px 8px;
-		line-height: 1;
-	}
+		.sidebar-close {
+			background: none;
+			border: none;
+			color: var(--fg);
+			font-size: 1.5rem;
+			cursor: pointer;
+			padding: 4px 8px;
+			line-height: 1;
+		}
 
 	.category-list {
 		list-style: none;
@@ -3201,12 +3198,14 @@ async function showEquipmentDetails(equipment) {
 
 	function closeSidebar() {
 		sidebar.classList.remove('active');
+		sidebar.classList.add('hidden');
 		overlay.classList.remove('active');
 		menuCloseBtn.classList.add('hidden');
 	}
 
 	menuBtn.addEventListener('click', () => {
 		sidebar.classList.toggle('active');
+		sidebar.classList.remove('hidden');
 		overlay.classList.toggle('active');
 		menuCloseBtn.classList.toggle('hidden');
 	});
