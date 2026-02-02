@@ -410,19 +410,21 @@
 		touch-action: manipulation;
 		-webkit-user-select: none;
 		user-select: none;
+		will-change: scroll-position;
+		backface-visibility: hidden;
+		-webkit-backface-visibility: hidden;
 	}
 
 	.map-svg.ready {
 		opacity: 1;
-		image-rendering: optimizeSpeed;
-		shape-rendering: optimizeSpeed;
+		image-rendering: -webkit-optimize-contrast;
+		image-rendering: crisp-edges;
 	}
 
 	/* Optimize map locations for performance */
 
 	.map-location {
 		cursor: pointer;
-		will-change: transform;
 	}
 
 	.map-location circle {
@@ -437,6 +439,8 @@
 		font-weight: 600;
 		pointer-events: none;
 		text-anchor: middle;
+		user-select: none;
+		-webkit-user-select: none;
 	}
 
 	.detail-panel {
