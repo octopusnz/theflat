@@ -989,7 +989,7 @@
 	}
 
 	.search-type-dropdown {
-		padding: 12px 32px 12px 12px;
+		padding: 12px 40px 12px 12px;
 		border: none;
 		border-left: 1px solid var(--border);
 		font-size: 0.875rem;
@@ -1002,6 +1002,14 @@
 		outline: none;
 		text-align: left;
 		flex-shrink: 0;
+		appearance: none;
+		-webkit-appearance: none;
+		-moz-appearance: none;
+		background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+		background-repeat: no-repeat;
+		background-position: right 8px center;
+		background-size: 20px;
+		padding-right: 32px;
 	}
 
 	.search-type-dropdown:hover {
@@ -1214,7 +1222,7 @@
 		}
 
 		.search-type-dropdown {
-			padding: 14px 10px;
+			padding: 14px 32px 14px 12px;
 			font-size: 14px;
 			border-left: 1px solid var(--border);
 			min-width: 110px;
@@ -1663,10 +1671,10 @@
 			<div class="page hidden" id="search-page">
 				<div class="page-content search-page-content">
 					<div class="search-hero">
-						<h1>D&D 5e Search</h1>
+						<h1>Rules Search</h1>
 						<div class="search-bar-container">
 							<div class="search-input-wrapper">
-								<input type="text" id="search-query" class="search-input-hero" placeholder="Search D&D 5e content..." autocomplete="off">
+								<input type="text" id="search-query" class="search-input-hero" placeholder="Enter text" autocomplete="off">
 								<select id="search-type" class="search-type-dropdown">
 									<option value="equipment">Equipment</option>
 									<option value="spells">Spells</option>
