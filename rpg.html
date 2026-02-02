@@ -3837,6 +3837,9 @@ async loadInventory() {
 				if (item.classes && Array.isArray(item.classes) && item.classes.length > 0) {
 					html += `<p><strong>Classes:</strong> ${item.classes.map(c => c.name || c).join(', ')}</p>`;
 				}
+				if (item.subclasses && Array.isArray(item.subclasses) && item.subclasses.length > 0) {
+					html += `<p><strong>Subclasses:</strong> ${item.subclasses.map(s => s.name || s).join(', ')}</p>`;
+				}
 				break;
 
 			case 'subclasses':
