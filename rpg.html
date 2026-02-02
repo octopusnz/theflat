@@ -1944,35 +1944,40 @@ async function initApp() {
 			this.updateTransformDirect();
 		}
 
-		updateTransformDirect() {
-			// Direct update without RAF for drag responsiveness
-			const target = this.mainGroup || this.svg;
-			target.style.transform = 
-				`translate3d(${this.translateX}px, ${this.translateY}px, 0) scale(${this.scale})`;
-		}
+	endDrag(e) {
+		this.isDragging = false;
+		this.svg.style.cursor = 'grab';
+	}
 
-		handleTouchStart(e) {
-			if (e.touches.length === 1) {
-				// Single touch - pan
-				this.startDrag(e.touches[0]);
-			} else if (e.touches.length === 2) {
-				// Two fingers - pinch zoom
-				this.isDragging = false;
-				const touch1 = e.touches[0];
-				const touch2 = e.touches[1];
-				this.lastDistance = Math.hypot(
-					touch2.clientX - touch1.clientX,
-					touch2.clientY - touch1.clientY
-				);
-				this.lastScale = this.scale;
-				this.lastTranslateX = this.translateX;
-				this.lastTranslateY = this.translateY;
-				
-				// Store the pinch center point in screen coordinates
-				this.pinchCenterX = (touch1.clientX + touch2.clientX) / 2;
-				this.pinchCenterY = (touch1.clientY + touch2.clientY) / 2;
-			}
+	updateTransformDirect() {
+		// Direct update without RAF for drag responsiveness
+		const target = this.mainGroup || this.svg;
+		target.style.transform = 
+			`translate3d(${this.translateX}px, ${this.translateY}px, 0) scale(${this.scale})`;
+	}
+
+	handleTouchStart(e) {
+		if (e.touches.length === 1) {
+			// Single touch - pan
+			this.startDrag(e.touches[0]);
+		} else if (e.touches.length === 2) {
+			// Two fingers - pinch zoom
+			this.isDragging = false;
+			const touch1 = e.touches[0];
+			const touch2 = e.touches[1];
+			this.lastDistance = Math.hypot(
+				touch2.clientX - touch1.clientX,
+				touch2.clientY - touch1.clientY
+			);
+			this.lastScale = this.scale;
+			this.lastTranslateX = this.translateX;
+			this.lastTranslateY = this.translateY;
+			
+			// Store the pinch center point in screen coordinates
+			this.pinchCenterX = (touch1.clientX + touch2.clientX) / 2;
+			this.pinchCenterY = (touch1.clientY + touch2.clientY) / 2;
 		}
+	}
 
 		handleTouchMove(e) {
 			if (e.touches.length === 1) {
