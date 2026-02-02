@@ -2137,7 +2137,15 @@
 			class MapController {
 				constructor() {
 					this.svg = document.getElementById('map-svg');
+					if (!this.svg) {
+						console.error('[ERROR] map-svg element not found');
+						return;
+					}
 					this.locationsLayer = document.getElementById('locations-layer');
+					if (!this.locationsLayer) {
+						console.error('[ERROR] locations-layer element not found');
+						return;
+					}
 					this.mainGroup = null;
 					this.scale = 1;
 					this.translateX = 0;
@@ -3160,6 +3168,7 @@ function showItemDetails(category, itemId) {
 
 	// Initialize
 	const mapController = new MapController();
+	console.log('[DEBUG] mapController created');
 	
 	// Export functionality
 	document.getElementById('btn-export').addEventListener('click', () => {
@@ -3788,8 +3797,16 @@ async loadInventory() {
 	window.inventoryManager = new InventoryManager();
 	window.searchPageManager = new SearchPageManager();
 	
-	// Start the app
-	initApp();
+	// Start the app - wait for DOM to be ready
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', () => {
+			console.log('[DEBUG] DOM loaded, starting app');
+			initApp();
+		});
+	} else {
+		console.log('[DEBUG] DOM already loaded, starting app');
+		initApp();
+	}
 	
 	// Load default inventory if needed
 	window.inventoryManager.init().catch(err => console.error('Failed to init inventory:', err));
