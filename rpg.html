@@ -2115,12 +2115,16 @@
 		// Load data and initialize app
 		async function initApp() {
 	try {
-
+		console.log('[DEBUG] initApp starting');
 		await store.load();
-
-
-		mapController.renderMap();
-
+		console.log('[DEBUG] store loaded');
+		console.log('[DEBUG] mapController:', mapController);
+		if (mapController) {
+			mapController.renderMap();
+			console.log('[DEBUG] renderMap called');
+		} else {
+			console.error('[ERROR] mapController not initialized');
+		}
 	} catch (e) {
 		console.error('[ERROR] initApp failed:', e);
 	}
@@ -2344,14 +2348,15 @@
 						this.render(); // Render locations after image is loaded and visible
 					}, { once: true });
 					
-					// Fallback: remove loading state after timeout (in case image load event doesn't fire)
+					// Fallback: remove loading state after VERY short timeout
 					setTimeout(() => {
 						if (!imageLoaded) {
+							console.warn('[WARN] Map image load timeout');
 							mapView.classList.remove('loading');
 							this.svg.classList.add('ready');
-							this.render(); // Render locations after timeout
+							this.render();
 						}
-					}, 3000);
+					}, 1000);
 				} else {
 					// Default map with grid (fallback)
 					this.svg.setAttribute('viewBox', '0 0 1000 600');
