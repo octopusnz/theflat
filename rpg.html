@@ -237,17 +237,14 @@
 				width: 280px;
 				background: var(--bg);
 				border-right: 2px solid var(--border);
-			padding: 12px;
-			overflow-y: auto;
-			flex-shrink: 0;
-			transition: margin-left 0.3s, width 0.3s;
-		}
+				padding: 12px;
+				overflow-y: auto;
+				-webkit-overflow-scrolling: touch;
+				flex-shrink: 0;
+				transition: margin-left 0.3s, width 0.3s;
+			}
 
-		.sidebar.hidden {
-			display: none;
-		}
-
-		.sidebar-header {
+			.sidebar-header {
 			display: flex;
 			justify-content: space-between;
 			align-items: center;
@@ -402,15 +399,9 @@
 			touch-action: auto;
 			-webkit-user-select: none;
 			user-select: none;
-		}
-
-		.map-view.loading::after {
-			content: '';
-			position: absolute;
-			top: 50%;
-			left: 50%;
-			transform: translate(-50%, -50%);
-			width: 40px;
+			/* iOS Safari performance optimizations */
+			-webkit-overflow-scrolling: touch;
+			overscroll-behavior: contain;
 			height: 40px;
 			border: 3px solid var(--border);
 			border-top-color: var(--link);
@@ -433,6 +424,7 @@
 		user-select: none;
 		max-width: 100%;
 		max-height: 100%;
+		will-change: transform;
 	}
 	.map-svg.ready {
 		opacity: 1;
@@ -473,6 +465,7 @@
 		border-left: 2px solid var(--border);
 		padding: 12px;
 		overflow-y: auto;
+		-webkit-overflow-scrolling: touch;
 		flex-shrink: 0;
 		z-index: 40;
 	}
@@ -580,6 +573,7 @@
 		max-height: 90vh;
 		max-height: 90dvh;
 		overflow-y: auto;
+		-webkit-overflow-scrolling: touch;
 		box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 		display: flex;
 		flex-direction: column;
@@ -783,6 +777,11 @@
 			flex: 1;
 			overflow-y: auto;
 			-webkit-overflow-scrolling: touch;
+		}
+
+		.search-category-list {
+			max-height: 120px !important;
+			flex: 0;
 		}
 
 		.detail-panel {
@@ -1148,6 +1147,7 @@
 	.add-item-results {
 		flex: 1;
 		overflow-y: auto;
+		-webkit-overflow-scrolling: touch;
 		display: flex;
 		flex-direction: column;
 		gap: 8px;
@@ -1681,7 +1681,7 @@
 					<h3 style="margin: 0 0 8px; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-fg);">Rules Search</h3>
 					<input type="text" id="search-category-filter" placeholder="Filter searches..." autocomplete="off" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--fg); font-size: 0.875rem; box-sizing: border-box; margin-bottom: 8px;">
 				</div>
-				<ul class="category-list search-category-list" id="search-category-list" style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border); border-radius: 4px; padding: 4px;">
+				<ul class="category-list search-category-list" id="search-category-list" style="max-height: 150px; overflow-y: auto; border: 1px solid var(--border); border-radius: 4px; padding: 4px;">
 					<li class="category-item search-category-item" data-search-type="equipment">
 						<span>Equipment</span>
 					</li>
@@ -2326,9 +2326,6 @@
 			// Update position values immediately
 			this.translateX = e.clientX - this.startX;
 			this.translateY = e.clientY - this.startY;
-			
-			// Prevent default scrolling while dragging the map
-			if (e.preventDefault) e.preventDefault();
 			
 			// Call updateTransform without RAF for more responsive feel
 			this.updateTransformDirect();
