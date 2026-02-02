@@ -4004,16 +4004,6 @@ async loadInventory() {
 	window.inventoryManager = new InventoryManager();
 	window.searchPageManager = new SearchPageManager();
 	
-	// Immediately remove loader - synchronous fallback
-	console.log('[DEBUG] Script running, removing loader immediately');
-	const mapViewElement = document.getElementById('map-view');
-	if (mapViewElement) {
-		mapViewElement.classList.remove('loading');
-		console.log('[DEBUG] Loader removed synchronously');
-	} else {
-		console.error('[ERROR] map-view element not found');
-	}
-	
 	// Start the app - wait for DOM to be ready
 	if (document.readyState === 'loading') {
 		document.addEventListener('DOMContentLoaded', () => {
