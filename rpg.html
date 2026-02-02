@@ -459,12 +459,17 @@
 	}
 
 	.detail-panel {
+		position: fixed;
+		top: 0;
+		right: 0;
 		width: 400px;
+		height: 100vh;
 		background: var(--bg);
 		border-left: 2px solid var(--border);
 		padding: 12px;
 		overflow-y: auto;
 		flex-shrink: 0;
+		z-index: 40;
 	}
 
 	.detail-panel.hidden {
@@ -1625,32 +1630,6 @@
 				</label>
 			</aside>
 
-			<!-- Detail Panel -->
-			<aside class="detail-panel hidden" id="detail-panel">
-				<div class="detail-header">
-					<h2 id="detail-title">Select a location</h2>
-					<button class="btn-close" id="btn-close-detail" aria-label="Close details">&times;</button>
-				</div>
-				<div id="detail-content">
-					<div class="empty-state">
-						<p>Click on a location on the map to view details</p>
-					</div>
-				</div>
-			</aside>
-
-			<!-- Equipment Search Panel -->
-			<aside class="detail-panel hidden equipment-panel" id="equipment-panel">
-				<div class="detail-header">
-					<h2>D&D 5e Equipment</h2>
-					<button class="btn-close" id="btn-close-equipment" aria-label="Close equipment">&times;</button>
-				</div>
-				<div class="equipment-search-box">
-					<input type="text" id="equipment-search" placeholder="Search equipment..." autocomplete="off">
-				</div>
-				<div class="equipment-results" id="equipment-results">
-					<div class="equipment-loading">Loading equipment data...</div>
-				</div>
-			</aside>
 		<!-- Map Container -->
 		<div class="map-container" id="main-content">
 				<div class="map-toolbar">
@@ -1771,6 +1750,33 @@
 				</div>
 			</div>
 		</div>
+
+		<!-- Detail Panel -->
+		<aside class="detail-panel hidden" id="detail-panel">
+			<div class="detail-header">
+				<h2 id="detail-title">Select a location</h2>
+				<button class="btn-close" id="btn-close-detail" aria-label="Close details">&times;</button>
+			</div>
+			<div id="detail-content">
+				<div class="empty-state">
+					<p>Click on a location on the map to view details</p>
+				</div>
+			</div>
+		</aside>
+
+		<!-- Equipment Search Panel -->
+		<aside class="detail-panel hidden equipment-panel" id="equipment-panel">
+			<div class="detail-header">
+				<h2>D&D 5e Equipment</h2>
+				<button class="btn-close" id="btn-close-equipment" aria-label="Close equipment">&times;</button>
+			</div>
+			<div class="equipment-search-box">
+				<input type="text" id="equipment-search" placeholder="Search equipment..." autocomplete="off">
+			</div>
+			<div class="equipment-results" id="equipment-results">
+				<div class="equipment-loading">Loading equipment data...</div>
+			</div>
+		</aside>
 
 		<!-- Add New Modal -->
 		<div class="modal" id="modal-add">
