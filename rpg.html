@@ -1029,11 +1029,22 @@
 	}
 
 	.search-results {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		min-height: 400px;
 		gap: 12px;
 		max-width: 1200px;
 		margin: 0 auto;
+	}
+
+	.search-results:has(> :not(.empty-state)) {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+		align-items: start;
+		justify-content: start;
+		min-height: auto;
 	}
 
 	.search-result-item {
@@ -1699,7 +1710,7 @@
 						</div>
 					</div>
 					<div class="search-results" id="search-results">
-						<div class="empty-state">Select a category and enter text to search the rules</div>
+						<div class="empty-state">Use the dropdown on the right to choose which part of the rules you would like to search.</div>
 					</div>
 				</div>
 			</div>
