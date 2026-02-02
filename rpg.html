@@ -1231,41 +1231,100 @@
 	}
 
 	.currency-section {
+		background: linear-gradient(135deg, rgba(147, 197, 253, 0.05) 0%, rgba(196, 181, 253, 0.05) 100%);
 		border: 2px solid var(--border);
-		border-radius: 8px;
-		padding: 16px;
+		border-radius: 12px;
+		padding: 24px;
+		margin-bottom: 24px;
 	}
 
 	.currency-section h3 {
-		margin: 0 0 16px;
-		font-size: 1.1rem;
+		margin: 0 0 20px;
+		font-size: 1.2rem;
+		font-weight: 600;
+		color: var(--link);
 	}
 
 	.currency-inputs {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-		gap: 12px;
+		grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+		gap: 16px;
 	}
 
 	.currency-item {
 		display: flex;
 		flex-direction: column;
-		gap: 6px;
+		gap: 8px;
+		padding: 12px;
+		background: var(--bg);
+		border-radius: 8px;
+		border: 1px solid var(--border);
+		transition: all 0.2s;
+	}
+
+	.currency-item:hover {
+		border-color: var(--link);
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+		transform: translateY(-2px);
 	}
 
 	.currency-item label {
-		font-weight: 500;
+		font-weight: 600;
 		font-size: 0.875rem;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		color: var(--muted-fg);
+		letter-spacing: 0.02em;
+	}
+
+	.coin-icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 20px;
+		height: 20px;
+		font-size: 1.1rem;
+		line-height: 1;
+	}
+
+	.coin-platinum {
+		color: #e8e8e8;
+		text-shadow: 0 0 4px rgba(200, 200, 200, 0.5);
+	}
+
+	.coin-gold {
+		color: #ffd700;
+		text-shadow: 0 0 4px rgba(255, 215, 0, 0.5);
+	}
+
+	.coin-silver {
+		color: #c0c0c0;
+		text-shadow: 0 0 4px rgba(192, 192, 192, 0.5);
+	}
+
+	.coin-copper {
+		color: #b87333;
+		text-shadow: 0 0 4px rgba(184, 115, 51, 0.5);
 	}
 
 	.currency-input {
-		padding: 10px;
+		padding: 12px;
 		border: 2px solid var(--border);
 		border-radius: 6px;
 		font-size: 1rem;
-		background: var(--bg);
+		font-weight: 600;
+		background: var(--hover);
 		color: var(--fg);
-		transition: border-color 0.2s;
+		transition: all 0.2s;
+		text-align: center;
+	}
+
+	.currency-input:focus {
+		outline: none;
+		border-color: var(--link);
+		box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.1);
+		background: var(--bg);
 	}
 
 	.currency-input:focus {
@@ -1628,18 +1687,22 @@
 					<div class="inventory-sections">
 						<!-- Currency Section -->
 						<div class="currency-section">
-							<h3>Currency</h3>
+							<h3>💰 Currency</h3>
 							<div class="currency-inputs">
 								<div class="currency-item">
-									<label>Gold (gp)</label>
+									<label><span class="coin-icon coin-platinum">⬤</span> Platinum (pp)</label>
+									<input type="number" id="currency-platinum" class="currency-input" min="0" value="0">
+								</div>
+								<div class="currency-item">
+									<label><span class="coin-icon coin-gold">⬤</span> Gold (gp)</label>
 									<input type="number" id="currency-gold" class="currency-input" min="0" value="0">
 								</div>
 								<div class="currency-item">
-									<label>Silver (sp)</label>
+									<label><span class="coin-icon coin-silver">⬤</span> Silver (sp)</label>
 									<input type="number" id="currency-silver" class="currency-input" min="0" value="0">
 								</div>
 								<div class="currency-item">
-									<label>Copper (cp)</label>
+									<label><span class="coin-icon coin-copper">⬤</span> Copper (cp)</label>
 									<input type="number" id="currency-copper" class="currency-input" min="0" value="0">
 								</div>
 							</div>
@@ -3126,6 +3189,7 @@ async function showEquipmentDetails(equipment) {
 				return JSON.parse(stored);
 			}
 			return {
+				platinum: 0,
 				gold: 0,
 				silver: 0,
 				copper: 0,
@@ -3140,6 +3204,10 @@ async function showEquipmentDetails(equipment) {
 
 		initEventListeners() {
 			// Currency inputs
+			document.getElementById('currency-platinum').addEventListener('change', (e) => {
+				this.inventory.platinum = parseInt(e.target.value) || 0;
+				this.saveInventory();
+			});
 			document.getElementById('currency-gold').addEventListener('change', (e) => {
 				this.inventory.gold = parseInt(e.target.value) || 0;
 				this.saveInventory();
@@ -3174,6 +3242,7 @@ async function showEquipmentDetails(equipment) {
 
 		renderInventory() {
 			// Update currency displays
+			document.getElementById('currency-platinum').value = this.inventory.platinum || 0;
 			document.getElementById('currency-gold').value = this.inventory.gold;
 			document.getElementById('currency-silver').value = this.inventory.silver;
 			document.getElementById('currency-copper').value = this.inventory.copper;
