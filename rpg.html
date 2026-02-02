@@ -401,7 +401,7 @@
 		height: 100%;
 		display: block;
 		opacity: 0;
-		touch-action: manipulation;
+		touch-action: auto;
 		-webkit-user-select: none;
 		user-select: none;
 	}
@@ -2204,6 +2204,9 @@
 			this.translateX = e.clientX - this.startX;
 			this.translateY = e.clientY - this.startY;
 			
+			// Prevent default scrolling while dragging the map
+			if (e.preventDefault) e.preventDefault();
+			
 			// Call updateTransform without RAF for more responsive feel
 			this.updateTransformDirect();
 		}
@@ -2233,6 +2236,7 @@
 		handleTouchMove(e) {
 			if (e.touches.length === 1) {
 				// Single touch - pan
+				e.preventDefault();
 				this.drag(e.touches[0]);
 			} else {
 				// Two or more fingers - don't prevent default, let browser handle zoom
