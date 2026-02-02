@@ -366,15 +366,15 @@
 			.map-view {
 				flex: 1;
 				position: relative;
-				overflow: hidden;
-				background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
+			overflow: auto;
+			-webkit-overflow-scrolling: touch;
+			background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			touch-action: pinch-zoom;
-		}
-
-		.map-view.loading::after {
+			touch-action: manipulation;
+			-webkit-user-select: none;
+			user-select: none;
 			content: '';
 			position: absolute;
 			top: 50%;
@@ -399,9 +399,11 @@
 		cursor: grab;
 		opacity: 0;
 		transition: opacity 0.3s ease-in;
-		touch-action: pinch-zoom;
+		touch-action: manipulation;
 		-webkit-user-select: none;
 		user-select: none;
+		-webkit-transform: translate3d(0, 0, 0);
+		transform: translate3d(0, 0, 0);
 	}
 
 	.map-svg.ready {
