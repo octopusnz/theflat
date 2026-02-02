@@ -175,51 +175,43 @@
 			display: none !important;
 		}
 	}
-		}
 
-		.nav-links {
-			display: flex;
-			gap: 8px;
-		}
+	.nav-links {
+		display: flex;
+		gap: 8px;
+	}
 
-		.nav-btn {
-			background: none;
-			border: 2px solid var(--border);
-			color: var(--fg);
-			padding: 8px 12px;
-			border-radius: 6px;
-			cursor: pointer;
-			font-size: 0.875rem;
-			font-weight: 500;
-			transition: all 0.2s;
-		}
+	.nav-btn {
+		padding: 8px 12px;
+		border-radius: 6px;
+		cursor: pointer;
+		font-size: 0.875rem;
+		font-weight: 500;
+		transition: all 0.2s;
+	}
 
-		.nav-btn[data-page="home"] {
-			display: none;
-		}
+	.nav-btn:hover,
+	.nav-btn.active {
+		background: var(--hover);
+		border-color: var(--link);
+		color: var(--link);
+	}
 
-		.nav-btn:hover,
-		.nav-btn.active {
-			background: var(--hover);
-			border-color: var(--link);
-			color: var(--link);
-		}
+	.nav-btn:focus-visible {
+		outline: 2px solid var(--focus);
+		outline-offset: 2px;
+	}
 
-		.nav-btn:focus-visible {
-			outline: 2px solid var(--focus);
-			outline-offset: 2px;
-		}
+	.nav-links a {
+		text-decoration: none;
+		padding: 8px 12px;
+		border-radius: 6px;
+		transition: background 0.2s;
+	}
 
-		.nav-links a {
-			text-decoration: none;
-			padding: 8px 12px;
-			border-radius: 6px;
-			transition: background 0.2s;
-		}
-
-		.nav-links a:hover {
-			background: var(--hover);
-		}
+	.nav-links a:hover {
+		background: var(--hover);
+	}
 
 	/* Main Container */
 	.container {
@@ -2601,20 +2593,17 @@ async function showEquipmentPanel() {
 	if (categoriesBadge) {
 		categoriesBadge.textContent = equipmentList.length || 0;
 	}
-		if (countBadge) {
-			countBadge.textContent = '0';
-		}
+	
+	displayEquipmentList(equipmentList);
+} catch (error) {
+	resultsDiv.innerHTML = '<div class="equipment-loading">Error loading equipment data. Please try again.</div>';
+	if (countBadge) {
+		countBadge.textContent = '0';
+	}
+	if (categoriesBadge) {
+		categoriesBadge.textContent = '0';
 	}
 }
-
-function displayEquipmentList(equipment) {
-	const resultsDiv = document.getElementById('equipment-results');
-	
-	if (!equipment || equipment.length === 0) {
-		resultsDiv.innerHTML = '<div class="equipment-loading">No equipment found.</div>';
-		return;
-	}
-	
 	// Store the FULL equipment list for search (only set if not already set, to preserve master list)
 	if (!window.fullEquipmentList) {
 		window.fullEquipmentList = equipment;
