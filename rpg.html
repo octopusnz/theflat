@@ -1397,45 +1397,56 @@
 	}
 
 	.inventory-items {
-		display: flex;
-		flex-direction: column;
-		gap: 8px;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+		gap: 12px;
 	}
 
 	.inventory-item {
 		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: 12px;
+		flex-direction: column;
+		padding: 14px;
 		border: 1px solid var(--border);
-		border-radius: 6px;
+		border-radius: 8px;
 		background: var(--hover);
+		transition: all 0.2s;
+	}
+
+	.inventory-item:hover {
+		border-color: var(--link);
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 	}
 
 	.inventory-item-info h4 {
-		margin: 0 0 4px;
+		margin: 0 0 8px;
 		font-size: 1rem;
+		word-break: break-word;
 	}
 
 	.inventory-item-info p {
-		margin: 0;
-		font-size: 0.875rem;
+		margin: 0 0 8px;
+		font-size: 0.85rem;
 		color: var(--muted-fg);
+		line-height: 1.4;
 	}
 
 	.inventory-item-controls {
 		display: flex;
 		gap: 8px;
 		align-items: center;
+		margin-top: auto;
+		padding-top: 12px;
+		border-top: 1px solid var(--border);
 	}
 
 	.inventory-item-qty {
 		display: flex;
 		align-items: center;
-		gap: 6px;
+		gap: 4px;
 		border: 1px solid var(--border);
 		border-radius: 4px;
-		padding: 4px;
+		padding: 2px 4px;
+		background: rgba(0, 0, 0, 0.05);
 	}
 
 	.inventory-qty-btn {
@@ -1443,13 +1454,14 @@
 		border: none;
 		color: var(--fg);
 		cursor: pointer;
-		font-size: 1rem;
-		width: 20px;
-		height: 20px;
+		font-size: 0.9rem;
+		width: 18px;
+		height: 18px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		padding: 0;
+		transition: color 0.2s;
 	}
 
 	.inventory-qty-btn:hover {
@@ -1457,20 +1469,23 @@
 	}
 
 	.inventory-qty-display {
-		min-width: 30px;
+		min-width: 24px;
 		text-align: center;
-		font-weight: 500;
+		font-weight: 600;
+		font-size: 0.9rem;
 	}
 
 	.btn-remove-item {
 		background: none;
 		border: 1px solid var(--border);
 		color: var(--fg);
-		padding: 6px 12px;
+		padding: 6px 10px;
 		border-radius: 4px;
 		cursor: pointer;
-		font-size: 0.875rem;
+		font-size: 0.8rem;
 		transition: all 0.2s;
+		flex: 1;
+		text-align: center;
 	}
 
 	.btn-remove-item:hover {
@@ -3407,7 +3422,7 @@ async loadInventory() {
 				if (item.damage.damage_type?.name) {
 					damageText += ' ' + item.damage.damage_type.name;
 				}
-				damageInfo = `<p style="margin: 4px 0; color: var(--link); font-weight: 600;">⚔️ Damage: ${damageText}</p>`;
+				damageInfo = `<p style="margin: 0 0 8px; color: var(--link); font-weight: 600;">⚔️ ${damageText}</p>`;
 			}
 			
 			const detailText = details.length > 0 ? details.join(' • ') : 'Equipment';
@@ -3418,6 +3433,13 @@ async loadInventory() {
 						<h4>${item.name}</h4>
 						<p>${detailText}</p>
 						${damageInfo}
+					</div>
+					<div class="inventory-item-controls">
+						<div class="inventory-item-qty">
+							<button class="inventory-qty-btn" data-index="${index}" data-action="decrease">−</button>
+							<span class="inventory-qty-display">${item.quantity || 1}</span>
+							<button class="inventory-qty-btn" data-index="${index}" data-action="increase">+</button>
+						</div>
 						<button class="btn-remove-item" data-index="${index}">Remove</button>
 					</div>
 				</div>
