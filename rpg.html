@@ -301,6 +301,28 @@
 		font-weight: 600;
 	}
 
+	.search-category-list {
+		scrollbar-width: thin;
+		scrollbar-color: var(--border) transparent;
+	}
+
+	.search-category-list::-webkit-scrollbar {
+		width: 8px;
+	}
+
+	.search-category-list::-webkit-scrollbar-track {
+		background: transparent;
+	}
+
+	.search-category-list::-webkit-scrollbar-thumb {
+		background: var(--border);
+		border-radius: 4px;
+	}
+
+	.search-category-list::-webkit-scrollbar-thumb:hover {
+		background: var(--muted-fg);
+	}
+
 	.btn {
 		padding: 10px 16px;
 		background: #000000;
@@ -1650,12 +1672,72 @@
 						<span>Events</span>
 						<span class="badge" id="badge-events">0</span>
 					</li>
-					<li class="category-item" data-category="equipment">
-						<span>Equipment Search</span>
-						<span class="badge" id="badge-equipment">∞</span>
-					</li>
 				</ul>
 				<button class="btn" id="btn-add-new">+ Add New</button>
+				<hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border);">
+				
+				<!-- Search Categories Section -->
+				<div style="margin-bottom: 16px;">
+					<h3 style="margin: 0 0 8px; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-fg);">Rules Search</h3>
+					<input type="text" id="search-category-filter" placeholder="Filter searches..." autocomplete="off" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--fg); font-size: 0.875rem; box-sizing: border-box; margin-bottom: 8px;">
+				</div>
+				<ul class="category-list search-category-list" id="search-category-list" style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border); border-radius: 4px; padding: 4px;">
+					<li class="category-item search-category-item" data-search-type="equipment">
+						<span>Equipment</span>
+					</li>
+					<li class="category-item search-category-item" data-search-type="spells">
+						<span>Spells</span>
+					</li>
+					<li class="category-item search-category-item" data-search-type="monsters">
+						<span>Monsters</span>
+					</li>
+					<li class="category-item search-category-item" data-search-type="classes">
+						<span>Classes</span>
+					</li>
+					<li class="category-item search-category-item" data-search-type="races">
+						<span>Races</span>
+					</li>
+					<li class="category-item search-category-item" data-search-type="skills">
+						<span>Skills</span>
+					</li>
+					<li class="category-item search-category-item" data-search-type="conditions">
+						<span>Conditions</span>
+					</li>
+					<li class="category-item search-category-item" data-search-type="damage-types">
+						<span>Damage Types</span>
+					</li>
+					<li class="category-item search-category-item" data-search-type="ability-scores">
+						<span>Ability Scores</span>
+					</li>
+					<li class="category-item search-category-item" data-search-type="languages">
+						<span>Languages</span>
+					</li>
+					<li class="category-item search-category-item" data-search-type="traits">
+						<span>Traits</span>
+					</li>
+					<li class="category-item search-category-item" data-search-type="features">
+						<span>Features</span>
+					</li>
+					<li class="category-item search-category-item" data-search-type="proficiencies">
+						<span>Proficiencies</span>
+					</li>
+					<li class="category-item search-category-item" data-search-type="subclasses">
+						<span>Subclasses</span>
+					</li>
+					<li class="category-item search-category-item" data-search-type="subraces">
+						<span>Subraces</span>
+					</li>
+					<li class="category-item search-category-item" data-search-type="magic-schools">
+						<span>Magic Schools</span>
+					</li>
+					<li class="category-item search-category-item" data-search-type="weapon-properties">
+						<span>Weapon Properties</span>
+					</li>
+					<li class="category-item search-category-item" data-search-type="equipment-categories">
+						<span>Equipment Categories</span>
+					</li>
+				</ul>
+				
 				<hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border);">
 				<label class="btn" id="btn-upload-map-label">
 					Upload Map
@@ -3203,28 +3285,58 @@ function showItemDetails(category, itemId) {
 		});
 	});
 
-	// Initialize
-	const mapController = new MapController();
-	console.log('[DEBUG] mapController created');
-	
-	// Export functionality
-	document.getElementById('btn-export').addEventListener('click', () => {
-		store.exportData();
-	});
+// Search category filter
+const searchCategoryFilter = document.getElementById('search-category-filter');
 
-	// Import functionality
-	document.getElementById('btn-import').addEventListener('change', async (e) => {
-		const file = e.target.files[0];
-		if (file) {
-			const success = await store.importData(file);
-			if (success) {
-				mapController.render();
-				alert('Data imported successfully!');
-			}
-			// Reset input so same file can be imported again
-			e.target.value = '';
-		}
+if (searchCategoryFilter) {
+	searchCategoryFilter.addEventListener('input', (e) => {
+		const query = e.target.value.toLowerCase().trim();
+		document.querySelectorAll('.search-category-item').forEach(item => {
+			const text = item.textContent.toLowerCase();
+			item.style.display = text.includes(query) ? 'flex' : 'none';
+		});
 	});
+}
+
+// Search category items
+document.querySelectorAll('.search-category-item').forEach(item => {
+	item.addEventListener('click', () => {
+		const searchType = item.dataset.searchType;
+		// Navigate to search page
+		showPage('search');
+		// Set the search type dropdown
+		document.getElementById('search-type').value = searchType;
+		// Clear and focus search input
+		const searchInput = document.getElementById('search-query');
+		searchInput.value = '';
+		searchInput.focus();
+		// Close sidebar on mobile
+		closeSidebar();
+	});
+});
+
+// Initialize
+const mapController = new MapController();
+console.log('[DEBUG] mapController created');
+
+// Export functionality
+document.getElementById('btn-export').addEventListener('click', () => {
+	store.exportData();
+});
+
+// Import functionality
+document.getElementById('btn-import').addEventListener('change', async (e) => {
+	const file = e.target.files[0];
+	if (file) {
+		const success = await store.importData(file);
+		if (success) {
+			mapController.render();
+			alert('Data imported successfully!');
+		}
+		// Reset input so same file can be imported again
+		e.target.value = '';
+	}
+});
 
 	// Upload Map functionality
 	document.getElementById('btn-upload-map').addEventListener('change', async (e) => {
