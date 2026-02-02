@@ -787,6 +787,13 @@
 			border: 1px solid var(--border);
 		}
 
+		/* Prevent iOS Safari auto-zoom on focus - only for form inputs */
+		input,
+		select,
+		textarea {
+			font-size: 16px !important;
+		}
+
 		.map-toolbar {
 			padding: 2px 4px;
 		}
@@ -1054,12 +1061,12 @@
 
 		.search-input-hero {
 			padding: 10px 12px;
-			font-size: 0.9rem;
+			font-size: 16px;
 		}
 
 		.search-type-dropdown {
 			padding: 10px 8px;
-			font-size: 0.75rem;
+			font-size: 16px;
 			border-left: 1px solid var(--border);
 			min-width: 70px;
 		}
