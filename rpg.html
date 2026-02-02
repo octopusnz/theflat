@@ -3233,7 +3233,7 @@ async function showEquipmentDetails(equipment) {
 	menuBtn.addEventListener('click', () => {
 		sidebar.classList.toggle('active');
 		sidebar.classList.remove('hidden');
-		overlay.classList.toggle('active');
+		overlay.classList.remove('active');
 		menuCloseBtn.classList.toggle('hidden');
 		menuBtn.classList.add('hidden');
 	});
