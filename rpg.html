@@ -3618,128 +3618,140 @@ async loadInventory() {
 		resultsContainer.innerHTML = '<div class="equipment-loading">Searching...</div>';
 
 		try {
+			const data = await this.loadData(type);
+			const items = data.results || data;
 
-				// Fetch full details for each result
-				const fullResults = await Promise.all(
-					results.map(async (item) => {
-						try {
-							// Try to get full details if available
-							if (item.url) {
-								const response = await fetch(`https://www.dnd5eapi.co${item.url}`);
-								if (response.ok) {
-									return await response.json();
-								}
+			// Search items
+			let results = items.filter(item =>
+				(item.name || item.index || '').toLowerCase().includes(query.toLowerCase())
+			).slice(0, 10);
+
+			if (results.length === 0) {
+				resultsContainer.innerHTML = '<div class="empty-state">No results found</div>';
+				return;
+			}
+
+			// Fetch full details for each result
+			const fullResults = await Promise.all(
+				results.map(async (item) => {
+					try {
+						// Try to get full details if available
+						if (item.url) {
+							const response = await fetch(`https://www.dnd5eapi.co${item.url}`);
+							if (response.ok) {
+								return await response.json();
 							}
-							return item;
-						} catch (e) {
-							console.warn('Failed to fetch details for', item.name);
-							return item;
 						}
-					})
-				);
-
-				// Render results based on type
-				resultsContainer.innerHTML = fullResults.map(item => 
-					this.renderSearchResult(item, type)
-				).join('');
-			} catch (error) {
-				console.error('Error performing search:', error);
-				resultsContainer.innerHTML = '<div class="empty-state">Error loading data. Please try again.</div>';
-			}
-		}
-
-		renderSearchResult(item, type) {
-			let html = `<div class="search-result-item"><h4>${item.name || item.index}</h4>`;
-
-			switch(type) {
-				case 'equipment':
-					if (item.equipment_category) html += `<p><strong>Category:</strong> ${item.equipment_category.name}</p>`;
-					if (item.cost) html += `<p><strong>Cost:</strong> ${item.cost.quantity} ${item.cost.unit}</p>`;
-					if (item.weight) html += `<p><strong>Weight:</strong> ${item.weight} lb.</p>`;
-					if (item.rarity) html += `<p><strong>Rarity:</strong> ${item.rarity}</p>`;
-					if (item.damage) html += `<p><strong>Damage:</strong> ${item.damage.damage_dice} ${item.damage.damage_type.name}</p>`;
-					break;
-
-				case 'spells':
-					if (item.level) html += `<p><strong>Level:</strong> ${item.level}</p>`;
-					if (item.school) html += `<p><strong>School:</strong> ${item.school.name}</p>`;
-					if (item.casting_time) html += `<p><strong>Casting Time:</strong> ${item.casting_time}</p>`;
-					if (item.range) html += `<p><strong>Range:</strong> ${item.range}</p>`;
-					if (item.components) html += `<p><strong>Components:</strong> ${item.components.join(', ')}</p>`;
-					break;
-
-				case 'monsters':
-					if (item.challenge_rating) html += `<p><strong>CR:</strong> ${item.challenge_rating}</p>`;
-					if (item.size) html += `<p><strong>Size:</strong> ${item.size}</p>`;
-					if (item.type) html += `<p><strong>Type:</strong> ${item.type}</p>`;
-					if (item.armor_class) html += `<p><strong>AC:</strong> ${item.armor_class}</p>`;
-					if (item.hit_points) html += `<p><strong>HP:</strong> ${item.hit_points}</p>`;
-					break;
-
-				case 'classes':
-					if (item.hit_die) html += `<p><strong>Hit Die:</strong> d${item.hit_die}</p>`;
-					break;
-
-				case 'races':
-					if (item.ability_bonuses) {
-						const bonuses = item.ability_bonuses.map(b => `${b.ability_score.name} +${b.bonus}`).join(', ');
-						html += `<p><strong>Ability Bonuses:</strong> ${bonuses}</p>`;
+						return item;
+					} catch (e) {
+						console.warn('Failed to fetch details for', item.name);
+						return item;
 					}
-					if (item.speed) html += `<p><strong>Speed:</strong> ${item.speed} ft.</p>`;
-					break;
+				})
+			);
 
-				case 'skills':
-					if (item.ability_score) html += `<p><strong>Ability:</strong> ${item.ability_score.name}</p>`;
-					break;
+			// Render results based on type
+			resultsContainer.innerHTML = fullResults.map(item => 
+				this.renderSearchResult(item, type)
+			).join('');
+		} catch (error) {
+			console.error('Error performing search:', error);
+			resultsContainer.innerHTML = '<div class="empty-state">Error loading data. Please try again.</div>';
+		}
+	}
 
-				case 'conditions':
-					// Conditions typically just have a name
-					break;
+	renderSearchResult(item, type) {
+		let html = `<div class="search-result-item"><h4>${item.name || item.index}</h4>`;
 
-				case 'damage-types':
-					// Damage types typically just have a name
-					break;
+		switch(type) {
+			case 'equipment':
+				if (item.equipment_category) html += `<p><strong>Category:</strong> ${item.equipment_category.name}</p>`;
+				if (item.cost) html += `<p><strong>Cost:</strong> ${item.cost.quantity} ${item.cost.unit}</p>`;
+				if (item.weight) html += `<p><strong>Weight:</strong> ${item.weight} lb.</p>`;
+				if (item.rarity) html += `<p><strong>Rarity:</strong> ${item.rarity}</p>`;
+				if (item.damage) html += `<p><strong>Damage:</strong> ${item.damage.damage_dice} ${item.damage.damage_type.name}</p>`;
+				break;
 
-				case 'languages':
-					if (item.type) html += `<p><strong>Type:</strong> ${item.type}</p>`;
-					break;
+			case 'spells':
+				if (item.level) html += `<p><strong>Level:</strong> ${item.level}</p>`;
+				if (item.school) html += `<p><strong>School:</strong> ${item.school.name}</p>`;
+				if (item.casting_time) html += `<p><strong>Casting Time:</strong> ${item.casting_time}</p>`;
+				if (item.range) html += `<p><strong>Range:</strong> ${item.range}</p>`;
+				if (item.components) html += `<p><strong>Components:</strong> ${item.components.join(', ')}</p>`;
+				break;
 
-				case 'traits':
-					if (item.races) html += `<p><strong>Associated with races</strong></p>`;
-					break;
+			case 'monsters':
+				if (item.challenge_rating) html += `<p><strong>CR:</strong> ${item.challenge_rating}</p>`;
+				if (item.size) html += `<p><strong>Size:</strong> ${item.size}</p>`;
+				if (item.type) html += `<p><strong>Type:</strong> ${item.type}</p>`;
+				if (item.armor_class) html += `<p><strong>AC:</strong> ${item.armor_class}</p>`;
+				if (item.hit_points) html += `<p><strong>HP:</strong> ${item.hit_points}</p>`;
+				break;
 
-				case 'features':
-					if (item.class) html += `<p><strong>Class:</strong> ${item.class.name}</p>`;
-					break;
+			case 'classes':
+				if (item.hit_die) html += `<p><strong>Hit Die:</strong> d${item.hit_die}</p>`;
+				break;
 
-				case 'proficiencies':
-					if (item.type) html += `<p><strong>Type:</strong> ${item.type}</p>`;
-					break;
+			case 'races':
+				if (item.ability_bonuses) {
+					const bonuses = item.ability_bonuses.map(b => `${b.ability_score.name} +${b.bonus}`).join(', ');
+					html += `<p><strong>Ability Bonuses:</strong> ${bonuses}</p>`;
+				}
+				if (item.speed) html += `<p><strong>Speed:</strong> ${item.speed} ft.</p>`;
+				break;
 
-				case 'subclasses':
-					if (item.class) html += `<p><strong>Class:</strong> ${item.class.name}</p>`;
-					break;
+			case 'skills':
+				if (item.ability_score) html += `<p><strong>Ability:</strong> ${item.ability_score.name}</p>`;
+				break;
 
-				case 'subraces':
-					if (item.race) html += `<p><strong>Race:</strong> ${item.race.name}</p>`;
-					break;
+			case 'conditions':
+				// Conditions typically just have a name
+				break;
 
-				case 'magic-schools':
-					// Magic schools typically just have a name
-					break;
+			case 'damage-types':
+				// Damage types typically just have a name
+				break;
 
-				case 'weapon-properties':
-					// Weapon properties typically just have a name
-					break;
+			case 'languages':
+				if (item.type) html += `<p><strong>Type:</strong> ${item.type}</p>`;
+				break;
 
-				case 'equipment-categories':
-					// Equipment categories typically just have a name
-					break;
+			case 'traits':
+				if (item.races) html += `<p><strong>Associated with races</strong></p>`;
+				break;
 
-				case 'ability-scores':
-					if (item.full_name) html += `<p><strong>Full Name:</strong> ${item.full_name}</p>`;
-					break;
-			}
+			case 'features':
+				if (item.class) html += `<p><strong>Class:</strong> ${item.class.name}</p>`;
+				break;
+
+			case 'proficiencies':
+				if (item.type) html += `<p><strong>Type:</strong> ${item.type}</p>`;
+				break;
+
+			case 'subclasses':
+				if (item.class) html += `<p><strong>Class:</strong> ${item.class.name}</p>`;
+				break;
+
+			case 'subraces':
+				if (item.race) html += `<p><strong>Race:</strong> ${item.race.name}</p>`;
+				break;
+
+			case 'magic-schools':
+				// Magic schools typically just have a name
+				break;
+
+			case 'weapon-properties':
+				// Weapon properties typically just have a name
+				break;
+
+			case 'equipment-categories':
+				// Equipment categories typically just have a name
+				break;
+
+			case 'ability-scores':
+				if (item.full_name) html += `<p><strong>Full Name:</strong> ${item.full_name}</p>`;
+				break;
+		}
 
 			if (item.desc && Array.isArray(item.desc)) {
 				html += `<div class="search-result-description">${item.desc.map(d => `<p>${d}</p>`).join('')}</div>`;
