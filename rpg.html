@@ -3721,30 +3721,47 @@ async loadInventory() {
 		switch(type) {
 			case 'equipment':
 				if (item.equipment_category) html += `<p><strong>Category:</strong> ${item.equipment_category.name}</p>`;
+				if (item.weapon_category) html += `<p><strong>Weapon Type:</strong> ${item.weapon_category}</p>`;
 				if (item.cost) html += `<p><strong>Cost:</strong> ${item.cost.quantity} ${item.cost.unit}</p>`;
 				if (item.weight) html += `<p><strong>Weight:</strong> ${item.weight} lb.</p>`;
-				if (item.rarity) html += `<p><strong>Rarity:</strong> ${item.rarity}</p>`;
 				if (item.damage) html += `<p><strong>Damage:</strong> ${item.damage.damage_dice} ${item.damage.damage_type.name}</p>`;
+				if (item.weapon_range) html += `<p><strong>Range:</strong> ${item.weapon_range}</p>`;
+				if (item.range?.normal) html += `<p><strong>Range:</strong> ${item.range.normal} ft${item.range.long ? ` / ${item.range.long} ft` : ''}</p>`;
+				if (item.properties && Array.isArray(item.properties) && item.properties.length > 0) {
+					const propNames = item.properties.map(p => p.name || p).join(', ');
+					html += `<p><strong>Properties:</strong> ${propNames}</p>`;
+				}
+				if (item.rarity) html += `<p><strong>Rarity:</strong> ${item.rarity}</p>`;
+				if (item.armor_class) html += `<p><strong>AC:</strong> ${item.armor_class}</p>`;
 				break;
 
 			case 'spells':
-				if (item.level) html += `<p><strong>Level:</strong> ${item.level}</p>`;
+				if (item.level) {
+					const levelName = item.level === 0 ? 'Cantrip' : `Level ${item.level}`;
+					html += `<p><strong>Level:</strong> ${levelName}</p>`;
+				}
 				if (item.school) html += `<p><strong>School:</strong> ${item.school.name}</p>`;
 				if (item.casting_time) html += `<p><strong>Casting Time:</strong> ${item.casting_time}</p>`;
 				if (item.range) html += `<p><strong>Range:</strong> ${item.range}</p>`;
+				if (item.duration) html += `<p><strong>Duration:</strong> ${item.duration}</p>`;
+				if (item.concentration) html += `<p><strong>Concentration:</strong> Yes</p>`;
+				if (item.ritual) html += `<p><strong>Ritual:</strong> Yes</p>`;
 				if (item.components) html += `<p><strong>Components:</strong> ${item.components.join(', ')}</p>`;
 				break;
 
 			case 'monsters':
-				if (item.challenge_rating) html += `<p><strong>CR:</strong> ${item.challenge_rating}</p>`;
+				if (item.challenge_rating !== undefined) html += `<p><strong>CR:</strong> ${item.challenge_rating}</p>`;
 				if (item.size) html += `<p><strong>Size:</strong> ${item.size}</p>`;
 				if (item.type) html += `<p><strong>Type:</strong> ${item.type}</p>`;
+				if (item.alignment) html += `<p><strong>Alignment:</strong> ${item.alignment}</p>`;
 				if (item.armor_class) html += `<p><strong>AC:</strong> ${item.armor_class}</p>`;
 				if (item.hit_points) html += `<p><strong>HP:</strong> ${item.hit_points}</p>`;
+				if (item.speed) html += `<p><strong>Speed:</strong> ${typeof item.speed === 'object' ? JSON.stringify(item.speed).replace(/[{}\"]/g, '') : item.speed}</p>`;
 				break;
 
 			case 'classes':
 				if (item.hit_die) html += `<p><strong>Hit Die:</strong> d${item.hit_die}</p>`;
+				if (item.saving_throws) html += `<p><strong>Saving Throws:</strong> ${item.saving_throws.map(s => s.name || s).join(', ')}</p>`;
 				break;
 
 			case 'races':
@@ -3753,6 +3770,7 @@ async loadInventory() {
 					html += `<p><strong>Ability Bonuses:</strong> ${bonuses}</p>`;
 				}
 				if (item.speed) html += `<p><strong>Speed:</strong> ${item.speed} ft.</p>`;
+				if (item.language_desc) html += `<p><strong>Languages:</strong> ${item.language_desc}</p>`;
 				break;
 
 			case 'skills':
@@ -3772,15 +3790,21 @@ async loadInventory() {
 				break;
 
 			case 'traits':
-				if (item.races) html += `<p><strong>Associated with races</strong></p>`;
+				if (item.races && Array.isArray(item.races) && item.races.length > 0) {
+					html += `<p><strong>Races:</strong> ${item.races.map(r => r.name || r).join(', ')}</p>`;
+				}
 				break;
 
 			case 'features':
 				if (item.class) html += `<p><strong>Class:</strong> ${item.class.name}</p>`;
+				if (item.level) html += `<p><strong>Level:</strong> ${item.level}</p>`;
 				break;
 
 			case 'proficiencies':
 				if (item.type) html += `<p><strong>Type:</strong> ${item.type}</p>`;
+				if (item.classes && Array.isArray(item.classes) && item.classes.length > 0) {
+					html += `<p><strong>Classes:</strong> ${item.classes.map(c => c.name || c).join(', ')}</p>`;
+				}
 				break;
 
 			case 'subclasses':
