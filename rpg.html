@@ -2160,7 +2160,7 @@
 
 					// Touch support for mobile panning and pinch zoom
 					this.svg.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: true });
-					this.svg.addEventListener('touchmove', (e) => this.handleTouchMove(e), { passive: false });
+					this.svg.addEventListener('touchmove', (e) => this.handleTouchMove(e), { passive: true });
 					this.svg.addEventListener('touchend', (e) => this.handleTouchEnd(e), { passive: true });
 				}
 
