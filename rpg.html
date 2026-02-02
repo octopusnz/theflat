@@ -2228,22 +2228,27 @@
 
 		// Load data and initialize app
 		async function initApp() {
-	try {
-		console.log('[DEBUG] initApp starting');
-		await store.load();
-		console.log('[DEBUG] store loaded, calling renderMap');
-		
-		if (mapController) {
-			mapController.renderMap();
-		} else {
-			console.error('[ERROR] mapController not defined');
+		const mapView = document.getElementById('map-view');
+		try {
+			console.log('[DEBUG] initApp starting');
+			await store.load();
+			console.log('[DEBUG] store loaded, calling renderMap');
+			
+			if (mapController) {
+				mapController.renderMap();
+			} else {
+				console.error('[ERROR] mapController not defined');
+				// Ensure loading is removed even if mapController is missing
+				mapView.classList.remove('loading');
+				mapView.classList.add('ready');
+			}
+		} catch (e) {
+			console.error('[ERROR] initApp failed:', e);
+			// CRITICAL: Always remove loading state on error
+			mapView.classList.remove('loading');
+			mapView.classList.add('ready');
 		}
-	} catch (e) {
-		console.error('[ERROR] initApp failed:', e);
 	}
-}
-
-			// Initialize data store
 			const store = new DataStore();
 
 			// Map Controller
@@ -2417,110 +2422,113 @@
 				renderMap() {
 				// Show loading state
 				const mapView = document.getElementById('map-view');
-				mapView.classList.add('loading');
+			console.log('[DEBUG] renderMap called, adding loading state');
+			mapView.classList.add('loading');
 
-				// Clear existing SVG content first
-				this.svg.innerHTML = '';
-				this.svg.classList.remove('ready');
-				
-				try {
-					// Render custom map if available
-					if (store.data.mapSvg && store.data.mapType === 'raster') {
-						// Handle raster images (JPG, PNG, etc.)
-						const width = store.data.mapWidth || 1000;
-						const height = store.data.mapHeight || 600;
-						
-						// Update viewBox and SVG size
-						this.svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-						this.svg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
-						
-						// Create main group for all content
-						const mainGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-						mainGroup.setAttribute('id', 'main-group');
-						
-						// Add image as background
-						const image = document.createElementNS('http://www.w3.org/2000/svg', 'image');
-						image.setAttribute('href', store.data.mapSvg);
-						image.setAttribute('x', '0');
-						image.setAttribute('y', '0');
-						image.setAttribute('width', width);
-						image.setAttribute('height', height);
-						image.setAttribute('preserveAspectRatio', 'none');
-						
-						mainGroup.appendChild(image);
-						
-						// Create and add locations layer on top
-						const locationsLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-						locationsLayer.setAttribute('id', 'locations-layer');
-						mainGroup.appendChild(locationsLayer);
-						
-						// Add main group to SVG
-						this.svg.appendChild(mainGroup);
-						this.mainGroup = mainGroup;
-						this.locationsLayer = locationsLayer;
-						
-						// Wait for image to load before showing
-						let imageLoaded = false;
-						image.addEventListener('load', () => {
-							imageLoaded = true;
-							mapView.classList.remove('loading');
-							this.svg.classList.add('ready');
-							this.render(); // Render locations after image is loaded and visible
-						}, { once: true });
-						
-						// Fallback: remove loading state after VERY short timeout
-						setTimeout(() => {
-							if (!imageLoaded) {
-								console.warn('[WARN] Map image load timeout after 500ms');
-								mapView.classList.remove('loading');
-								this.svg.classList.add('ready');
-								this.render();
-							}
-						}, 500);
-					} else {
-						// Default map with grid (fallback)
-						this.svg.setAttribute('viewBox', '0 0 1000 600');
-						
-						// Create defs with grid pattern
-						const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-						const pattern = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
-						pattern.setAttribute('id', 'grid');
-						pattern.setAttribute('width', '50');
-						pattern.setAttribute('height', '50');
-						pattern.setAttribute('patternUnits', 'userSpaceOnUse');
-						
-						const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-						path.setAttribute('d', 'M 50 0 L 0 0 0 50');
-						path.setAttribute('fill', 'none');
-						path.setAttribute('stroke', 'rgba(100,100,100,0.1)');
-						path.setAttribute('stroke-width', '1');
-						pattern.appendChild(path);
-						defs.appendChild(pattern);
-						
-						const mainGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-						mainGroup.setAttribute('id', 'main-group');
-						
-						// Add grid background
-						const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-						rect.setAttribute('width', '1000');
-						rect.setAttribute('height', '600');
-						rect.setAttribute('fill', 'url(#grid)');
-						mainGroup.appendChild(rect);
-						
-						// Create and add locations layer on top
-						const locationsLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-						locationsLayer.setAttribute('id', 'locations-layer');
-						mainGroup.appendChild(locationsLayer);
-						
-						this.svg.appendChild(defs);
-						this.svg.appendChild(mainGroup);
-						this.mainGroup = mainGroup;
-						this.locationsLayer = locationsLayer;
-
-						// Show the grid (no image to wait for)
+			// Clear existing SVG content first
+			this.svg.innerHTML = '';
+			this.svg.classList.remove('ready');
+			
+			try {
+				// Render custom map if available
+				console.log('[DEBUG] Checking for custom map:', store.data.mapSvg, store.data.mapType);
+				if (store.data.mapSvg && store.data.mapType === 'raster') {
+					console.log('[DEBUG] Loading raster map');
+					// Handle raster images (JPG, PNG, etc.)
+					const width = store.data.mapWidth || 1000;
+					const height = store.data.mapHeight || 600;
+					
+					// Update viewBox and SVG size
+					this.svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+					this.svg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+					
+					// Create main group for all content
+					const mainGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+					mainGroup.setAttribute('id', 'main-group');
+					
+					// Add image as background
+					const image = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+					image.setAttribute('href', store.data.mapSvg);
+					image.setAttribute('x', '0');
+					image.setAttribute('y', '0');
+					image.setAttribute('width', width);
+					image.setAttribute('height', height);
+					image.setAttribute('preserveAspectRatio', 'none');
+					
+					mainGroup.appendChild(image);
+					
+					// Create and add locations layer on top
+					const locationsLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+					locationsLayer.setAttribute('id', 'locations-layer');
+					mainGroup.appendChild(locationsLayer);
+					
+					// Add main group to SVG
+					this.svg.appendChild(mainGroup);
+					this.mainGroup = mainGroup;
+					this.locationsLayer = locationsLayer;
+					
+					// Wait for image to load before showing
+					let imageLoaded = false;
+					image.addEventListener('load', () => {
+						imageLoaded = true;
+						console.log('[DEBUG] Raster image loaded');
 						mapView.classList.remove('loading');
 						this.svg.classList.add('ready');
-						this.render(); // Render locations for default grid
+						this.render(); // Render locations after image is loaded and visible
+					}, { once: true });
+					
+					// Fallback: remove loading state after VERY short timeout
+					setTimeout(() => {
+						if (!imageLoaded) {
+							console.warn('[WARN] Map image load timeout after 500ms');
+							mapView.classList.remove('loading');
+							this.svg.classList.add('ready');
+							this.render();
+						}
+					}, 500);
+				} else {
+					console.log('[DEBUG] Using grid fallback map');
+					// Default map with grid (fallback)
+					this.svg.setAttribute('viewBox', '0 0 1000 600');
+					
+					// Create defs with grid pattern
+					const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+					const pattern = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
+					pattern.setAttribute('id', 'grid');
+					pattern.setAttribute('width', '50');
+					pattern.setAttribute('height', '50');
+					pattern.setAttribute('patternUnits', 'userSpaceOnUse');
+					
+					const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+					path.setAttribute('d', 'M 50 0 L 0 0 0 50');
+					path.setAttribute('fill', 'none');
+					path.setAttribute('stroke', 'rgba(100,100,100,0.1)');
+					path.setAttribute('stroke-width', '1');
+					pattern.appendChild(path);
+					defs.appendChild(pattern);
+					
+					const mainGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+					mainGroup.setAttribute('id', 'main-group');
+					
+					// Add grid background
+					const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+					rect.setAttribute('width', '1000');
+					rect.setAttribute('height', '600');
+					rect.setAttribute('fill', 'url(#grid)');
+					mainGroup.appendChild(rect);
+					
+					// Create and add locations layer on top
+					const locationsLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+					locationsLayer.setAttribute('id', 'locations-layer');
+					mainGroup.appendChild(locationsLayer);
+					
+					this.svg.appendChild(defs);
+					this.svg.appendChild(mainGroup);
+					this.mainGroup = mainGroup;
+					this.locationsLayer = locationsLayer;
+
+					// Show the grid (no image to wait for)
+					console.log('[DEBUG] Grid created, removing loading state');
 					}
 				} catch (err) {
 					console.error('[ERROR] renderMap failed:', err);
