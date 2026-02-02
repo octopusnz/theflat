@@ -2222,24 +2222,11 @@
 
 	handleTouchStart(e) {
 		if (e.touches.length === 1) {
-			// Single touch - pan
+			// Single touch - pan only, let browser handle multi-touch zoom
 			this.startDrag(e.touches[0]);
-		} else if (e.touches.length === 2) {
-			// Two fingers - pinch zoom
+		} else {
+			// Two or more fingers - stop panning, let browser handle pinch zoom natively
 			this.isDragging = false;
-			const touch1 = e.touches[0];
-			const touch2 = e.touches[1];
-			this.lastDistance = Math.hypot(
-				touch2.clientX - touch1.clientX,
-				touch2.clientY - touch1.clientY
-			);
-			this.lastScale = this.scale;
-			this.lastTranslateX = this.translateX;
-			this.lastTranslateY = this.translateY;
-			
-			// Store the pinch center point in screen coordinates
-			this.pinchCenterX = (touch1.clientX + touch2.clientX) / 2;
-			this.pinchCenterY = (touch1.clientY + touch2.clientY) / 2;
 		}
 	}
 
@@ -2247,39 +2234,9 @@
 			if (e.touches.length === 1) {
 				// Single touch - pan
 				this.drag(e.touches[0]);
-			} else if (e.touches.length === 2) {
-				// Two fingers - pinch zoom
-				e.preventDefault();
-				const touch1 = e.touches[0];
-				const touch2 = e.touches[1];
-				const distance = Math.hypot(
-					touch2.clientX - touch1.clientX,
-					touch2.clientY - touch1.clientY
-				);
-				
-				if (this.lastDistance > 0) {
-					// Calculate scale factor
-					const scaleFactor = distance / this.lastDistance;
-					const newScale = this.lastScale * scaleFactor;
-					const clampedScale = Math.max(0.5, Math.min(5, newScale));
-					
-					// Get SVG viewport to convert screen to SVG space
-					const svgRect = this.svg.getBoundingClientRect();
-					
-					// Calculate the actual scale change that will be applied
-					const scaleRatio = clampedScale / this.lastScale;
-					
-					// Pinch center in viewport coordinates
-					const pinchVpX = this.pinchCenterX - svgRect.left;
-					const pinchVpY = this.pinchCenterY - svgRect.top;
-					
-					// Adjust translation to keep pinch point centered
-					this.translateX = this.lastTranslateX - pinchVpX * (scaleRatio - 1);
-					this.translateY = this.lastTranslateY - pinchVpY * (scaleRatio - 1);
-					this.scale = clampedScale;
-					
-					this.updateTransform();
-				}
+			} else {
+				// Two or more fingers - don't prevent default, let browser handle zoom
+				// Do nothing - allow native pinch zoom
 			}
 		}
 
