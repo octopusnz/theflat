@@ -402,50 +402,41 @@
 			/* iOS Safari performance optimizations */
 			-webkit-overflow-scrolling: touch;
 			overscroll-behavior: contain;
-			height: 40px;
-			border: 3px solid var(--border);
-			border-top-color: var(--link);
-			border-radius: 50%;
-			animation: spin 0.8s linear infinite;
-			z-index: 10;
-		}
-
-		@keyframes spin {
-			to { transform: translate(-50%, -50%) rotate(360deg); }
 		}
 
 		.map-svg {
-		width: 100%;
-		height: 100%;
-		display: block;
-		opacity: 0;
-		touch-action: auto;
-		-webkit-user-select: none;
-		user-select: none;
-		max-width: 100%;
-		max-height: 100%;
-		will-change: transform;
-	}
-	.map-svg.ready {
-		opacity: 1;
-		image-rendering: -webkit-optimize-contrast;
-		image-rendering: crisp-edges;
-	}
+			width: 100%;
+			height: 100%;
+			display: block;
+			opacity: 0;
+			touch-action: auto;
+			-webkit-user-select: none;
+			user-select: none;
+			max-width: 100%;
+			max-height: 100%;
+			will-change: transform;
+		}
 
-	.map-view.loading::after {
-		content: '';
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		width: 40px;
-		height: 40px;
-		border: 4px solid var(--border);
-		border-top-color: var(--link);
-		border-radius: 50%;
-		transform: translate(-50%, -50%);
-		animation: spin 1s linear infinite;
-		z-index: 100;
-	}
+		.map-svg.ready {
+			opacity: 1;
+			image-rendering: -webkit-optimize-contrast;
+			image-rendering: crisp-edges;
+		}
+
+		.map-view.loading::after {
+			content: '';
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			width: 24px;
+			height: 24px;
+			border: 3px solid var(--border-color);
+			border-top-color: var(--link);
+			border-radius: 50%;
+			animation: spin 1s linear infinite;
+			z-index: 100;
+			transform: translate(-50%, -50%);
+		}
 
 	/* Optimize map locations for performance */
 
@@ -2017,9 +2008,8 @@
 				return false;
 			}
 
-			save() {
-				// Note: This doesn't save to the server automatically
-				// Users need to export and commit the JSON file
+		save() {
+			// Note: This doesn't save to the server automatically
 				this.updateBadges();
 			}
 
@@ -2229,6 +2219,14 @@
 		// Load data and initialize app
 		async function initApp() {
 		const mapView = document.getElementById('map-view');
+		
+		// CRITICAL: Absolute safety net - remove loading after 2 seconds NO MATTER WHAT
+		const safetyTimeout = setTimeout(() => {
+			console.error('[CRITICAL] Safety timeout triggered - forcing loading state off');
+			mapView.classList.remove('loading');
+			mapView.classList.add('ready');
+		}, 2000);
+		
 		try {
 			console.log('[DEBUG] initApp starting');
 			await store.load();
@@ -2236,17 +2234,18 @@
 			
 			if (mapController) {
 				mapController.renderMap();
+				clearTimeout(safetyTimeout);
 			} else {
 				console.error('[ERROR] mapController not defined');
-				// Ensure loading is removed even if mapController is missing
 				mapView.classList.remove('loading');
 				mapView.classList.add('ready');
+				clearTimeout(safetyTimeout);
 			}
 		} catch (e) {
 			console.error('[ERROR] initApp failed:', e);
-			// CRITICAL: Always remove loading state on error
 			mapView.classList.remove('loading');
 			mapView.classList.add('ready');
+			clearTimeout(safetyTimeout);
 		}
 	}
 			const store = new DataStore();
