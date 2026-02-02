@@ -2456,6 +2456,9 @@ function showLocationDetails(locationId) {
 	const title = document.getElementById('detail-title');
 	const content = document.getElementById('detail-content');
 
+	// Hide equipment panel if it's open
+	hideEquipmentPanel();
+
 	title.textContent = location.name;
 
 	// Get related NPCs and items
@@ -2910,7 +2913,11 @@ function showItemDetails(category, itemId) {
 	const title = document.getElementById('detail-title');
 	const content = document.getElementById('detail-content');
 	const item = store.get(category, itemId);
-				title.textContent = item.name;
+	
+	// Hide equipment panel if it's open
+	hideEquipmentPanel();
+	
+	title.textContent = item.name;
 
 			let detailsHTML = '<div class="detail-section">';
 
