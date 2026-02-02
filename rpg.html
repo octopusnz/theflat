@@ -1757,7 +1757,7 @@
 			</aside>
 
 		<!-- Map Container -->
-		<div class="map-container" id="main-content">
+		<main class="map-container" id="main-content">
 				<div class="map-toolbar">
 					<button class="btn-toolbar" id="btn-zoom-in">Zoom In</button>
 					<button class="btn-toolbar" id="btn-zoom-out">Zoom Out</button>
@@ -1875,7 +1875,7 @@
 					</div>
 				</div>
 			</div>
-		</div>
+		</main>
 
 		<!-- Detail Panel -->
 		<aside class="detail-panel hidden" id="detail-panel">
@@ -2606,7 +2606,7 @@ function showLocationDetails(locationId) {
 		html += '<h3>NPCs</h3>';
 		html += '<ul class="npc-list">';
 		relatedNPCs.forEach(npc => {
-			html += '<li class="npc-item" style="cursor: pointer;" onclick="showItemDetails(\'npcs\', ' + npc.id + ')">';
+			html += '<li class="npc-item" data-item-id="' + npc.id + '" data-item-type="npcs" style="cursor: pointer;">';
 			html += '<div class="npc-name" style="color: var(--link); text-decoration: underline;">' + npc.name + '</div>';
 			html += '<div class="npc-role">' + (npc.role || 'Unknown role') + '</div>';
 			html += '</li>';
@@ -2620,7 +2620,7 @@ function showLocationDetails(locationId) {
 		html += '<h3>Items</h3>';
 		html += '<ul class="item-list">';
 		relatedItems.forEach(item => {
-			html += '<li class="item-item" style="cursor: pointer;" onclick="showItemDetails(\'items\', ' + item.id + ')">';
+			html += '<li class="item-item" data-item-id="' + item.id + '" data-item-type="items" style="cursor: pointer;">';
 			html += '<div class="item-name" style="color: var(--link); text-decoration: underline;">' + item.name + '</div>';
 			html += '<div class="item-type">' + (item.type || 'Unknown type') + '</div>';
 			html += '</li>';
@@ -2894,7 +2894,7 @@ async function showEquipmentDetails(equipment) {
 		}
 		
 		html += '</div>';
-		html += '<div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);"><button class="btn" style="width: 100%;" onclick="showEquipmentPanel()">Back to Equipment</button></div>';
+		html += '<div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);"><button class="btn btn-back-equipment" style="width: 100%;">Back to Equipment</button></div>';
 		
 		content.innerHTML = html;
 		panel.classList.remove('hidden');
@@ -2906,7 +2906,7 @@ async function showEquipmentDetails(equipment) {
 		const content = document.getElementById('detail-content');
 		
 		title.textContent = equipment?.name || 'Equipment';
-		content.innerHTML = '<div class="empty-state"><p>Error loading equipment details: ' + error.message + '</p><p style="font-size: 0.9em; color: var(--muted-fg);">Check browser console for more details.</p><button class="btn" style="width: 100%; margin-top: 20px;" onclick="showEquipmentPanel()">Back to Equipment</button></div>';
+		content.innerHTML = '<div class="empty-state"><p>Error loading equipment details: ' + error.message + '</p><p style="font-size: 0.9em; color: var(--muted-fg);">Check browser console for more details.</p><button class="btn btn-back-equipment" style="width: 100%; margin-top: 20px;">Back to Equipment</button></div>';
 		panel.classList.remove('hidden');
 	}
 }
@@ -3250,6 +3250,30 @@ function showItemDetails(category, itemId) {
 
 	// Close detail panel
 	document.getElementById('btn-close-detail').addEventListener('click', hideDetailPanel);
+
+	// Event delegation for dynamically created elements in detail panel
+	document.getElementById('detail-panel').addEventListener('click', (e) => {
+		// Handle NPC and item clicks
+		const npcItem = e.target.closest('.npc-item');
+		const itemItem = e.target.closest('.item-item');
+		const backButton = e.target.closest('.btn-back-equipment');
+		
+		if (npcItem) {
+			const id = npcItem.dataset.itemId;
+			const type = npcItem.dataset.itemType;
+			if (id && type) {
+				showItemDetails(type, parseInt(id));
+			}
+		} else if (itemItem) {
+			const id = itemItem.dataset.itemId;
+			const type = itemItem.dataset.itemType;
+			if (id && type) {
+				showItemDetails(type, parseInt(id));
+			}
+		} else if (backButton) {
+			showEquipmentPanel();
+		}
+	});
 
 	// Close equipment panel
 	document.getElementById('btn-close-equipment').addEventListener('click', hideEquipmentPanel);
