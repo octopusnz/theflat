@@ -3748,7 +3748,10 @@ async loadInventory() {
 					html += `<p><strong>Properties:</strong> ${propNames}</p>`;
 				}
 				if (item.rarity) html += `<p><strong>Rarity:</strong> ${item.rarity}</p>`;
-				if (item.armor_class) html += `<p><strong>AC:</strong> ${item.armor_class}</p>`;
+				if (item.armor_class) {
+					const acValue = typeof item.armor_class === 'object' ? item.armor_class.value : item.armor_class;
+					html += `<p><strong>AC:</strong> ${acValue}</p>`;
+				}
 				break;
 
 			case 'spells':
@@ -3770,7 +3773,10 @@ async loadInventory() {
 				if (item.size) html += `<p><strong>Size:</strong> ${item.size}</p>`;
 				if (item.type) html += `<p><strong>Type:</strong> ${item.type}</p>`;
 				if (item.alignment) html += `<p><strong>Alignment:</strong> ${item.alignment}</p>`;
-				if (item.armor_class) html += `<p><strong>AC:</strong> ${item.armor_class}</p>`;
+				if (item.armor_class) {
+					const acValue = typeof item.armor_class === 'object' ? item.armor_class.value : item.armor_class;
+					html += `<p><strong>AC:</strong> ${acValue}</p>`;
+				}
 				if (item.hit_points) html += `<p><strong>HP:</strong> ${item.hit_points}</p>`;
 				if (item.speed) html += `<p><strong>Speed:</strong> ${typeof item.speed === 'object' ? JSON.stringify(item.speed).replace(/[{}\"]/g, '') : item.speed}</p>`;
 				break;
