@@ -375,6 +375,9 @@
 			touch-action: manipulation;
 			-webkit-user-select: none;
 			user-select: none;
+		}
+
+		.map-view.loading::after {
 			content: '';
 			position: absolute;
 			top: 50%;
@@ -388,10 +391,6 @@
 			animation: spin 0.8s linear infinite;
 			z-index: 10;
 		}
-
-	@keyframes spin {
-		to { transform: translate(-50%, -50%) rotate(360deg); }
-	}
 
 	.map-svg {
 		width: 100%;
