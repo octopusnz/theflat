@@ -375,16 +375,10 @@
 				flex: 1;
 				position: relative;
 			overflow: auto;
-			-webkit-overflow-scrolling: touch;
-			background: #dbeafe;
-			touch-action: manipulation;
-			-webkit-user-select: none;
-			user-select: none;
-			overscroll-behavior: contain;
-		}
-
-		.map-view.loading::after {
-			content: '';
+		background: #dbeafe;
+		touch-action: auto;
+		-webkit-user-select: none;
+		user-select: none;
 			position: absolute;
 			top: 50%;
 			left: 50%;
@@ -2171,7 +2165,7 @@
 
 					// Touch support for mobile panning and pinch zoom
 					this.svg.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: true });
-					this.svg.addEventListener('touchmove', (e) => this.handleTouchMove(e), { passive: true });
+					this.svg.addEventListener('touchmove', (e) => this.handleTouchMove(e), { passive: false });
 					this.svg.addEventListener('touchend', (e) => this.handleTouchEnd(e), { passive: true });
 				}
 
@@ -2201,20 +2195,15 @@
 				this.startX = e.clientX - this.translateX;
 				this.startY = e.clientY - this.translateY;
 				this.svg.style.cursor = 'grabbing';
-				// Prevent text selection during drag
-				if (e.preventDefault) e.preventDefault();
-			}
+		}
 
-			drag(e) {
-				if (!this.isDragging) return;
-				
-				// Prevent default behavior while dragging (scrolling, etc)
-				if (e.preventDefault) e.preventDefault();
-				
-				// Update position values immediately
-				this.translateX = e.clientX - this.startX;
-				this.translateY = e.clientY - this.startY;
-				
+		drag(e) {
+			if (!this.isDragging) return;
+			
+			// Update position values immediately
+			this.translateX = e.clientX - this.startX;
+			this.translateY = e.clientY - this.startY;
+			
 			// Call updateTransform without RAF for more responsive feel
 			this.updateTransformDirect();
 		}
