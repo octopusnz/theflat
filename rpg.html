@@ -3313,11 +3313,26 @@ async function showEquipmentDetails(equipment) {
 				return;
 			}
 
-			itemsContainer.innerHTML = this.inventory.items.map((item, index) => `
+itemsContainer.innerHTML = this.inventory.items.map((item, index) => {
+			let details = [];
+			if (item.equipment_category?.name) {
+				details.push(item.equipment_category.name);
+			}
+			if (item.cost) {
+				details.push(item.cost.quantity + ' ' + item.cost.unit);
+			} else {
+				details.push('No cost');
+			}
+			if (item.weight) {
+				details.push(item.weight + ' lb.');
+			}
+			const detailText = details.join(' • ');
+			
+			return `
 				<div class="inventory-item">
 					<div class="inventory-item-info">
 						<h4>${item.name}</h4>
-						<p>${item.rarity ? item.rarity : 'Unspecified'} • ${item.equipment_category?.name || 'Item'}</p>
+						<p>${detailText}</p>
 					</div>
 					<div class="inventory-item-controls">
 						<div class="inventory-item-qty">
@@ -3328,7 +3343,8 @@ async function showEquipmentDetails(equipment) {
 						<button class="btn-remove-item" data-index="${index}">Remove</button>
 					</div>
 				</div>
-			`).join('');
+			`;
+		}).join('');
 
 			// Attach event listeners
 			document.querySelectorAll('.inventory-qty-btn').forEach(btn => {
