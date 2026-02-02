@@ -1765,7 +1765,7 @@
 		<!-- Detail Panel -->
 		<aside class="detail-panel hidden" id="detail-panel">
 			<div class="detail-header">
-				<h2 id="detail-title">Select a location</h2>
+				<h2 id="detail-title">Locations</h2>
 				<button class="btn-close" id="btn-close-detail" aria-label="Close details">&times;</button>
 			</div>
 			<div id="detail-content">
@@ -1778,7 +1778,10 @@
 		<!-- Equipment Search Panel -->
 		<aside class="detail-panel hidden equipment-panel" id="equipment-panel">
 			<div class="detail-header">
-				<h2>D&D 5e Equipment</h2>
+				<div style="display: flex; align-items: center; gap: 8px;">
+					<h2 style="margin: 0;">Equipment Search</h2>
+					<span class="badge" id="badge-equipment-count">0</span>
+				</div>
 				<button class="btn-close" id="btn-close-equipment" aria-label="Close equipment">&times;</button>
 			</div>
 			<div class="equipment-search-box">
@@ -2619,6 +2622,7 @@ function hideEquipmentPanel() {
 async function showEquipmentPanel() {
 	const panel = document.getElementById('equipment-panel');
 	const resultsDiv = document.getElementById('equipment-results');
+	const countBadge = document.getElementById('badge-equipment-count');
 	
 	// Hide detail panel first
 	hideDetailPanel();
@@ -2629,9 +2633,19 @@ async function showEquipmentPanel() {
 	// Load equipment list if not already loaded
 	try {
 		const data = await store.getEquipmentList();
-		displayEquipmentList(data.results || data);
+		const equipmentList = data.results || data;
+		
+		// Update the badge count
+		if (countBadge) {
+			countBadge.textContent = equipmentList.length || 0;
+		}
+		
+		displayEquipmentList(equipmentList);
 	} catch (error) {
 		resultsDiv.innerHTML = '<div class="equipment-loading">Error loading equipment data. Please try again.</div>';
+		if (countBadge) {
+			countBadge.textContent = '0';
+		}
 	}
 }
 
