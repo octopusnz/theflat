@@ -3313,33 +3313,36 @@ async function showEquipmentDetails(equipment) {
 				return;
 			}
 
-itemsContainer.innerHTML = this.inventory.items.map((item, index) => {
+		itemsContainer.innerHTML = this.inventory.items.map((item, index) => {
 			let details = [];
 			if (item.equipment_category?.name) {
 				details.push(item.equipment_category.name);
 			}
-			if (item.cost) {
+			if (item.cost?.quantity && item.cost?.unit) {
 				details.push(item.cost.quantity + ' ' + item.cost.unit);
-			} else {
-				details.push('No cost');
 			}
 			if (item.weight) {
 				details.push(item.weight + ' lb.');
 			}
-			const detailText = details.join(' • ');
+			
+			// Add damage info for weapons
+			let damageInfo = '';
+			if (item.damage) {
+				let damageText = item.damage.damage_dice || 'unknown';
+				if (item.damage.damage_type?.name) {
+					damageText += ' ' + item.damage.damage_type.name;
+				}
+				damageInfo = `<p style="margin: 4px 0; color: var(--link); font-weight: 600;">⚔️ Damage: ${damageText}</p>`;
+			}
+			
+			const detailText = details.length > 0 ? details.join(' • ') : 'Equipment';
 			
 			return `
 				<div class="inventory-item">
 					<div class="inventory-item-info">
 						<h4>${item.name}</h4>
 						<p>${detailText}</p>
-					</div>
-					<div class="inventory-item-controls">
-						<div class="inventory-item-qty">
-							<button class="inventory-qty-btn" data-index="${index}" data-action="decrease">−</button>
-							<div class="inventory-qty-display">${item.quantity}</div>
-							<button class="inventory-qty-btn" data-index="${index}" data-action="increase">+</button>
-						</div>
+						${damageInfo}
 						<button class="btn-remove-item" data-index="${index}">Remove</button>
 					</div>
 				</div>
