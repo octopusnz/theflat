@@ -2116,30 +2116,16 @@
 		async function initApp() {
 	try {
 		console.log('[DEBUG] initApp starting');
-		const mapView = document.getElementById('map-view');
-		
-		// Force remove loader after 500ms as ultimate fallback
-		const loaderTimeout = setTimeout(() => {
-			console.warn('[WARN] Forcing loader removal due to timeout');
-			if (mapView) mapView.classList.remove('loading');
-		}, 500);
-		
 		await store.load();
-		console.log('[DEBUG] store loaded');
+		console.log('[DEBUG] store loaded, calling renderMap');
 		
 		if (mapController) {
 			mapController.renderMap();
-			console.log('[DEBUG] renderMap called');
 		} else {
 			console.error('[ERROR] mapController not defined');
-			if (mapView) mapView.classList.remove('loading');
 		}
-		
-		clearTimeout(loaderTimeout);
 	} catch (e) {
 		console.error('[ERROR] initApp failed:', e);
-		const mapView = document.getElementById('map-view');
-		if (mapView) mapView.classList.remove('loading');
 	}
 }
 
@@ -3809,6 +3795,16 @@ async loadInventory() {
 	// Initialize managers
 	window.inventoryManager = new InventoryManager();
 	window.searchPageManager = new SearchPageManager();
+	
+	// Immediately remove loader - synchronous fallback
+	console.log('[DEBUG] Script running, removing loader immediately');
+	const mapViewElement = document.getElementById('map-view');
+	if (mapViewElement) {
+		mapViewElement.classList.remove('loading');
+		console.log('[DEBUG] Loader removed synchronously');
+	} else {
+		console.error('[ERROR] map-view element not found');
+	}
 	
 	// Start the app - wait for DOM to be ready
 	if (document.readyState === 'loading') {
