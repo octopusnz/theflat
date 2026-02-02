@@ -3773,6 +3773,7 @@ async loadInventory() {
 			case 'classes':
 				if (item.hit_die) html += `<p><strong>Hit Die:</strong> d${item.hit_die}</p>`;
 				if (item.saving_throws) html += `<p><strong>Saving Throws:</strong> ${item.saving_throws.map(s => s.name || s).join(', ')}</p>`;
+				if (item.skill_proficiencies) html += `<p><strong>Skill Proficiencies:</strong> ${item.skill_proficiencies.map(s => s.name || s).join(', ')}</p>`;
 				break;
 
 			case 'races':
@@ -3781,6 +3782,7 @@ async loadInventory() {
 					html += `<p><strong>Ability Bonuses:</strong> ${bonuses}</p>`;
 				}
 				if (item.speed) html += `<p><strong>Speed:</strong> ${item.speed} ft.</p>`;
+				if (item.ability_bonus_options) html += `<p><strong>Flexible Ability Bonus</strong></p>`;
 				if (item.language_desc) html += `<p><strong>Languages:</strong> ${item.language_desc}</p>`;
 				break;
 
@@ -3789,30 +3791,38 @@ async loadInventory() {
 				break;
 
 			case 'conditions':
-				// Conditions typically just have a name
+				// Conditions have descriptions shown below
 				break;
 
 			case 'damage-types':
-				// Damage types typically just have a name
+				// Damage types have descriptions shown below
 				break;
 
 			case 'languages':
 				if (item.type) html += `<p><strong>Type:</strong> ${item.type}</p>`;
+				if (item.script) html += `<p><strong>Script:</strong> ${item.script}</p>`;
 				break;
 
 			case 'traits':
 				if (item.races && Array.isArray(item.races) && item.races.length > 0) {
 					html += `<p><strong>Races:</strong> ${item.races.map(r => r.name || r).join(', ')}</p>`;
 				}
+				if (item.subraces && Array.isArray(item.subraces) && item.subraces.length > 0) {
+					html += `<p><strong>Subraces:</strong> ${item.subraces.map(s => s.name || s).join(', ')}</p>`;
+				}
 				break;
 
 			case 'features':
 				if (item.class) html += `<p><strong>Class:</strong> ${item.class.name}</p>`;
+				if (item.subclass) html += `<p><strong>Subclass:</strong> ${item.subclass.name}</p>`;
 				if (item.level) html += `<p><strong>Level:</strong> ${item.level}</p>`;
 				break;
 
 			case 'proficiencies':
 				if (item.type) html += `<p><strong>Type:</strong> ${item.type}</p>`;
+				if (item.races && Array.isArray(item.races) && item.races.length > 0) {
+					html += `<p><strong>Races:</strong> ${item.races.map(r => r.name || r).join(', ')}</p>`;
+				}
 				if (item.classes && Array.isArray(item.classes) && item.classes.length > 0) {
 					html += `<p><strong>Classes:</strong> ${item.classes.map(c => c.name || c).join(', ')}</p>`;
 				}
@@ -3820,22 +3830,27 @@ async loadInventory() {
 
 			case 'subclasses':
 				if (item.class) html += `<p><strong>Class:</strong> ${item.class.name}</p>`;
+				if (item.subclass_flavor) html += `<p><strong>Flavor:</strong> ${item.subclass_flavor}</p>`;
 				break;
 
 			case 'subraces':
 				if (item.race) html += `<p><strong>Race:</strong> ${item.race.name}</p>`;
+				if (item.ability_bonuses) {
+					const subraceBonus = item.ability_bonuses.map(b => `${b.ability_score.name} +${b.bonus}`).join(', ');
+					html += `<p><strong>Ability Bonuses:</strong> ${subraceBonus}</p>`;
+				}
 				break;
 
 			case 'magic-schools':
-				// Magic schools typically just have a name
+				// Magic schools have descriptions shown below
 				break;
 
 			case 'weapon-properties':
-				// Weapon properties typically just have a name
+				// Weapon properties have descriptions shown below
 				break;
 
 			case 'equipment-categories':
-				// Equipment categories typically just have a name
+				// Equipment categories have descriptions shown below
 				break;
 
 			case 'ability-scores':
