@@ -369,13 +369,13 @@
 			overflow: auto;
 			-webkit-overflow-scrolling: touch;
 			background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
+			touch-action: manipulation;
+			-webkit-user-select: none;
+			user-select: none;
+			overscroll-behavior: contain;
+		}
 
-			content: '';
-			position: absolute;
-			top: 50%;
-			left: 50%;
-			transform: translate(-50%, -50%);
-			width: 40px;
+		.map-view.loading::after {
 			height: 40px;
 			border: 3px solid var(--border);
 			border-top-color: var(--link);
