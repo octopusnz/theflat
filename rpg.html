@@ -2602,10 +2602,12 @@ async function showEquipmentPanel() {
 		if (countBadge) {
 			countBadge.textContent = equipmentList.length || 0;
 		}
-		
-		displayEquipmentList(equipmentList);
-	} catch (error) {
-		resultsDiv.innerHTML = '<div class="equipment-loading">Error loading equipment data. Please try again.</div>';
+	
+	// Also update the categories screen badge
+	const categoriesBadge = document.getElementById('badge-equipment');
+	if (categoriesBadge) {
+		categoriesBadge.textContent = equipmentList.length || 0;
+	}
 		if (countBadge) {
 			countBadge.textContent = '0';
 		}
