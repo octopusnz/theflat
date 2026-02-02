@@ -1610,7 +1610,7 @@
 
 		<header>
 			<button id="btn-menu" aria-label="Toggle menu">☰</button>
-			<h1>RPG Campaign Tracker</h1>
+			<h1 id="page-title" style="cursor: pointer;">RPG Campaign Tracker</h1>
 			<button class="btn-menu-close hidden" id="btn-menu-close" aria-label="Close menu">✕</button>
 			<nav class="nav-links">
 				<button class="nav-btn" data-page="home">Home</button>
@@ -3346,6 +3346,11 @@ function showItemDetails(category, itemId) {
 				showPage(page);
 			}
 		});
+	});
+
+	// Handle page title click to go to map
+	document.getElementById('page-title').addEventListener('click', () => {
+		showPage('map');
 	});
 
 	// Set initial active state for map (World Map)
