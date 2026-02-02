@@ -1009,11 +1009,10 @@
 		cursor: pointer;
 		font-family: inherit;
 		font-weight: 500;
-		min-width: 90px;
+		min-width: 120px;
 		outline: none;
 		text-align: left;
-		display: flex;
-		align-items: center;
+		flex-shrink: 0;
 	}
 
 	.search-type-dropdown:hover {
@@ -1216,19 +1215,21 @@
 
 		.search-input-wrapper {
 			flex-direction: row;
-			gap: 6px;
+			gap: 8px;
 		}
 
 		.search-input-hero {
-			padding: 10px 12px;
+			padding: 14px 16px;
 			font-size: 16px;
+			flex: 2;
 		}
 
 		.search-type-dropdown {
-			padding: 10px 8px;
-			font-size: 16px;
+			padding: 14px 10px;
+			font-size: 14px;
 			border-left: 1px solid var(--border);
-			min-width: 70px;
+			min-width: 110px;
+			flex-shrink: 0;
 		}
 
 		#search-results {
@@ -3208,10 +3209,12 @@ async function showEquipmentDetails(equipment) {
 		menuCloseBtn.addEventListener('click', closeSidebar);
 	}
 
-	// Close menu when clicking on a category
-	document.querySelectorAll('.category-item').forEach(item => {
-		item.addEventListener('click', closeSidebar);
-	});
+	// Close menu when clicking on a category (mobile only)
+	if (window.innerWidth <= 768) {
+		document.querySelectorAll('.category-item').forEach(item => {
+			item.addEventListener('click', closeSidebar);
+		});
+	}
 
 	// ============================================
 	// Page Navigation
@@ -3457,12 +3460,14 @@ async loadInventory() {
 		showAddItemModal() {
 			const modal = document.getElementById('add-item-modal');
 			modal.classList.add('active');
+			document.body.style.overflow = 'hidden';
 			document.getElementById('add-item-search').focus();
 		}
 
 		closeAddItemModal() {
 			const modal = document.getElementById('add-item-modal');
 			modal.classList.remove('active');
+			document.body.style.overflow = '';
 			document.getElementById('add-item-search').value = '';
 			document.getElementById('add-item-results').innerHTML = '<div class="empty-state">Start typing to search equipment</div>';
 		}
@@ -3601,29 +3606,18 @@ async loadInventory() {
 			const resultsContainer = document.getElementById('search-results');
 
 			if (query.length === 0) {
-				resultsContainer.innerHTML = '<div class="empty-state">Enter a search term to begin</div>';
-				return;
-			}
+			resultsContainer.innerHTML = '';
+			return;
+		}
 
-			if (query.length < 2) {
-				return;
-			}
+		if (query.length < 2) {
+			resultsContainer.innerHTML = '';
+			return;
+		}
 
-			resultsContainer.innerHTML = '<div class="equipment-loading">Searching...</div>';
+		resultsContainer.innerHTML = '<div class="equipment-loading">Searching...</div>';
 
-			try {
-				const data = await this.loadData(type);
-				const items = data.results || data;
-
-				// Search items
-				let results = items.filter(item =>
-					(item.name || item.index || '').toLowerCase().includes(query.toLowerCase())
-				).slice(0, 10);
-
-				if (results.length === 0) {
-					resultsContainer.innerHTML = '<div class="empty-state">No results found</div>';
-					return;
-				}
+		try {
 
 				// Fetch full details for each result
 				const fullResults = await Promise.all(
