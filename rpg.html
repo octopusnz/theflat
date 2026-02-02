@@ -368,7 +368,7 @@
 				position: relative;
 			overflow: auto;
 			-webkit-overflow-scrolling: touch;
-			background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
+			background: #dbeafe;
 			touch-action: manipulation;
 			-webkit-user-select: none;
 			user-select: none;
@@ -387,7 +387,6 @@
 	.map-svg {
 		width: 100%;
 		height: 100%;
-		cursor: grab;
 		opacity: 0;
 		transition: opacity 0.3s ease-in;
 		touch-action: manipulation;
@@ -395,6 +394,7 @@
 		user-select: none;
 		-webkit-transform: translate3d(0, 0, 0);
 		transform: translate3d(0, 0, 0);
+		pointer-events: none;
 	}
 
 	.map-svg.ready {
@@ -411,11 +411,6 @@
 
 	.map-location {
 		cursor: pointer;
-	}
-
-	.map-location:hover {
-		-webkit-filter: brightness(1.2);
-		filter: brightness(1.2);
 	}
 
 	.map-location circle {
