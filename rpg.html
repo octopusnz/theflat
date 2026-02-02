@@ -896,15 +896,10 @@
 	/* Page Navigation */
 	.page {
 		display: none;
-		position: fixed;
-		top: 50px;
-		left: 280px;
-		right: 0;
-		bottom: 0;
-		background: var(--bg);
+		flex: 1;
 		flex-direction: column;
 		overflow: hidden;
-		z-index: 31;
+		background: var(--bg);
 	}
 
 	.page.active {
@@ -1583,80 +1578,79 @@
 		</header>
 		<div class="mobile-overlay" id="mobile-overlay"></div>
 
-		<!-- Sidebar -->
-		<aside class="sidebar" id="sidebar">
-			<div class="sidebar-header">
-				<h2>Categories</h2>
-				<button class="sidebar-close" id="btn-close-sidebar" aria-label="Close menu">&times;</button>
-			</div>
-			<ul class="category-list">
-				<li class="category-item active" data-category="all">
-					<span>All</span>
-					<span class="badge" id="badge-all">0</span>
-				</li>
-				<li class="category-item" data-category="locations">
-					<span>Locations</span>
-					<span class="badge" id="badge-locations">0</span>
-				</li>
-				<li class="category-item" data-category="npcs">
-					<span>NPCs</span>
-					<span class="badge" id="badge-npcs">0</span>
-				</li>
-				<li class="category-item" data-category="items">
-					<span>Items</span>
-					<span class="badge" id="badge-items">0</span>
-				</li>
-				<li class="category-item" data-category="events">
-					<span>Events</span>
-					<span class="badge" id="badge-events">0</span>
-				</li>
-				<li class="category-item" data-category="equipment">
-					<span>Equipment Search</span>
-					<span class="badge" id="badge-equipment">∞</span>
-				</li>
-			</ul>
-			<button class="btn" id="btn-add-new">+ Add New</button>
-			<hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border);">
-			<label class="btn" id="btn-upload-map-label">
-				Upload Map
-				<input type="file" id="btn-upload-map" accept=".jpg,.jpeg,.png,.gif,.webp,image/*" style="display: none;">
-			</label>
-			<button class="btn" id="btn-export">Export Data</button>
-			<label class="btn" id="btn-import-label">
-				Import Data
-				<input type="file" id="btn-import" accept=".json" style="display: none;">
-			</label>
-		</aside>
-
-		<!-- Detail Panel -->
-		<aside class="detail-panel hidden" id="detail-panel">
-			<div class="detail-header">
-				<h2 id="detail-title">Select a location</h2>
-				<button class="btn-close" id="btn-close-detail" aria-label="Close details">&times;</button>
-			</div>
-			<div id="detail-content">
-				<div class="empty-state">
-					<p>Click on a location on the map to view details</p>
-				</div>
-			</div>
-		</aside>
-
-		<!-- Equipment Search Panel -->
-		<aside class="detail-panel hidden equipment-panel" id="equipment-panel">
-			<div class="detail-header">
-				<h2>D&D 5e Equipment</h2>
-				<button class="btn-close" id="btn-close-equipment" aria-label="Close equipment">&times;</button>
-			</div>
-			<div class="equipment-search-box">
-				<input type="text" id="equipment-search" placeholder="Search equipment..." autocomplete="off">
-			</div>
-			<div class="equipment-results" id="equipment-results">
-				<div class="equipment-loading">Loading equipment data...</div>
-			</div>
-		</aside>
-
 		<!-- Container -->
 		<div class="container">
+			<!-- Sidebar -->
+			<aside class="sidebar" id="sidebar">
+				<div class="sidebar-header">
+					<h2>Categories</h2>
+					<button class="sidebar-close" id="btn-close-sidebar" aria-label="Close menu">&times;</button>
+				</div>
+				<ul class="category-list">
+					<li class="category-item active" data-category="all">
+						<span>All</span>
+						<span class="badge" id="badge-all">0</span>
+					</li>
+					<li class="category-item" data-category="locations">
+						<span>Locations</span>
+						<span class="badge" id="badge-locations">0</span>
+					</li>
+					<li class="category-item" data-category="npcs">
+						<span>NPCs</span>
+						<span class="badge" id="badge-npcs">0</span>
+					</li>
+					<li class="category-item" data-category="items">
+						<span>Items</span>
+						<span class="badge" id="badge-items">0</span>
+					</li>
+					<li class="category-item" data-category="events">
+						<span>Events</span>
+						<span class="badge" id="badge-events">0</span>
+					</li>
+					<li class="category-item" data-category="equipment">
+						<span>Equipment Search</span>
+						<span class="badge" id="badge-equipment">∞</span>
+					</li>
+				</ul>
+				<button class="btn" id="btn-add-new">+ Add New</button>
+				<hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border);">
+				<label class="btn" id="btn-upload-map-label">
+					Upload Map
+					<input type="file" id="btn-upload-map" accept=".jpg,.jpeg,.png,.gif,.webp,image/*" style="display: none;">
+				</label>
+				<button class="btn" id="btn-export">Export Data</button>
+				<label class="btn" id="btn-import-label">
+					Import Data
+					<input type="file" id="btn-import" accept=".json" style="display: none;">
+				</label>
+			</aside>
+
+			<!-- Detail Panel -->
+			<aside class="detail-panel hidden" id="detail-panel">
+				<div class="detail-header">
+					<h2 id="detail-title">Select a location</h2>
+					<button class="btn-close" id="btn-close-detail" aria-label="Close details">&times;</button>
+				</div>
+				<div id="detail-content">
+					<div class="empty-state">
+						<p>Click on a location on the map to view details</p>
+					</div>
+				</div>
+			</aside>
+
+			<!-- Equipment Search Panel -->
+			<aside class="detail-panel hidden equipment-panel" id="equipment-panel">
+				<div class="detail-header">
+					<h2>D&D 5e Equipment</h2>
+					<button class="btn-close" id="btn-close-equipment" aria-label="Close equipment">&times;</button>
+				</div>
+				<div class="equipment-search-box">
+					<input type="text" id="equipment-search" placeholder="Search equipment..." autocomplete="off">
+				</div>
+				<div class="equipment-results" id="equipment-results">
+					<div class="equipment-loading">Loading equipment data...</div>
+				</div>
+			</aside>
 		<!-- Map Container -->
 		<div class="map-container" id="main-content">
 				<div class="map-toolbar">
@@ -3231,6 +3225,7 @@ async function showEquipmentDetails(equipment) {
 		// Hide all pages and show only the active one
 		const searchPage = document.getElementById('search-page');
 		const inventoryPage = document.getElementById('inventory-page');
+		const mapContainer = document.getElementById('main-content');
 		
 		// For search page
 		if (pageName === 'search') {
@@ -3238,6 +3233,7 @@ async function showEquipmentDetails(equipment) {
 			searchPage.classList.remove('hidden');
 			inventoryPage.classList.remove('active');
 			inventoryPage.classList.add('hidden');
+			mapContainer.classList.add('hidden');
 		} 
 		// For inventory page
 		else if (pageName === 'inventory') {
@@ -3245,6 +3241,7 @@ async function showEquipmentDetails(equipment) {
 			inventoryPage.classList.remove('hidden');
 			searchPage.classList.remove('active');
 			searchPage.classList.add('hidden');
+			mapContainer.classList.add('hidden');
 		} 
 		// For map
 		else if (pageName === 'map') {
@@ -3252,6 +3249,7 @@ async function showEquipmentDetails(equipment) {
 			searchPage.classList.add('hidden');
 			inventoryPage.classList.remove('active');
 			inventoryPage.classList.add('hidden');
+			mapContainer.classList.remove('hidden');
 		}
 
 		// Update nav buttons
