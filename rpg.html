@@ -978,7 +978,7 @@
 		padding: 12px 12px;
 		border: none;
 		border-left: 1px solid var(--border);
-		font-size: 0.8rem;
+		font-size: 0.875rem;
 		background: transparent;
 		color: var(--fg);
 		cursor: pointer;
@@ -986,6 +986,9 @@
 		font-weight: 500;
 		min-width: 90px;
 		outline: none;
+		text-align: left;
+		display: flex;
+		align-items: center;
 	}
 
 	.search-type-dropdown:hover {
@@ -1032,6 +1035,27 @@
 		margin: 0 0 8px;
 		font-size: 1rem;
 		color: var(--link);
+	}
+
+	.search-result-item p {
+		margin: 4px 0;
+		font-size: 0.875rem;
+	}
+
+	.search-result-description {
+		margin-top: 12px;
+		padding-top: 12px;
+		border-top: 1px solid var(--border);
+		font-size: 0.875rem;
+		line-height: 1.5;
+	}
+
+	.search-result-description p {
+		margin: 8px 0;
+	}
+
+	.search-result-description p:first-child {
+		margin-top: 0;
 	}
 
 	.search-result-item p {
@@ -3210,12 +3234,27 @@ async function showEquipmentDetails(equipment) {
 					return;
 				}
 
-				resultsContainer.innerHTML = results.map(item => `
+				// Fetch full details for each result
+				const fullResults = await Promise.all(
+					results.slice(0, 10).map(async (item) => {
+						try {
+							const details = await store.getEquipmentDetail(item.url);
+							return details;
+						} catch (e) {
+							console.warn('Failed to fetch details for', item.name);
+							return item;
+						}
+					})
+				);
+
+				resultsContainer.innerHTML = fullResults.map(item => `
 					<div class="search-result-item">
 						<h4>${item.name}</h4>
-						<p><strong>Type:</strong> ${item.equipment_category?.name || 'Unknown'}</p>
+						${item.equipment_category ? `<p><strong>Category:</strong> ${item.equipment_category.name}</p>` : ''}
+						${item.cost ? `<p><strong>Cost:</strong> ${item.cost.quantity} ${item.cost.unit}</p>` : ''}
+						${item.weight ? `<p><strong>Weight:</strong> ${item.weight} lb.</p>` : ''}
 						${item.rarity ? `<p><strong>Rarity:</strong> ${item.rarity}</p>` : ''}
-						<p><strong>Index:</strong> ${item.index}</p>
+						${item.desc ? `<div class="search-result-description">${item.desc.map(d => `<p>${d}</p>`).join('')}</div>` : ''}
 					</div>
 				`).join('');
 			} catch (error) {
