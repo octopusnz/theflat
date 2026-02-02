@@ -2186,9 +2186,23 @@
 				}
 
 		zoom(factor) {
-				// Apply zoom immediately
+				// Get the viewport center
+				const mapView = this.svg.parentElement;
+				const centerX = mapView.clientWidth / 2;
+				const centerY = mapView.clientHeight / 2;
+				
+				// Calculate the position of the center point in map coordinates
+				const mapCenterX = (centerX - this.translateX) / this.scale;
+				const mapCenterY = (centerY - this.translateY) / this.scale;
+				
+				// Apply zoom
 				this.scale *= factor;
 				this.scale = Math.max(0.5, Math.min(5, this.scale));
+				
+				// Adjust translation to keep the center point in the same visual location
+				this.translateX = centerX - mapCenterX * this.scale;
+				this.translateY = centerY - mapCenterY * this.scale;
+				
 				this.updateTransform();
 				
 				// Throttle rapid subsequent zooms to prevent overwhelming
