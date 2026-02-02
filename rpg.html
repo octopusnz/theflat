@@ -375,13 +375,14 @@
 				flex: 1;
 				position: relative;
 			overflow: auto;
-		background: #dbeafe;
-		touch-action: auto;
-		-webkit-user-select: none;
-		user-select: none;
-			position: absolute;
-			top: 50%;
-			left: 50%;
+			background: #dbeafe;
+			touch-action: auto;
+			-webkit-user-select: none;
+			user-select: none;
+		}
+
+		.map-view.loading::after {
+			content: '';
 			transform: translate(-50%, -50%);
 			width: 40px;
 			height: 40px;
