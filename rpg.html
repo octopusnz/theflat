@@ -944,13 +944,13 @@
 	}
 
 	.page-content {
+		display: flex;
 		flex: 1;
+		flex-direction: column;
 		overflow-y: auto;
 		-webkit-overflow-scrolling: touch;
 		padding: 16px;
 		background: var(--bg);
-		display: flex;
-		flex-direction: column;
 		justify-content: flex-start;
 		align-items: stretch;
 	}
@@ -958,6 +958,7 @@
 	/* Search Page */
 	.search-page-content {
 		display: flex;
+		flex: 1;
 		flex-direction: column;
 		padding: 0 !important;
 		background: var(--bg);
