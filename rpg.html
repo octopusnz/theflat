@@ -1247,8 +1247,19 @@
 		}
 
 		.search-results {
+			max-width: 100%;
+			width: 100%;
+			margin: 0;
+		}
+
+		.search-results:has(> :not(.empty-state)) {
 			grid-template-columns: 1fr;
 			gap: 10px;
+		}
+
+		.search-result-item {
+			width: 100%;
+			box-sizing: border-box;
 		}
 	}
 
