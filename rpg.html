@@ -3101,7 +3101,8 @@ async function showEquipmentDetails(equipment) {
 			resultsContainer.innerHTML = '<div class="equipment-loading">Searching...</div>';
 
 			try {
-				const equipment = await store.getEquipmentList();
+				const data = await store.getEquipmentList();
+				const equipment = data.results || data;
 				const filtered = equipment.filter(item => 
 					item.name.toLowerCase().includes(query.toLowerCase())
 				).slice(0, 20);
@@ -3192,7 +3193,8 @@ async function showEquipmentDetails(equipment) {
 			try {
 				let results = [];
 				if (type === 'equipment') {
-					const equipment = await store.getEquipmentList();
+					const data = await store.getEquipmentList();
+					const equipment = data.results || data;
 					results = equipment.filter(item =>
 						item.name.toLowerCase().includes(query.toLowerCase())
 					);
