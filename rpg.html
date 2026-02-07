@@ -740,6 +740,51 @@
 		opacity: 0.5;
 	}
 
+	.sidebar-divider {
+		margin: 20px 0;
+		border: none;
+		border-top: 1px solid var(--border);
+	}
+
+	.sidebar-section {
+		margin-bottom: 16px;
+	}
+
+	.sidebar-section-title {
+		margin: 0 0 8px;
+		font-size: 0.875rem;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--muted-fg);
+	}
+
+	.search-category-filter {
+		width: 100%;
+		padding: 8px;
+		border: 1px solid var(--border);
+		border-radius: 4px;
+		background: var(--bg);
+		color: var(--fg);
+		font-size: 0.875rem;
+		box-sizing: border-box;
+		margin-bottom: 8px;
+		font-family: inherit;
+	}
+
+	.search-category-filter:focus {
+		outline: none;
+		border-color: var(--link);
+		box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.1);
+	}
+
+	.search-category-scrollable {
+		max-height: 150px;
+		overflow-y: auto;
+		border: 1px solid var(--border);
+		border-radius: 4px;
+		padding: 4px;
+	}
+
 	@media (max-width: 1024px) {
 		.detail-panel {
 			position: fixed;
@@ -1762,14 +1807,14 @@
 					</li>
 				</ul>
 				<button class="btn" id="btn-add-new">+ Add New</button>
-				<hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border);">
+				<hr class="sidebar-divider">
 				
 				<!-- Search Categories Section -->
-				<div style="margin-bottom: 16px;">
-					<h3 style="margin: 0 0 8px; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-fg);">Rules Search</h3>
-					<input type="text" id="search-category-filter" placeholder="Filter searches..." autocomplete="off" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--fg); font-size: 0.875rem; box-sizing: border-box; margin-bottom: 8px;">
+				<div class="sidebar-section">
+					<h3 class="sidebar-section-title">Rules Search</h3>
+					<input type="text" id="search-category-filter" placeholder="Filter searches..." autocomplete="off" class="search-category-filter">
 				</div>
-				<ul class="category-list search-category-list" id="search-category-list" style="max-height: 150px; overflow-y: auto; border: 1px solid var(--border); border-radius: 4px; padding: 4px;">
+				<ul class="category-list search-category-list search-category-scrollable" id="search-category-list">
 					<li class="category-item search-category-item" data-search-type="equipment">
 						<span>Equipment</span>
 					</li>
@@ -1829,12 +1874,12 @@
 				<hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border);">
 				<label class="btn" id="btn-upload-map-label">
 					Upload Map
-					<input type="file" id="btn-upload-map" accept=".jpg,.jpeg,.png,.gif,.webp,image/*" style="display: none;">
+					<input type="file" id="btn-upload-map" accept=".jpg,.jpeg,.png,.gif,.webp,image/*" class="hidden">
 				</label>
 				<button class="btn" id="btn-export">Export Data</button>
 				<label class="btn" id="btn-import-label">
 					Import Data
-					<input type="file" id="btn-import" accept=".json" style="display: none;">
+					<input type="file" id="btn-import" accept=".json" class="hidden">
 				</label>
 			</aside>
 
@@ -2259,7 +2304,6 @@
 					
 					// Return cached data if available, even if expired
 					if (cached) {
-						console.warn('Using expired cache due to API error');
 						return JSON.parse(cached);
 					}
 					
@@ -2271,7 +2315,6 @@
 				try {
 					// Construct the full URL
 					const fullUrl = `https://www.dnd5eapi.co${url}`;
-					console.log('[DEBUG] Fetching equipment detail from:', fullUrl);
 					
 					const response = await fetch(fullUrl, {
 						method: 'GET',
@@ -2281,14 +2324,12 @@
 						mode: 'cors',
 						credentials: 'omit'
 					});
-					console.log('[DEBUG] Response status:', response.status, response.statusText);
 					
 					if (!response.ok) {
 						throw new Error(`API returned ${response.status}: ${response.statusText}`);
 					}
 					
 					const data = await response.json();
-					console.log('[DEBUG] Equipment detail loaded:', data);
 					return data;
 				} catch (error) {
 					console.error('[ERROR] Failed to fetch equipment details:', error.message, error);
@@ -2309,9 +2350,7 @@
 		}, 2000);
 		
 		try {
-			console.log('[DEBUG] initApp starting');
 			await store.load();
-			console.log('[DEBUG] store loaded, calling renderMap');
 			
 			if (mapController) {
 				mapController.renderMap();
@@ -2502,7 +2541,6 @@
 				renderMap() {
 				// Show loading state
 				const mapView = document.getElementById('map-view');
-			console.log('[DEBUG] renderMap called, adding loading state');
 			mapView.classList.add('loading');
 
 			// Clear existing SVG content first
@@ -2511,9 +2549,7 @@
 			
 			try {
 				// Render custom map if available
-				console.log('[DEBUG] Checking for custom map:', store.data.mapSvg, store.data.mapType);
 				if (store.data.mapSvg && store.data.mapType === 'raster') {
-					console.log('[DEBUG] Loading raster map');
 					// Handle raster images (JPG, PNG, etc.)
 					const width = store.data.mapWidth || 1000;
 					const height = store.data.mapHeight || 600;
@@ -2551,7 +2587,6 @@
 					let imageLoaded = false;
 					image.addEventListener('load', () => {
 						imageLoaded = true;
-						console.log('[DEBUG] Raster image loaded');
 						mapView.classList.remove('loading');
 						this.svg.classList.add('ready');
 						this.render(); // Render locations after image is loaded and visible
@@ -2560,14 +2595,12 @@
 					// Fallback: remove loading state after VERY short timeout
 					setTimeout(() => {
 						if (!imageLoaded) {
-							console.warn('[WARN] Map image load timeout after 500ms');
 							mapView.classList.remove('loading');
 							this.svg.classList.add('ready');
 							this.render();
 						}
 					}, 500);
 				} else {
-					console.log('[DEBUG] Using grid fallback map');
 					// Default map with grid (fallback)
 					this.svg.setAttribute('viewBox', '0 0 1000 600');
 					
@@ -2608,7 +2641,6 @@
 					this.locationsLayer = locationsLayer;
 
 					// Show the grid (no image to wait for)
-					console.log('[DEBUG] Grid created, removing loading state');
 					}
 				} catch (err) {
 					console.error('[ERROR] renderMap failed:', err);
@@ -2872,7 +2904,6 @@ if (!window.fullEquipmentList) {
 		item.addEventListener('click', async () => {
 			const index = item.dataset.index;
 			const selectedEquipment = window.fullEquipmentList.find(e => e.index === index);
-			console.log('[DEBUG] Equipment item clicked:', { index, selectedEquipment });
 			if (selectedEquipment && selectedEquipment.url) {
 				await showEquipmentDetails(selectedEquipment);
 			} else {
@@ -2884,7 +2915,6 @@ if (!window.fullEquipmentList) {
 
 async function showEquipmentDetails(equipment) {
 	try {
-		console.log('[DEBUG] Loading details for equipment:', equipment);
 		const details = await store.getEquipmentDetail(equipment.url);
 		const panel = document.getElementById('detail-panel');
 		const title = document.getElementById('detail-title');
@@ -3434,7 +3464,6 @@ document.querySelectorAll('.search-category-item').forEach(item => {
 
 // Initialize
 const mapController = new MapController();
-console.log('[DEBUG] mapController created');
 
 // Export functionality
 document.getElementById('btn-export').addEventListener('click', () => {
@@ -3617,7 +3646,6 @@ async loadInventory() {
 				return await response.json();
 			}
 		} catch (e) {
-			console.warn('Could not load default inventory:', e);
 			}
 			return {
 				platinum: 0,
@@ -3804,7 +3832,6 @@ async loadInventory() {
 						const details = await store.getEquipmentDetail(item.url);
 						return details;
 					} catch (e) {
-						console.warn('Failed to fetch details for', item.name);
 						return item;
 					}
 				})
@@ -3948,7 +3975,6 @@ async loadInventory() {
 						}
 						return item;
 					} catch (e) {
-						console.warn('Failed to fetch details for', item.name);
 						return item;
 					}
 				})
@@ -4309,11 +4335,9 @@ async loadInventory() {
 	// Start the app - wait for DOM to be ready
 	if (document.readyState === 'loading') {
 		document.addEventListener('DOMContentLoaded', () => {
-			console.log('[DEBUG] DOM loaded, starting app');
 			initApp();
 		});
 	} else {
-		console.log('[DEBUG] DOM already loaded, starting app');
 		initApp();
 	}
 	
