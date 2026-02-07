@@ -1207,8 +1207,9 @@
 
 	.search-results:has(> :not(.empty-state)) {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-		align-items: start;
+		grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+		grid-auto-rows: 1fr;
+		align-items: stretch;
 		justify-content: start;
 		min-height: auto;
 	}
@@ -1220,6 +1221,9 @@
 		cursor: pointer;
 		transition: all 0.2s;
 		background: var(--bg);
+		display: flex;
+		flex-direction: column;
+		height: 100%;
 	}
 
 	.search-result-item:hover {
@@ -1246,6 +1250,10 @@
 		border-top: 1px solid var(--border);
 		font-size: 0.875rem;
 		line-height: 1.5;
+		display: -webkit-box;
+		-webkit-line-clamp: 3;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
 	}
 
 	.search-result-description p {
@@ -1489,6 +1497,11 @@
 		.search-result-item {
 			width: 100%;
 			box-sizing: border-box;
+		}
+
+		.search-result-description {
+			display: block;
+			overflow: visible;
 		}
 	}
 
