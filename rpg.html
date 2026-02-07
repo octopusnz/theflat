@@ -41,6 +41,17 @@
 				--hover: #f3f4f6;
 			}
 
+			body.theme-dark {
+				--bg: #0b1220;
+				--fg: #e5e7eb;
+				--muted-fg: #cbd5e1;
+				--link: #93c5fd;
+				--link-visited: #c4b5fd;
+				--focus: #fbbf24;
+				--border: #334155;
+				--hover: #1e293b;
+			}
+
 			*,
 			*::before,
 			*::after {
@@ -1733,6 +1744,7 @@
 				<button class="nav-btn" data-page="map">World Map</button>
 				<button class="nav-btn" data-page="search">Search</button>
 				<button class="nav-btn" data-page="inventory">Party Inventory</button>
+				<button class="nav-btn" id="btn-theme" type="button" aria-pressed="false">Dark Mode</button>
 			</nav>
 		</header>
 		<div class="mobile-overlay" id="mobile-overlay"></div>
@@ -2328,6 +2340,33 @@
 			mapView.classList.add('ready');
 			clearTimeout(safetyTimeout);
 		}
+	}
+
+	function setupThemeToggle() {
+		const themeButton = document.getElementById('btn-theme');
+		const themeMeta = document.querySelector('meta[name="theme-color"]');
+		if (!themeButton) return;
+
+		const applyTheme = (theme) => {
+			const isDark = theme === 'dark';
+			document.body.classList.toggle('theme-dark', isDark);
+			themeButton.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+			themeButton.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+			if (themeMeta) {
+				themeMeta.setAttribute('content', isDark ? '#0b1220' : '#ffffff');
+			}
+		};
+
+		const savedTheme = localStorage.getItem('theme');
+		if (savedTheme === 'dark' || savedTheme === 'light') {
+			applyTheme(savedTheme);
+		}
+
+		themeButton.addEventListener('click', () => {
+			const nextTheme = document.body.classList.contains('theme-dark') ? 'light' : 'dark';
+			localStorage.setItem('theme', nextTheme);
+			applyTheme(nextTheme);
+		});
 	}
 			const store = new DataStore();
 
@@ -4364,9 +4403,11 @@ async loadInventory() {
 	// Start the app - wait for DOM to be ready
 	if (document.readyState === 'loading') {
 		document.addEventListener('DOMContentLoaded', () => {
+			setupThemeToggle();
 			initApp();
 		});
 	} else {
+		setupThemeToggle();
 		initApp();
 	}
 	
