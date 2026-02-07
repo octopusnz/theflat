@@ -2388,6 +2388,12 @@
 						console.error('[ERROR] map-svg element not found');
 						return;
 					}
+					this.scale = 1;
+					this.translateX = 0;
+					this.translateY = 0;
+					this.isDragging = false;
+					this.startX = 0;
+					this.startY = 0;
 				this.locationsLayer = null; // Will be set in renderMap
 					this.transformTimeout = null;
 					this.willChangeTimeout = null;
@@ -2522,7 +2528,7 @@
 					}
 					
 					this.rafId = requestAnimationFrame(() => {
-						const target = this.mainGroup || this.locationsLayer;
+						const target = this.mainGroup || this.locationsLayer || this.svg;
 						if (!target) return;
 						
 						// Apply transform with no transition for instant feedback
