@@ -1744,7 +1744,7 @@
 				<button class="nav-btn" data-page="map">World Map</button>
 				<button class="nav-btn" data-page="search">Search</button>
 				<button class="nav-btn" data-page="inventory">Party Inventory</button>
-				<button class="nav-btn" id="btn-theme" type="button" aria-pressed="false">Dark Mode</button>
+				<button class="nav-btn" id="btn-theme" type="button" aria-pressed="true">Light Mode</button>
 			</nav>
 		</header>
 		<div class="mobile-overlay" id="mobile-overlay"></div>
@@ -2360,6 +2360,8 @@
 		const savedTheme = localStorage.getItem('theme');
 		if (savedTheme === 'dark' || savedTheme === 'light') {
 			applyTheme(savedTheme);
+		} else {
+			applyTheme('dark');
 		}
 
 		themeButton.addEventListener('click', () => {
