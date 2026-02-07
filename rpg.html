@@ -1512,15 +1512,18 @@
 	}
 
 	.currency-input {
-		padding: 12px;
+		width: 100%;
+		height: 44px;
+		padding: 10px 12px;
 		border: 2px solid var(--border);
 		border-radius: 6px;
-		font-size: 1rem;
+		font-size: 1.05rem;
 		font-weight: 600;
 		background: var(--hover);
 		color: var(--fg);
 		transition: all 0.2s;
 		text-align: center;
+		line-height: 1.2;
 	}
 
 	.currency-input:focus {
@@ -1685,6 +1688,11 @@
 
 		.currency-inputs {
 			grid-template-columns: 1fr;
+		}
+
+		.currency-input {
+			height: 48px;
+			font-size: 1.1rem;
 		}
 
 		.items-header {
