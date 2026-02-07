@@ -18,5 +18,6 @@ The website contains a brief informational notice about the domain and email aut
 
 ## URLs
 - Home: https://theflat.gen.nz/
+- RPG Tracker: https://theflat.gen.nz/rpg.html
 - Robots: https://theflat.gen.nz/robots.txt
 - Sitemap: https://theflat.gen.nz/sitemap.xml
