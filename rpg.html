@@ -3527,7 +3527,9 @@ document.querySelectorAll('.search-category-item').forEach(item => {
 		searchInput.value = '';
 		searchInput.focus();
 		// Close sidebar on mobile
-		closeSidebar();
+		if (window.innerWidth <= 768) {
+			closeSidebar();
+		}
 	});
 });
 
@@ -3584,6 +3586,9 @@ document.getElementById('btn-import').addEventListener('change', async (e) => {
 
 	menuBtn.addEventListener('click', () => {
 		if (window.innerWidth >= 769) {
+			sidebar.classList.toggle('hidden');
+			sidebar.classList.remove('active');
+			overlay.classList.remove('active');
 			return;
 		}
 		sidebar.classList.toggle('active');
@@ -3595,11 +3600,10 @@ document.getElementById('btn-import').addEventListener('change', async (e) => {
 
 	function syncSidebarForViewport() {
 		if (window.innerWidth >= 769) {
-			sidebar.classList.remove('hidden');
 			sidebar.classList.remove('active');
 			overlay.classList.remove('active');
 			menuCloseBtn.classList.add('hidden');
-			menuBtn.classList.add('hidden');
+			menuBtn.classList.remove('hidden');
 			return;
 		}
 
