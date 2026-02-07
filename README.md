@@ -23,6 +23,8 @@ Static site content for **theflat.gen.nz**, hosted on GitHub Pages.
 - `.well-known/security.txt`: security contact information
 - `.nojekyll`: disables Jekyll processing on GitHub Pages
 
+.
+
 ## Credits
 
 Octopus favicons based on icons created by [Freepik - Flaticon](https://www.flaticon.com/free-icons/octopus)
