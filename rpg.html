@@ -1135,6 +1135,70 @@
 		margin-top: 0;
 	}
 
+	.search-result-metadata {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		margin-top: 8px;
+		padding: 8px 0;
+		border-bottom: 1px solid var(--border);
+	}
+
+	.search-result-metadata p {
+		margin: 0;
+		font-size: 0.9rem;
+		color: var(--muted-fg);
+	}
+
+	.search-result-metadata strong {
+		color: var(--fg);
+		font-weight: 600;
+	}
+
+	.search-result-crossrefs {
+		margin-top: 12px;
+		padding: 12px;
+		background: var(--hover);
+		border-radius: 6px;
+		border-left: 3px solid var(--link);
+	}
+
+	.search-result-crossrefs strong {
+		display: block;
+		margin-bottom: 8px;
+		font-size: 0.875rem;
+		text-transform: uppercase;
+		color: var(--link);
+		letter-spacing: 0.05em;
+	}
+
+	.crossref-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+	}
+
+	.crossref-list li {
+		display: flex;
+		gap: 8px;
+		font-size: 0.875rem;
+	}
+
+	.crossref-label {
+		font-weight: 600;
+		color: var(--muted-fg);
+		min-width: 100px;
+		flex-shrink: 0;
+	}
+
+	.crossref-value {
+		color: var(--fg);
+		flex: 1;
+	}
+
 	/* Add Item Modal Styles */
 	.modal-body {
 		display: flex;
@@ -3901,81 +3965,140 @@ async loadInventory() {
 	}
 
 	renderSearchResult(item, type) {
-		let html = `<div class="search-result-item"><h4>${item.name || item.index}</h4>`;
+		let html = `<div class="search-result-item">
+			<h4>${item.name || item.index}</h4>
+			<div class="search-result-metadata">`;
+
+		// Render type-specific metadata
+		const metadata = this.getMetadataForType(item, type);
+		if (metadata) html += metadata;
+
+		html += `</div>`;
+
+		// Add description if available
+		if (item.desc) {
+			if (Array.isArray(item.desc)) {
+				html += `<div class="search-result-description">${item.desc.map(d => `<p>${d}</p>`).join('')}</div>`;
+			} else if (typeof item.desc === 'string') {
+				html += `<div class="search-result-description"><p>${item.desc}</p></div>`;
+			}
+		}
+
+		// Add cross-references if available
+		const crossRefs = this.getCrossReferences(item, type);
+		if (crossRefs.length > 0) {
+			html += `<div class="search-result-crossrefs">
+				<strong>Related:</strong>
+				<ul class="crossref-list">`;
+			crossRefs.forEach(ref => {
+				html += `<li><span class="crossref-label">${ref.label}:</span> <span class="crossref-value">${ref.value}</span></li>`;
+			});
+			html += `</ul>
+			</div>`;
+		}
+
+		html += `</div>`;
+		return html;
+	}
+
+	getMetadataForType(item, type) {
+		let html = '';
 
 		switch(type) {
 			case 'equipment':
 				if (item.equipment_category) html += `<p><strong>Category:</strong> ${item.equipment_category.name}</p>`;
 				if (item.weapon_category) html += `<p><strong>Weapon Type:</strong> ${item.weapon_category}</p>`;
+				if (item.armor_class) {
+					const acValue = typeof item.armor_class === 'object' ? item.armor_class.value : item.armor_class;
+					html += `<p><strong>AC:</strong> ${acValue}</p>`;
+				}
 				if (item.cost) html += `<p><strong>Cost:</strong> ${item.cost.quantity} ${item.cost.unit}</p>`;
 				if (item.weight) html += `<p><strong>Weight:</strong> ${item.weight} lb.</p>`;
-				if (item.damage) html += `<p><strong>Damage:</strong> ${item.damage.damage_dice} ${item.damage.damage_type.name}</p>`;
-				if (item.weapon_range) html += `<p><strong>Range:</strong> ${item.weapon_range}</p>`;
-				if (item.range?.normal) html += `<p><strong>Range:</strong> ${item.range.normal} ft${item.range.long ? ` / ${item.range.long} ft` : ''}</p>`;
+				if (item.damage) {
+					const damageDice = item.damage.damage_dice || item.damage.dice;
+					const damageType = item.damage.damage_type?.name || item.damage.damage_type || 'Unknown';
+					html += `<p><strong>Damage:</strong> ${damageDice} ${damageType}</p>`;
+				}
+				if (item.range?.normal) html += `<p><strong>Range:</strong> ${item.range.normal} ft${item.range.long ? ` / ${item.range.long} ft (long)` : ''}</p>`;
+				if (item.weapon_range) html += `<p><strong>Range Category:</strong> ${item.weapon_range}</p>`;
 				if (item.properties && Array.isArray(item.properties) && item.properties.length > 0) {
 					const propNames = item.properties.map(p => p.name || p).join(', ');
 					html += `<p><strong>Properties:</strong> ${propNames}</p>`;
 				}
 				if (item.rarity) html += `<p><strong>Rarity:</strong> ${item.rarity}</p>`;
-				if (item.armor_class) {
-					const acValue = typeof item.armor_class === 'object' ? item.armor_class.value : item.armor_class;
-					html += `<p><strong>AC:</strong> ${acValue}</p>`;
-				}
 				break;
 
 			case 'spells':
-				if (item.level) {
+				if (item.level !== undefined) {
 					const levelName = item.level === 0 ? 'Cantrip' : `Level ${item.level}`;
 					html += `<p><strong>Level:</strong> ${levelName}</p>`;
 				}
-				if (item.school) html += `<p><strong>School:</strong> ${item.school.name}</p>`;
+				if (item.school) html += `<p><strong>School of Magic:</strong> ${item.school.name || item.school}</p>`;
 				if (item.casting_time) html += `<p><strong>Casting Time:</strong> ${item.casting_time}</p>`;
 				if (item.range) html += `<p><strong>Range:</strong> ${item.range}</p>`;
+				if (item.components && Array.isArray(item.components)) html += `<p><strong>Components:</strong> ${item.components.join(', ')}</p>`;
+				if (item.material) html += `<p><strong>Material:</strong> ${item.material}</p>`;
 				if (item.duration) html += `<p><strong>Duration:</strong> ${item.duration}</p>`;
-				if (item.concentration) html += `<p><strong>Concentration:</strong> Yes</p>`;
-				if (item.ritual) html += `<p><strong>Ritual:</strong> Yes</p>`;
-				if (item.components) html += `<p><strong>Components:</strong> ${item.components.join(', ')}</p>`;
+				if (item.concentration) html += `<p><strong>Requires Concentration</strong></p>`;
+				if (item.ritual) html += `<p><strong>Can be cast as ritual</strong></p>`;
 				break;
 
 			case 'monsters':
-				if (item.challenge_rating !== undefined) html += `<p><strong>CR:</strong> ${item.challenge_rating}</p>`;
+				if (item.challenge_rating !== undefined) {
+					const xp = item.xp ? ` (${item.xp.toLocaleString()} XP)` : '';
+					html += `<p><strong>Challenge Rating:</strong> ${item.challenge_rating}${xp}</p>`;
+				}
 				if (item.size) html += `<p><strong>Size:</strong> ${item.size}</p>`;
 				if (item.type) html += `<p><strong>Type:</strong> ${item.type}</p>`;
 				if (item.alignment) html += `<p><strong>Alignment:</strong> ${item.alignment}</p>`;
 				if (item.armor_class) {
-					const acValue = typeof item.armor_class === 'object' ? item.armor_class.value : item.armor_class;
-					html += `<p><strong>AC:</strong> ${acValue}</p>`;
+					const acValue = typeof item.armor_class === 'object' ? item.armor_class.base : item.armor_class;
+					const acDesc = typeof item.armor_class === 'object' ? ` (${item.armor_class.description})` : '';
+					html += `<p><strong>AC:</strong> ${acValue}${acDesc}</p>`;
 				}
-				if (item.hit_points) html += `<p><strong>HP:</strong> ${item.hit_points}</p>`;
-				if (item.speed) html += `<p><strong>Speed:</strong> ${typeof item.speed === 'object' ? JSON.stringify(item.speed).replace(/[{}\"]/g, '') : item.speed}</p>`;
+				if (item.hit_points) html += `<p><strong>Hit Points:</strong> ${item.hit_points}</p>`;
+				if (item.hit_die) html += `<p><strong>Hit Dice:</strong> ${item.hit_dice}</p>`;
+				if (item.speed) {
+					const speedStr = typeof item.speed === 'object' ? Object.entries(item.speed).map(([k, v]) => `${k}: ${v}`).join(', ') : item.speed;
+					html += `<p><strong>Speed:</strong> ${speedStr}</p>`;
+				}
+				if (item.language) html += `<p><strong>Languages:</strong> ${item.language}</p>`;
 				break;
 
 			case 'classes':
 				if (item.hit_die) html += `<p><strong>Hit Die:</strong> d${item.hit_die}</p>`;
-				if (item.saving_throws) html += `<p><strong>Saving Throws:</strong> ${item.saving_throws.map(s => s.name || s).join(', ')}</p>`;
-				if (item.skill_proficiencies) html += `<p><strong>Skill Proficiencies:</strong> ${item.skill_proficiencies.map(s => s.name || s).join(', ')}</p>`;
+				if (item.saving_throws && Array.isArray(item.saving_throws)) {
+					html += `<p><strong>Saving Throws:</strong> ${item.saving_throws.map(s => s.name || s).join(', ')}</p>`;
+				}
+				if (item.skill_proficiencies && Array.isArray(item.skill_proficiencies)) {
+					html += `<p><strong>Skill Proficiencies Available:</strong> ${item.skill_proficiencies.map(s => s.name || s).join(', ')}</p>`;
+				}
 				break;
 
 			case 'races':
 				if (item.ability_bonuses) {
 					const bonuses = item.ability_bonuses.map(b => `${b.ability_score.name} +${b.bonus}`).join(', ');
 					html += `<p><strong>Ability Bonuses:</strong> ${bonuses}</p>`;
+				} else if (item.ability_bonus_options) {
+					html += `<p><strong>Flexible Ability Bonus Available</strong></p>`;
 				}
-				if (item.speed) html += `<p><strong>Speed:</strong> ${item.speed} ft.</p>`;
-				if (item.ability_bonus_options) html += `<p><strong>Flexible Ability Bonus</strong></p>`;
+				if (item.speed) html += `<p><strong>Base Walking Speed:</strong> ${item.speed} ft.</p>`;
 				if (item.language_desc) html += `<p><strong>Languages:</strong> ${item.language_desc}</p>`;
+				if (item.size) html += `<p><strong>Size:</strong> ${item.size}</p>`;
 				break;
 
 			case 'skills':
-				if (item.ability_score) html += `<p><strong>Ability:</strong> ${item.ability_score.name}</p>`;
+				if (item.ability_score) {
+					html += `<p><strong>Ability:</strong> ${item.ability_score.name || item.ability_score}</p>`;
+				}
 				break;
 
 			case 'conditions':
-				// Conditions have descriptions shown below
+				// Condition-specific details shown in description
 				break;
 
 			case 'damage-types':
-				// Damage types have descriptions shown below
+				// Damage type details shown in description
 				break;
 
 			case 'languages':
@@ -3993,63 +4116,190 @@ async loadInventory() {
 				break;
 
 			case 'features':
-				if (item.class) html += `<p><strong>Class:</strong> ${item.class.name}</p>`;
-				if (item.subclass) html += `<p><strong>Subclass:</strong> ${item.subclass.name}</p>`;
-				if (item.level) html += `<p><strong>Level:</strong> ${item.level}</p>`;
+				if (item.class) html += `<p><strong>Class:</strong> ${item.class.name || item.class}</p>`;
+				if (item.subclass) html += `<p><strong>Subclass:</strong> ${item.subclass.name || item.subclass}</p>`;
+				if (item.level) html += `<p><strong>Available at Level:</strong> ${item.level}</p>`;
 				break;
 
 			case 'proficiencies':
 				if (item.type) html += `<p><strong>Type:</strong> ${item.type}</p>`;
 				if (item.races && Array.isArray(item.races) && item.races.length > 0) {
-					html += `<p><strong>Races:</strong> ${item.races.map(r => r.name || r).join(', ')}</p>`;
+					html += `<p><strong>Available to Races:</strong> ${item.races.map(r => r.name || r).join(', ')}</p>`;
 				}
 				if (item.classes && Array.isArray(item.classes) && item.classes.length > 0) {
-					html += `<p><strong>Classes:</strong> ${item.classes.map(c => c.name || c).join(', ')}</p>`;
+					html += `<p><strong>Available to Classes:</strong> ${item.classes.map(c => c.name || c).join(', ')}</p>`;
 				}
 				if (item.subclasses && Array.isArray(item.subclasses) && item.subclasses.length > 0) {
-					html += `<p><strong>Subclasses:</strong> ${item.subclasses.map(s => s.name || s).join(', ')}</p>`;
+					html += `<p><strong>Available to Subclasses:</strong> ${item.subclasses.map(s => s.name || s).join(', ')}</p>`;
 				}
 				break;
 
 			case 'subclasses':
-				if (item.class) html += `<p><strong>Class:</strong> ${item.class.name}</p>`;
+				if (item.class) html += `<p><strong>Class:</strong> ${item.class.name || item.class}</p>`;
 				if (item.subclass_flavor) html += `<p><strong>Flavor:</strong> ${item.subclass_flavor}</p>`;
 				break;
 
 			case 'subraces':
-				if (item.race) html += `<p><strong>Race:</strong> ${item.race.name}</p>`;
+				if (item.race) html += `<p><strong>Parent Race:</strong> ${item.race.name || item.race}</p>`;
 				if (item.ability_bonuses) {
 					const subraceBonus = item.ability_bonuses.map(b => `${b.ability_score.name} +${b.bonus}`).join(', ');
-					html += `<p><strong>Ability Bonuses:</strong> ${subraceBonus}</p>`;
+					html += `<p><strong>Additional Ability Bonuses:</strong> ${subraceBonus}</p>`;
 				}
 				break;
 
 			case 'magic-schools':
-				// Magic schools have descriptions shown below
+				// Magic school details shown in description
 				break;
 
 			case 'weapon-properties':
-				// Weapon properties have descriptions shown below
+				// Weapon property details shown in description
 				break;
 
 			case 'equipment-categories':
-				// Equipment categories have descriptions shown below
+				// Equipment category details shown in description
 				break;
 
 			case 'ability-scores':
 				if (item.full_name) html += `<p><strong>Full Name:</strong> ${item.full_name}</p>`;
+				if (item.description) html += `<p><strong>Description:</strong> ${item.description}</p>`;
 				break;
 		}
 
-			if (item.desc && Array.isArray(item.desc)) {
-				html += `<div class="search-result-description">${item.desc.map(d => `<p>${d}</p>`).join('')}</div>`;
-			} else if (item.desc && typeof item.desc === 'string') {
-				html += `<div class="search-result-description"><p>${item.desc}</p></div>`;
-			}
+		return html;
+	}
 
-			html += '</div>';
-			return html;
+	getCrossReferences(item, type) {
+		const refs = [];
+
+		switch(type) {
+			case 'spells':
+				if (item.school) {
+					refs.push({ label: 'School', value: item.school.name || item.school });
+				}
+				if (item.level === 0) {
+					refs.push({ label: 'Type', value: 'Cantrip' });
+				} else if (item.level) {
+					refs.push({ label: 'Spell Circle', value: `${item.level}${this.getOrdinalSuffix(item.level)} Circle` });
+				}
+				break;
+
+			case 'equipment':
+				if (item.damage) {
+					const damageType = item.damage.damage_type?.name || item.damage.damage_type;
+					if (damageType) {
+						refs.push({ label: 'Damage Type', value: damageType });
+					}
+				}
+				if (item.equipment_category) {
+					refs.push({ label: 'Equipment Category', value: item.equipment_category.name });
+				}
+				if (item.weapon_category) {
+					refs.push({ label: 'Weapon Type', value: item.weapon_category.name || item.weapon_category });
+				}
+				break;
+
+			case 'monsters':
+				if (item.type) {
+					refs.push({ label: 'Creature Type', value: item.type });
+				}
+				if (item.size) {
+					refs.push({ label: 'Size Category', value: item.size });
+				}
+				if (item.languages && item.languages.length > 0) {
+					refs.push({ label: 'Languages', value: item.languages.join(', ') });
+				} else if (item.language) {
+					refs.push({ label: 'Languages', value: item.language });
+				}
+				break;
+
+			case 'classes':
+				if (item.hit_die) {
+					refs.push({ label: 'Hit Die', value: `d${item.hit_die}` });
+				}
+				break;
+
+			case 'races':
+				if (item.size) {
+					refs.push({ label: 'Size', value: item.size });
+				}
+				if (item.speed) {
+					refs.push({ label: 'Speed', value: `${item.speed} ft` });
+				}
+				break;
+
+			case 'features':
+				if (item.class) {
+					refs.push({ label: 'Class', value: item.class.name });
+				}
+				if (item.level) {
+					refs.push({ label: 'Level', value: `${item.level}${this.getOrdinalSuffix(item.level)}` });
+				}
+				break;
+
+			case 'subclasses':
+				if (item.class) {
+					refs.push({ label: 'For Class', value: item.class.name });
+				}
+				break;
+
+			case 'subraces':
+				if (item.race) {
+					refs.push({ label: 'Subrace of', value: item.race.name });
+				}
+				break;
+
+			case 'skills':
+				if (item.ability_score) {
+					const abilityName = item.ability_score.name || item.ability_score;
+					refs.push({ label: 'Uses Ability', value: abilityName });
+				}
+				break;
+
+			case 'languages':
+				if (item.type) {
+					refs.push({ label: 'Language Type', value: item.type });
+				}
+				break;
+
+			case 'conditions':
+				refs.push({ label: 'Type', value: 'Condition' });
+				break;
+
+			case 'damage-types':
+				refs.push({ label: 'Damage Type', value: 'Physical or magical harm' });
+				break;
+
+			case 'traits':
+				const traitTypes = [];
+				if (item.races && item.races.length > 0) traitTypes.push(`${item.races.length} races`);
+				if (item.subraces && item.subraces.length > 0) traitTypes.push(`${item.subraces.length} subraces`);
+				if (traitTypes.length > 0) {
+					refs.push({ label: 'Available to', value: traitTypes.join(', ') });
+				}
+				break;
+
+			case 'proficiencies':
+				const profTypes = [];
+				if (item.races && item.races.length > 0) profTypes.push(`${item.races.length} races`);
+				if (item.classes && item.classes.length > 0) profTypes.push(`${item.classes.length} classes`);
+				if (item.subclasses && item.subclasses.length > 0) profTypes.push(`${item.subclasses.length} subclasses`);
+				if (profTypes.length > 0) {
+					refs.push({ label: 'Available to', value: profTypes.join(', ') });
+				}
+				break;
 		}
+
+		return refs;
+	}
+
+	getOrdinalSuffix(num) {
+		const j = num % 10;
+		const k = num % 100;
+		if (j === 1 && k !== 11) return 'st';
+		if (j === 2 && k !== 12) return 'nd';
+		if (j === 3 && k !== 13) return 'rd';
+		return 'th';
+	}
 	}
 
 	// Initialize managers
