@@ -3465,7 +3465,8 @@ document.getElementById('btn-import').addEventListener('change', async (e) => {
 		// Hide all pages and show only the active one
 		const searchPage = document.getElementById('search-page');
 		const inventoryPage = document.getElementById('inventory-page');
-		const mapContainer = document.getElementById('main-content');
+		const mapToolbar = document.querySelector('.map-toolbar');
+		const mapView = document.getElementById('map-view');
 		
 		// For search page
 		if (pageName === 'search') {
@@ -3473,7 +3474,8 @@ document.getElementById('btn-import').addEventListener('change', async (e) => {
 			searchPage.classList.remove('hidden');
 			inventoryPage.classList.remove('active');
 			inventoryPage.classList.add('hidden');
-			mapContainer.classList.add('hidden');
+			mapToolbar.classList.add('hidden');
+			mapView.classList.add('hidden');
 		} 
 		// For inventory page
 		else if (pageName === 'inventory') {
@@ -3481,7 +3483,8 @@ document.getElementById('btn-import').addEventListener('change', async (e) => {
 			inventoryPage.classList.remove('hidden');
 			searchPage.classList.remove('active');
 			searchPage.classList.add('hidden');
-			mapContainer.classList.add('hidden');
+			mapToolbar.classList.add('hidden');
+			mapView.classList.add('hidden');
 		} 
 		// For map
 		else if (pageName === 'map') {
@@ -3489,7 +3492,8 @@ document.getElementById('btn-import').addEventListener('change', async (e) => {
 			searchPage.classList.add('hidden');
 			inventoryPage.classList.remove('active');
 			inventoryPage.classList.add('hidden');
-			mapContainer.classList.remove('hidden');
+			mapToolbar.classList.remove('hidden');
+			mapView.classList.remove('hidden');
 		}
 
 		// Update nav buttons
