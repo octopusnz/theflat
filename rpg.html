@@ -3583,12 +3583,34 @@ document.getElementById('btn-import').addEventListener('change', async (e) => {
 	}
 
 	menuBtn.addEventListener('click', () => {
+		if (window.innerWidth >= 769) {
+			return;
+		}
 		sidebar.classList.toggle('active');
 		sidebar.classList.remove('hidden');
 		overlay.classList.add('active');
 		menuCloseBtn.classList.toggle('hidden');
 		menuBtn.classList.add('hidden');
 	});
+
+	function syncSidebarForViewport() {
+		if (window.innerWidth >= 769) {
+			sidebar.classList.remove('hidden');
+			sidebar.classList.remove('active');
+			overlay.classList.remove('active');
+			menuCloseBtn.classList.add('hidden');
+			menuBtn.classList.add('hidden');
+			return;
+		}
+
+		menuBtn.classList.remove('hidden');
+		if (!sidebar.classList.contains('active')) {
+			sidebar.classList.add('hidden');
+		}
+	}
+
+	syncSidebarForViewport();
+	window.addEventListener('resize', syncSidebarForViewport);
 
 	overlay.addEventListener('click', closeSidebar);
 
