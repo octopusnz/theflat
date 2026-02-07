@@ -728,6 +728,21 @@
 		display: none !important;
 	}
 
+	.mobile-overlay {
+		position: fixed;
+		inset: 0;
+		background: rgba(0, 0, 0, 0.35);
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity 0.2s ease;
+		z-index: 40;
+	}
+
+	.mobile-overlay.active {
+		opacity: 1;
+		pointer-events: auto;
+	}
+
 	.empty-state {
 		text-align: center;
 		padding: 20px;
@@ -862,6 +877,10 @@
 			gap: 6px;
 		}
 
+		header {
+			padding-top: calc(4px + env(safe-area-inset-top, 0px));
+		}
+
 		h1 {
 			display: none;
 		}
@@ -869,6 +888,13 @@
 		.nav-links {
 			gap: 6px;
 			flex: 1;
+			overflow-x: auto;
+			-webkit-overflow-scrolling: touch;
+			scrollbar-width: none;
+		}
+
+		.nav-links::-webkit-scrollbar {
+			display: none;
 		}
 
 		.nav-btn {
@@ -877,6 +903,7 @@
 			font-weight: 600;
 			border: 1px solid transparent;
 			background: var(--bg);
+			white-space: nowrap;
 		}
 
 		/* Prevent iOS Safari auto-zoom on focus - only for form inputs */
@@ -890,11 +917,52 @@
 			padding: 2px 4px;
 		}
 
+		.map-toolbar {
+			padding-top: calc(2px + env(safe-area-inset-top, 0px));
+		}
+
 		.btn-toolbar {
 			padding: 5px 8px;
 			font-size: 0.75rem;
 			border: 1px solid var(--border);
 			background: transparent;
+		}
+
+		.sidebar {
+			padding-top: calc(12px + env(safe-area-inset-top, 0px));
+			padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+		}
+
+		.detail-panel {
+			padding-top: calc(12px + env(safe-area-inset-top, 0px));
+			padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+		}
+
+		.page-content {
+			padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+		}
+	}
+
+	@media (max-height: 480px) {
+		.page-header {
+			padding: 12px;
+		}
+
+		.page-content {
+			padding: 12px;
+		}
+
+		.search-hero {
+			padding: 20px 12px;
+		}
+
+		.search-hero h1 {
+			font-size: 1.1rem;
+			margin-bottom: 16px;
+		}
+
+		.search-bar-container {
+			width: 100%;
 		}
 	}
 
@@ -3517,7 +3585,7 @@ document.getElementById('btn-import').addEventListener('change', async (e) => {
 	menuBtn.addEventListener('click', () => {
 		sidebar.classList.toggle('active');
 		sidebar.classList.remove('hidden');
-		overlay.classList.remove('active');
+		overlay.classList.add('active');
 		menuCloseBtn.classList.toggle('hidden');
 		menuBtn.classList.add('hidden');
 	});
