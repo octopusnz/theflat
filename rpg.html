@@ -2538,7 +2538,44 @@
 								<div class="empty-state">Click "Generate Names" to create random names</div>
 							</div>
 						</div>
-				<div class="modal hidden" id="add-item-modal">
+
+						<!-- Weather/Environment Generator -->
+						<div class="generator-section">
+							<div class="generator-header">
+								<h3>🌤️ Weather & Environment</h3>
+								<button class="btn" id="btn-generate-weather">🎲 Generate Weather</button>
+							</div>
+							<div class="generator-controls">
+								<label>
+									<span>Climate:</span>
+									<select id="weather-climate" class="generator-input">
+										<option value="temperate">Temperate</option>
+										<option value="tropical">Tropical</option>
+										<option value="arctic">Arctic</option>
+										<option value="desert">Desert</option>
+										<option value="mountain">Mountain</option>
+										<option value="coastal">Coastal</option>
+									</select>
+								</label>
+								<label>
+									<span>Season:</span>
+									<select id="weather-season" class="generator-input">
+										<option value="spring">Spring</option>
+										<option value="summer">Summer</option>
+										<option value="autumn">Autumn</option>
+										<option value="winter">Winter</option>
+									</select>
+								</label>
+							</div>
+							<div class="generator-results" id="weather-results">
+								<div class="empty-state">Click "Generate Weather" to create weather conditions</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Add Item Modal -->
 					<div class="modal-content">
 						<div class="modal-header">
 							<h3>Add Equipment to Inventory</h3>
@@ -5950,7 +5987,140 @@ async loadInventory() {
 				resultsDiv.innerHTML = html;
 			}, 300);
 		}
+
+	// Weather/Environment Generator
+	generateWeather() {
+		const resultsDiv = document.getElementById('weather-results');
+		const climate = document.getElementById('weather-climate').value;
+		const season = document.getElementById('weather-season').value;
+		
+		resultsDiv.innerHTML = '<div class="generator-loading">Generating weather...</div>';
+
+		setTimeout(() => {
+			// Weather conditions by climate and season
+			const weatherData = {
+				temperate: {
+					spring: ['Light Rain', 'Overcast', 'Partly Cloudy', 'Clear Skies', 'Morning Fog', 'Drizzle', 'Breezy', 'Warm Sunshine'],
+					summer: ['Clear Skies', 'Hot and Sunny', 'Afternoon Thunderstorm', 'Humid', 'Light Breeze', 'Partly Cloudy', 'Warm', 'Heat Wave'],
+					autumn: ['Crisp and Clear', 'Light Rain', 'Overcast', 'Windy', 'Morning Frost', 'Partly Cloudy', 'Cool and Breezy', 'Fog'],
+					winter: ['Light Snow', 'Clear and Cold', 'Overcast', 'Freezing Rain', 'Blizzard', 'Frost', 'Cloudy', 'Ice Storm']
+				},
+				tropical: {
+					spring: ['Hot and Humid', 'Afternoon Rain', 'Partly Cloudy', 'Thunderstorm', 'Muggy', 'Clear Skies', 'Light Rain', 'Humid'],
+					summer: ['Scorching Heat', 'Torrential Rain', 'Monsoon', 'Heavy Thunderstorm', 'Oppressive Humidity', 'Flash Flooding', 'Hurricane Winds', 'Sweltering'],
+					autumn: ['Warm Rain', 'Humid', 'Thunderstorm', 'Partly Cloudy', 'Hot', 'Afternoon Shower', 'Muggy', 'Clear'],
+					winter: ['Warm and Humid', 'Light Rain', 'Partly Cloudy', 'Clear Skies', 'Comfortable', 'Breezy', 'Shower', 'Pleasant']
+				},
+				arctic: {
+					spring: ['Light Snow', 'Clear and Cold', 'Windy', 'Overcast', 'Freezing', 'Ice Fog', 'Snow Flurries', 'Bitter Cold'],
+					summer: ['Cool and Clear', 'Overcast', 'Light Rain', 'Windy', 'Chilly', 'Midnight Sun', 'Cool Breeze', 'Partly Cloudy'],
+					autumn: ['Snow Flurries', 'Freezing', 'Windy', 'Overcast', 'Early Blizzard', 'Clear and Cold', 'Ice', 'Howling Winds'],
+					winter: ['Extreme Blizzard', 'Whiteout', 'Deadly Cold', 'Ice Storm', 'Polar Vortex', 'Freezing Winds', 'Heavy Snow', 'Sub-zero']
+				},
+				desert: {
+					spring: ['Clear Skies', 'Warm', 'Dust Storm', 'Hot Winds', 'Dry and Sunny', 'Pleasant', 'Mild', 'Breezy'],
+					summer: ['Scorching Heat', 'Extreme Heat', 'Dust Devil', 'Oppressive', 'Heat Shimmer', 'Sandstorm', 'Searing', 'No Clouds'],
+					autumn: ['Hot and Dry', 'Clear Skies', 'Cooling', 'Light Winds', 'Pleasant Evening', 'Dust Storm', 'Warm', 'Clear Night'],
+					winter: ['Cool and Clear', 'Cold Night', 'Clear Skies', 'Chilly', 'Rare Rain', 'Pleasant Day', 'Cold Winds', 'Frost']
+				},
+				mountain: {
+					spring: ['Snow Melt', 'Clear Skies', 'Windy', 'Late Snow', 'Avalanche Risk', 'Crisp Air', 'Partly Cloudy', 'Cool'],
+					summer: ['Clear Skies', 'Afternoon Thunderstorm', 'Cool Breeze', 'Partly Cloudy', 'Pleasant', 'Lightning Storm', 'Warm Valleys', 'Hail'],
+					autumn: ['Early Snow', 'Clear and Cool', 'Windy', 'Frost', 'Overcast', 'Crisp', 'First Snow', 'Cold Winds'],
+					winter: ['Heavy Snow', 'Blizzard', 'Avalanche', 'Extreme Cold', 'Whiteout', 'Ice Storm', 'Freezing Winds', 'Deep Snow']
+				},
+				coastal: {
+					spring: ['Morning Fog', 'Sea Breeze', 'Partly Cloudy', 'Light Rain', 'Salty Air', 'Clear Skies', 'Breezy', 'Overcast'],
+					summer: ['Clear Skies', 'Hot and Humid', 'Sea Breeze', 'Afternoon Thunderstorm', 'Warm', 'Partly Cloudy', 'Storm Warning', 'Pleasant'],
+					autumn: ['Windy', 'Storm Surge', 'Overcast', 'Rain', 'Hurricane Season', 'Choppy Seas', 'Cool Breeze', 'Fog'],
+					winter: ['Cold Rain', 'Storm', 'Overcast', 'Strong Winds', 'Rough Seas', 'Freezing Spray', 'Gale Force Winds', 'Cold and Wet']
+				}
+			};
+
+			// Temperature ranges by climate and season
+			const temperatures = {
+				temperate: { spring: [45, 65], summer: [65, 85], autumn: [45, 65], winter: [25, 45] },
+				tropical: { spring: [75, 90], summer: [80, 100], autumn: [75, 90], winter: [65, 85] },
+				arctic: { spring: [15, 35], summer: [35, 55], autumn: [15, 35], winter: [-20, 15] },
+				desert: { spring: [60, 85], summer: [90, 120], autumn: [60, 85], winter: [40, 65] },
+				mountain: { spring: [30, 55], summer: [50, 75], autumn: [30, 55], winter: [0, 30] },
+				coastal: { spring: [50, 70], summer: [70, 85], autumn: [50, 70], winter: [35, 55] }
+			};
+
+			// Precipitation types
+			const precipitationTypes = ['None', 'Light', 'Moderate', 'Heavy', 'Severe'];
+
+			// Wind conditions
+			const windConditions = ['Calm', 'Light Breeze', 'Moderate Wind', 'Strong Wind', 'Gale Force', 'Storm Force'];
+
+			// Environmental effects
+			const environmentalEffects = {
+				temperate: ['Blooming flowers', 'Birds singing', 'Fresh grass scent', 'Muddy paths', 'Colorful leaves', 'Harvest time', 'Snow-covered ground', 'Bare trees'],
+				tropical: ['Dense humidity', 'Exotic bird calls', 'Lush vegetation', 'Muddy trails', 'Flooding risk', 'Abundant wildlife', 'River swelling', 'Heavy foliage'],
+				arctic: ['Ice sheets', 'Aurora visible at night', 'Howling winds', 'Frostbite risk', 'Limited visibility', 'Frozen ground', 'Snow drifts', 'Wildlife scarce'],
+				desert: ['Mirages', 'Sand in everything', 'Dehydration risk', 'Scorpions active', 'Cool nights', 'Clear star visibility', 'Dust clouds', 'Cacti in bloom'],
+				mountain: ['Thin air', 'Echo effects', 'Altitude sickness risk', 'Rockfall danger', 'Pine scent', 'Mountain streams', 'Avalanche risk', 'Stunning vistas'],
+				coastal: ['Salt spray', 'Seabird cries', 'Tidal effects', 'Seaweed smell', 'Beach erosion', 'Tide pools', 'Driftwood scattered', 'Marine life visible']
+			};
+
+			// Visibility conditions
+			const visibilityOptions = ['Crystal Clear', 'Clear', 'Good', 'Moderate', 'Poor', 'Very Poor', 'Near Zero'];
+
+			// Special phenomena
+			const specialPhenomena = ['Rainbow', 'Double Rainbow', 'Lightning Storm', 'Aurora (at night)', 'Meteor Shower (at night)', 'Rare Wildlife Sighting', 'Unusual Cloud Formation', 'Eerie Silence'];
+
+			// Select random conditions
+			const weatherOptions = weatherData[climate][season];
+			const condition = weatherOptions[Math.floor(Math.random() * weatherOptions.length)];
+			
+			const tempRange = temperatures[climate][season];
+			const temperature = Math.floor(Math.random() * (tempRange[1] - tempRange[0]) + tempRange[0]);
+			
+			const precipitation = precipitationTypes[Math.floor(Math.random() * precipitationTypes.length)];
+			const wind = windConditions[Math.floor(Math.random() * windConditions.length)];
+			const visibility = visibilityOptions[Math.floor(Math.random() * visibilityOptions.length)];
+			
+			const effectOptions = environmentalEffects[climate];
+			const effect = effectOptions[Math.floor(Math.random() * effectOptions.length)];
+			
+			// 20% chance of special phenomenon
+			const hasSpecial = Math.random() < 0.2;
+			const special = hasSpecial ? specialPhenomena[Math.floor(Math.random() * specialPhenomena.length)] : null;
+
+			// Generate travel impact
+			const travelImpacts = [
+				'No impact on travel',
+				'Slightly slowed travel',
+				'Moderate travel delays',
+				'Difficult travel conditions',
+				'Hazardous travel',
+				'Travel strongly discouraged'
+			];
+			const travelImpact = travelImpacts[Math.floor(Math.random() * travelImpacts.length)];
+
+			let html = '<div class="generator-item">';
+			html += `<h4>${condition}</h4>`;
+			html += '<div class="generator-item-meta">';
+			html += `<span><strong>Climate:</strong> ${climate.charAt(0).toUpperCase() + climate.slice(1)}</span>`;
+			html += `<span><strong>Season:</strong> ${season.charAt(0).toUpperCase() + season.slice(1)}</span>`;
+			html += `<span><strong>Temperature:</strong> ${temperature}°F</span>`;
+			html += '</div>';
+			html += `<div class="generator-item-desc"><strong>Precipitation:</strong> ${precipitation}</div>`;
+			html += `<div class="generator-item-desc"><strong>Wind:</strong> ${wind}</div>`;
+			html += `<div class="generator-item-desc"><strong>Visibility:</strong> ${visibility}</div>`;
+			html += `<div class="generator-item-desc"><strong>Environmental Effect:</strong> ${effect}</div>`;
+			html += `<div class="generator-item-desc"><strong>Travel Impact:</strong> ${travelImpact}</div>`;
+			
+			if (special) {
+				html += `<div class="generator-item-desc" style="color: var(--link); font-weight: 600;"><strong>✨ Special:</strong> ${special}</div>`;
+			}
+			
+			html += '</div>';
+
+			resultsDiv.innerHTML = html;
+		}, 300);
 	}
+}
 
 	// Initialize managers
 	window.inventoryManager = new InventoryManager();
@@ -5965,6 +6135,7 @@ async loadInventory() {
 	const btnGenerateQuest = document.getElementById('btn-generate-quest');
 	const btnGenerateHoard = document.getElementById('btn-generate-hoard');
 	const btnGenerateNames = document.getElementById('btn-generate-names');
+	const btnGenerateWeather = document.getElementById('btn-generate-weather');
 	
 	if (btnGenerateLoot) {
 		btnGenerateLoot.addEventListener('click', () => {
@@ -6005,6 +6176,12 @@ async loadInventory() {
 	if (btnGenerateNames) {
 		btnGenerateNames.addEventListener('click', () => {
 			window.randomGenerators.generateNames();
+		});
+	}
+
+	if (btnGenerateWeather) {
+		btnGenerateWeather.addEventListener('click', () => {
+			window.randomGenerators.generateWeather();
 		});
 	}
 	
