@@ -17,8 +17,24 @@
 
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=10, viewport-fit=cover" id="viewport">
+		<script>
+			// Apply theme BEFORE page render to prevent flash
+			(function() {
+				const savedTheme = localStorage.getItem('theme');
+				// Default to dark mode - only add light class if explicitly saved
+				console.log(`[EARLY-SCRIPT] Theme initialization - saved theme: ${savedTheme || 'none'}`);
+				if (savedTheme === 'light') {
+					document.documentElement.classList.add('theme-light');
+					document.body.classList.add('theme-light');
+					console.log('[EARLY-SCRIPT] Applied theme-light class');
+				} else {
+					console.log('[EARLY-SCRIPT] Using dark theme (default - no class added)');
+				}
+				// If no theme saved, explicitly default to dark (don't add theme-light class)
+			})();
+		</script>
 		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com; connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://www.dnd5eapi.co; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline'; frame-src https://www.googletagmanager.com;">
-		<meta name="theme-color" content="#ffffff">
+		<meta name="theme-color" content="#0b1220">
 		<meta name="description" content="RPG Campaign Tracker - Track world events, locations, NPCs and lore">
 		<link rel="canonical" href="https://theflat.gen.nz/rpg.html">
 
@@ -31,17 +47,6 @@
         <link rel="manifest" href="/site.webmanifest">
 		<style>
 			:root {
-				--bg: #ffffff;
-				--fg: #111827;
-				--muted-fg: #374151;
-				--link: #1d4ed8;
-				--link-visited: #6d28d9;
-				--focus: #f59e0b;
-				--border: #d1d5db;
-				--hover: #f3f4f6;
-			}
-
-			body.theme-dark {
 				--bg: #0b1220;
 				--fg: #e5e7eb;
 				--muted-fg: #cbd5e1;
@@ -50,6 +55,17 @@
 				--focus: #fbbf24;
 				--border: #334155;
 				--hover: #1e293b;
+			}
+
+			body.theme-light {
+				--bg: #ffffff;
+				--fg: #111827;
+				--muted-fg: #374151;
+				--link: #1d4ed8;
+				--link-visited: #6d28d9;
+				--focus: #f59e0b;
+				--border: #d1d5db;
+				--hover: #f3f4f6;
 			}
 
 			*,
@@ -2889,179 +2905,6 @@
 			</div>
 		</div>
 
-		<div class="page hidden" id="generators-page">
-			<div class="page-header">
-				<h2>Random Generators</h2>
-			</div>
-			<div class="page-content">
-				<div class="generators-container">
-					<!-- Random Loot Generator -->
-					<div class="generator-section">
-						<div class="generator-header">
-							<h3>💎 Random Loot Table</h3>
-							<button class="btn" id="btn-generate-loot">🎲 Generate Loot</button>
-						</div>
-						<div class="generator-controls">
-							<label>
-								<span>Number of items:</span>
-								<input type="number" id="loot-count" min="1" max="20" value="5" class="generator-input">
-							</label>
-						</div>
-						<div class="generator-results" id="loot-results">
-							<div class="empty-state">Click "Generate Loot" to create a random loot table</div>
-						</div>
-					</div>
-
-					<!-- Random Encounter Generator -->
-					<div class="generator-section">
-						<div class="generator-header">
-							<h3>⚔️ Random Encounter</h3>
-							<button class="btn" id="btn-generate-encounter">🎲 Generate Encounter</button>
-						</div>
-						<div class="generator-controls">
-							<label>
-								<span>Number of monsters:</span>
-								<input type="number" id="encounter-count" min="1" max="10" value="3" class="generator-input">
-							</label>
-						</div>
-						<div class="generator-results" id="encounter-results">
-							<div class="empty-state">Click "Generate Encounter" to create a random encounter</div>
-						</div>
-					</div>
-
-					<!-- NPC Generator -->
-					<div class="generator-section">
-						<div class="generator-header">
-							<h3>👤 Random NPC</h3>
-							<button class="btn" id="btn-generate-npc">🎲 Generate NPC</button>
-						</div>
-						<div class="generator-results" id="npc-results">
-							<div class="empty-state">Click "Generate NPC" to create a random character</div>
-						</div>
-					</div>
-
-					<!-- Town/Location Generator -->
-					<div class="generator-section">
-						<div class="generator-header">
-							<h3>🏰 Random Settlement</h3>
-							<button class="btn" id="btn-generate-town">🎲 Generate Settlement</button>
-						</div>
-						<div class="generator-controls">
-							<label>
-								<span>Settlement Type:</span>
-								<select id="town-type" class="generator-input">
-									<option value="random">Random</option>
-									<option value="village">Village</option>
-									<option value="town">Town</option>
-									<option value="city">City</option>
-								</select>
-							</label>
-						</div>
-						<div class="generator-results" id="town-results">
-							<div class="empty-state">Click "Generate Settlement" to create a random location</div>
-						</div>
-					</div>
-
-					<!-- Quest Generator -->
-					<div class="generator-section">
-						<div class="generator-header">
-							<h3>📜 Random Quest</h3>
-							<button class="btn" id="btn-generate-quest">🎲 Generate Quest</button>
-						</div>
-						<div class="generator-results" id="quest-results">
-							<div class="empty-state">Click "Generate Quest" to create a random plot hook</div>
-						</div>
-					</div>
-
-					<!-- Treasure Hoard Generator -->
-					<div class="generator-section">
-						<div class="generator-header">
-							<h3>💰 Treasure Hoard</h3>
-							<button class="btn" id="btn-generate-hoard">🎲 Generate Hoard</button>
-						</div>
-						<div class="generator-controls">
-							<label>
-								<span>Challenge Rating:</span>
-								<select id="hoard-cr" class="generator-input">
-									<option value="0-4">CR 0-4</option>
-									<option value="5-10" selected>CR 5-10</option>
-									<option value="11-16">CR 11-16</option>
-									<option value="17+">CR 17+</option>
-								</select>
-							</label>
-						</div>
-						<div class="generator-results" id="hoard-results">
-							<div class="empty-state">Click "Generate Hoard" to create a treasure hoard</div>
-						</div>
-					</div>
-
-					<!-- Name Generator -->
-					<div class="generator-section">
-						<div class="generator-header">
-							<h3>✨ Random Names</h3>
-							<button class="btn" id="btn-generate-names">🎲 Generate Names</button>
-						</div>
-						<div class="generator-controls">
-							<label>
-								<span>Name Type:</span>
-								<select id="name-type" class="generator-input">
-									<option value="fantasy">Fantasy</option>
-									<option value="human">Human</option>
-									<option value="elven">Elven</option>
-									<option value="dwarven">Dwarven</option>
-									<option value="orcish">Orcish</option>
-									<option value="place">Place</option>
-									<option value="tavern">Tavern</option>
-									<option value="shop">Shop</option>
-								</select>
-							</label>
-							<label>
-								<span>Number of names:</span>
-								<input type="number" id="name-count" min="1" max="20" value="10" class="generator-input">
-							</label>
-						</div>
-						<div class="generator-results" id="name-results">
-							<div class="empty-state">Click "Generate Names" to create random names</div>
-						</div>
-					</div>
-
-					<!-- Weather/Environment Generator -->
-					<div class="generator-section">
-						<div class="generator-header">
-							<h3>🌤️ Weather & Environment</h3>
-							<button class="btn" id="btn-generate-weather">🎲 Generate Weather</button>
-						</div>
-						<div class="generator-controls">
-							<label>
-								<span>Climate:</span>
-								<select id="weather-climate" class="generator-input">
-									<option value="temperate">Temperate</option>
-									<option value="tropical">Tropical</option>
-									<option value="arctic">Arctic</option>
-									<option value="desert">Desert</option>
-									<option value="mountain">Mountain</option>
-									<option value="coastal">Coastal</option>
-								</select>
-							</label>
-							<label>
-								<span>Season:</span>
-								<select id="weather-season" class="generator-input">
-									<option value="spring">Spring</option>
-									<option value="summer">Summer</option>
-									<option value="autumn">Autumn</option>
-									<option value="winter">Winter</option>
-								</select>
-							</label>
-						</div>
-						<div class="generator-results" id="weather-results">
-							<div class="empty-state">Click "Generate Weather" to create weather conditions</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</main>
-
 	<!-- Add Item Modal -->
 	<div class="modal hidden" id="add-item-modal">
 		<div class="modal-content">
@@ -3450,25 +3293,30 @@
 		if (!themeButton) return;
 
 		const applyTheme = (theme) => {
-			const isDark = theme === 'dark';
-			document.body.classList.toggle('theme-dark', isDark);
-			themeButton.textContent = isDark ? 'Light Mode' : 'Dark Mode';
-			themeButton.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+			const isLight = theme === 'light';
+			document.body.classList.toggle('theme-light', isLight);
+			document.documentElement.classList.toggle('theme-light', isLight);
+			themeButton.textContent = isLight ? 'Dark Mode' : 'Light Mode';
+			themeButton.setAttribute('aria-pressed', isLight ? 'false' : 'true');
 			if (themeMeta) {
-				themeMeta.setAttribute('content', isDark ? '#0b1220' : '#ffffff');
+				themeMeta.setAttribute('content', isLight ? '#ffffff' : '#0b1220');
 			}
+			console.log(`[THEME] Applied theme: ${theme} (isLight=${isLight})`);
 		};
 
 		const savedTheme = localStorage.getItem('theme');
+		console.log(`[THEME] Saved theme from localStorage: ${savedTheme || 'none (will default to dark)'}`);
 		if (savedTheme === 'dark' || savedTheme === 'light') {
 			applyTheme(savedTheme);
 		} else {
+			console.log('[THEME] No saved theme, setting default to dark');
 			localStorage.setItem('theme', 'dark');
 			applyTheme('dark');
 		}
 
 		themeButton.addEventListener('click', () => {
-			const nextTheme = document.body.classList.contains('theme-dark') ? 'light' : 'dark';
+			const isCurrentlyLight = document.body.classList.contains('theme-light');
+			const nextTheme = isCurrentlyLight ? 'dark' : 'light';
 			localStorage.setItem('theme', nextTheme);
 			applyTheme(nextTheme);
 		});
@@ -5400,11 +5248,21 @@ async loadInventory() {
 				throw new Error(`Failed to load darkstone.json (${response.status})`);
 			}
 			const payload = await response.json();
-			const data = payload.data || {};
+			
+			// Handle both payload.data and direct structure
+			const data = payload.data || payload || {};
+			
+			// Log what we got for debugging
+			if (Object.keys(data).length === 0) {
+				console.warn('[WARN] Character data is empty');
+				container.innerHTML = '<div class="character-error">No character data found in darkstone.json.</div>';
+				return;
+			}
+			
 			renderCharacterSheet(data);
 		} catch (error) {
 			console.error('[ERROR] Failed to load character:', error);
-			container.innerHTML = '<div class="character-error">Unable to load character data.</div>';
+			container.innerHTML = `<div class="character-error">Unable to load character data: ${error.message}</div>`;
 		}
 	}
 
@@ -6803,6 +6661,7 @@ async loadInventory() {
 	window.searchPageManager = new SearchPageManager();
 	window.randomGenerators = new RandomGenerators();
 	window.sessionManager = new SessionManager();
+	const btnGenerateLoot = document.getElementById('btn-generate-loot');
 	const btnGenerateEncounter = document.getElementById('btn-generate-encounter');
 	const btnGenerateNPC = document.getElementById('btn-generate-npc');
 	const btnGenerateTown = document.getElementById('btn-generate-town');
