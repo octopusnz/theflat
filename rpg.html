@@ -6522,7 +6522,51 @@ async loadInventory() {
 		loadSessions() {
 			// Load from localStorage
 			const saved = localStorage.getItem('rpg-sessions');
-			this.sessions = saved ? JSON.parse(saved) : [];
+			if (saved) {
+				this.sessions = JSON.parse(saved);
+				return;
+			}
+
+			this.sessions = this.getDefaultSessions();
+			this.saveSessions();
+		}
+
+		getDefaultSessions() {
+			return [
+				{
+					id: 'sample-001',
+					title: 'Session 1: The Fallen Waystone',
+					date: '2026-02-01',
+					duration: '3.5 hours',
+					summary: 'The party followed rumors of a broken waystone and discovered a hidden vault beneath the old road.',
+					events: 'Tracked missing traders, solved a sigil lock puzzle, defeated two stone sentinels.',
+					npcs: 'Marla the caravan scout; Brother Keth, a wandering cleric.',
+					loot: 'Map fragment, 120 gp, waystone shard.',
+					notes: 'The shard hums near ley lines. Vault door seals at midnight.'
+				},
+				{
+					id: 'sample-002',
+					title: 'Session 2: Fog on the Gilden Marsh',
+					date: '2026-02-08',
+					duration: '4 hours',
+					summary: 'A marsh fog revealed a drowned village and a pact gone wrong.',
+					events: 'Negotiated with marshfolk, escaped a sinking walkway, banished a mist wraith.',
+					npcs: 'Reeve Halden; Sable, a marsh guide.',
+					loot: 'Silver amulet, 2 healing draughts.',
+					notes: 'Wraith is tied to the bell tower. The pact ledger is missing.'
+				},
+				{
+					id: 'sample-003',
+					title: 'Session 3: Ashes at Emberhall',
+					date: '2026-02-15',
+					duration: '3 hours',
+					summary: 'Emberhall smolders after a raid. The party rallied survivors and traced the attackers.',
+					events: 'Rescued trapped townsfolk, chased raiders, uncovered a cult brand.',
+					npcs: 'Captain Rysa; Old Joran the miller.',
+					loot: 'Cult signet, 80 gp, scorched journal.',
+					notes: 'The brand matches the vault sigils. Raiders headed north.'
+				}
+			];
 		}
 
 		saveSessions() {
