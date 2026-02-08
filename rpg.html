@@ -379,31 +379,32 @@
 			width: 100%;
 			overflow: auto;
 			background: #dbeafe;
-		}
+	}
 
-		.map-svg {
-			width: 100%;
-			height: 100%;
-			display: block;
-			opacity: 0;
-			max-width: 100%;
-			max-height: 100%;
-			will-change: transform;
-		}
+	.map-svg {
+		width: 100%;
+		height: 100%;
+		display: block;
+		opacity: 0;
+		max-width: 100%;
+		max-height: 100%;
+		will-change: transform;
+		transform: translate3d(0, 0, 0);
+		backface-visibility: hidden;
+	}
 
-		.map-svg.ready {
-			opacity: 1;
-			image-rendering: crisp-edges;
-		}
+	.map-svg.ready {
+		opacity: 1;
+		image-rendering: crisp-edges;
+	}
 
-		.map-view.loading::after {
-			content: '';
-			position: absolute;
-			top: 50%;
-			left: 50%;
-			width: 24px;
-			height: 24px;
-			border: 3px solid var(--border-color);
+	.map-view.loading::after {
+		content: '';
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 24px;
+		height: 24px;
 			border-top-color: var(--link);
 			border-radius: 50%;
 			animation: spin 1s linear infinite;
@@ -2542,28 +2543,17 @@
 		this.translateX = e.clientX - this.startX;
 		this.translateY = e.clientY - this.startY;
 		
-		// Use RAF to throttle to 60fps for smooth iOS performance
-		if (this.dragRafId) return; // Skip if already scheduled
-		
-		this.dragRafId = requestAnimationFrame(() => {
-			const target = this.mainGroup || this.locationsLayer || this.svg;
-			if (target) {
-				target.style.transform = 
-					`translate3d(${this.translateX}px, ${this.translateY}px, 0) scale(${this.scale})`;
-			}
-			this.dragRafId = null;
-		});
+		// Direct transform update for immediate feedback
+		const target = this.mainGroup || this.locationsLayer || this.svg;
+		if (target) {
+			target.style.transform = 
+				`translate3d(${this.translateX}px, ${this.translateY}px, 0) scale(${this.scale})`;
+		}
 	}
 
 	endDrag(e) {
 		this.isDragging = false;
 		this.svg.style.cursor = 'grab';
-		
-		// Cancel any pending drag RAF
-		if (this.dragRafId) {
-			cancelAnimationFrame(this.dragRafId);
-			this.dragRafId = null;
-		}
 		
 		// Remove will-change after a short delay to save memory
 		const target = this.mainGroup || this.locationsLayer || this.svg;
