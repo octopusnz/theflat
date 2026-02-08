@@ -2400,13 +2400,7 @@
 					this.isTransforming = false;
 					this.lastDistance = 0;
 					this.lastScale = 1;
-
-					this.initializeEvents();
-				}
-
-				initializeEvents() {
-					// Zoom controls
-					document.getElementById('btn-zoom-in').addEventListener('click', () => this.zoom(1.2));
+					this.dragRafId = null;
 					document.getElementById('btn-zoom-out').addEventListener('click', () => this.zoom(0.8));
 					document.getElementById('btn-reset-view').addEventListener('click', () => this.resetView());
 
@@ -2461,29 +2455,60 @@
 				this.startX = e.clientX - this.translateX;
 				this.startY = e.clientY - this.translateY;
 				this.svg.style.cursor = 'grabbing';
-		}
+			
+			// Enable hardware acceleration hint for smooth dragging
+			const target = this.mainGroup || this.locationsLayer || this.svg;
+			if (target) {
+				target.style.willChange = 'transform';
+			}
+	}
 
-		drag(e) {
-			if (!this.isDragging) return;
-			
-			// Update position values immediately
-			this.translateX = e.clientX - this.startX;
-			this.translateY = e.clientY - this.startY;
-			
-			// Call updateTransform without RAF for more responsive feel
-			this.updateTransformDirect();
-		}
+	drag(e) {
+		if (!this.isDragging) return;
+		
+		// Update position values immediately
+		this.translateX = e.clientX - this.startX;
+		this.translateY = e.clientY - this.startY;
+		
+		// Use RAF to throttle to 60fps for smooth iOS performance
+		if (this.dragRafId) return; // Skip if already scheduled
+		
+		this.dragRafId = requestAnimationFrame(() => {
+			const target = this.mainGroup || this.locationsLayer || this.svg;
+			if (target) {
+				target.style.transform = 
+					`translate3d(${this.translateX}px, ${this.translateY}px, 0) scale(${this.scale})`;
+			}
+			this.dragRafId = null;
+		});
+	}
 
 	endDrag(e) {
 		this.isDragging = false;
 		this.svg.style.cursor = 'grab';
+		
+		// Cancel any pending drag RAF
+		if (this.dragRafId) {
+			cancelAnimationFrame(this.dragRafId);
+			this.dragRafId = null;
+		}
+		
+		// Remove will-change after a short delay to save memory
+		const target = this.mainGroup || this.locationsLayer || this.svg;
+		if (target) {
+			setTimeout(() => {
+				target.style.willChange = 'auto';
+			}, 200);
+		}
 	}
 
 	updateTransformDirect() {
-		// Direct update without RAF for drag responsiveness
-		const target = this.mainGroup || this.svg;
-		target.style.transform = 
-			`translate3d(${this.translateX}px, ${this.translateY}px, 0) scale(${this.scale})`;
+		// Direct update with hardware acceleration
+		const target = this.mainGroup || this.locationsLayer || this.svg;
+		if (target) {
+			target.style.transform = 
+				`translate3d(${this.translateX}px, ${this.translateY}px, 0) scale(${this.scale})`;
+		}
 	}
 
 	handleTouchStart(e) {
