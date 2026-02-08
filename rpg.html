@@ -792,11 +792,9 @@
 			left: 0;
 		}
 
-		.category-list {
-			display: flex;
-			flex-direction: column;
-			flex: 1;
-			overflow-y: auto;
+		.category-list:not(.search-category-list) {
+			flex: 0 0 auto;
+			overflow-y: visible;
 		}
 
 		.search-category-scrollable {
