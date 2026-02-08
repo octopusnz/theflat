@@ -2475,6 +2475,7 @@
 					this.lastDistance = 0;
 					this.lastScale = 1;
 					this.dragRafId = null;
+					document.getElementById('btn-zoom-in').addEventListener('click', () => this.zoom(1.2));
 					document.getElementById('btn-zoom-out').addEventListener('click', () => this.zoom(0.8));
 					document.getElementById('btn-reset-view').addEventListener('click', () => this.resetView());
 
