@@ -2574,24 +2574,26 @@
 					</div>
 				</div>
 			</div>
+		</div>
+	</main>
 
-			<!-- Add Item Modal -->
-					<div class="modal-content">
-						<div class="modal-header">
-							<h3>Add Equipment to Inventory</h3>
-							<button class="btn-close" id="btn-close-add-item-modal">&times;</button>
-						</div>
-						<div class="modal-body">
-							<input type="text" id="add-item-search" class="search-input" placeholder="Search equipment..." autocomplete="off">
-							<div class="add-item-results" id="add-item-results">
-								<div class="empty-state">Start typing to search equipment</div>
-							</div>
-						</div>
-					</div>
+	<!-- Add Item Modal -->
+	<div class="modal hidden" id="add-item-modal">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h3>Add Equipment to Inventory</h3>
+				<button class="btn-close" id="btn-close-add-item-modal">&times;</button>
+			</div>
+			<div class="modal-body">
+				<input type="text" id="add-item-search" class="search-input" placeholder="Search equipment..." autocomplete="off">
+				<div class="add-item-results" id="add-item-results">
+					<div class="empty-state">Start typing to search equipment</div>
 				</div>
-		</main>
+			</div>
+		</div>
+	</div>
 
-		<!-- Detail Panel -->
+	<!-- Detail Panel -->
 		<aside class="detail-panel hidden" id="detail-panel">
 			<div class="detail-header">
 				<h2 id="detail-title">Locations</h2>
