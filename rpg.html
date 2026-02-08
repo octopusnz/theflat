@@ -334,24 +334,48 @@
 				background: var(--bg);
 				border-bottom: 2px solid var(--border);
 			padding: 4px 8px;
+			display: flex;
+			align-items: center;
+			gap: 8px;
 		}
 
 		.btn-toolbar {
-				border: 2px solid var(--border);
-				border-radius: 6px;
-				font-size: 0.875rem;
-				cursor: pointer;
-				transition: all 0.2s;
-			}
+			border: 2px solid var(--border);
+			border-radius: 6px;
+			font-size: 0.875rem;
+			cursor: pointer;
+			transition: all 0.2s;
+			padding: 8px 12px;
+			background: var(--bg);
+			color: var(--fg);
+			font-family: inherit;
+			font-weight: 500;
+		}
 
-			.btn-toolbar:hover {
-				background: var(--hover);
-				border-color: var(--link);
-			}
+		.btn-toolbar:hover {
+			background: var(--hover);
+			border-color: var(--link);
+		}
+		
+		.btn-toolbar:focus {
+			outline: 2px solid var(--focus);
+			outline-offset: 2px;
+		}
+		
+		#btn-theme {
+			margin-left: auto;
+			border-color: var(--link);
+			color: var(--link);
+		}
+		
+		#btn-theme:hover {
+			background: var(--link);
+			color: var(--bg);
+		}
 
-			.map-view {
-				flex: 1;
-				position: relative;
+		.map-view {
+			flex: 1;
+			position: relative;
 			width: 100%;
 			overflow: auto;
 			background: #dbeafe;
@@ -891,6 +915,11 @@
 			font-size: 0.75rem;
 			border: 1px solid var(--border);
 			background: transparent;
+		}
+		
+		#btn-theme {
+			padding: 5px 10px;
+			font-size: 0.7rem;
 		}
 
 	}
@@ -1795,7 +1824,6 @@
 				<button class="nav-btn" data-page="map">World Map</button>
 				<button class="nav-btn" data-page="search">Search</button>
 				<button class="nav-btn" data-page="inventory">Party Inventory</button>
-				<button class="nav-btn" id="btn-theme" type="button" aria-pressed="true">Light Mode</button>
 			</nav>
 		</header>
 		<div class="mobile-overlay" id="mobile-overlay"></div>
@@ -1913,6 +1941,7 @@
 					<button class="btn-toolbar" id="btn-zoom-in">Zoom In</button>
 					<button class="btn-toolbar" id="btn-zoom-out">Zoom Out</button>
 					<button class="btn-toolbar" id="btn-reset-view">Reset View</button>
+					<button class="btn-toolbar" id="btn-theme" type="button" aria-pressed="true">Light Mode</button>
 				</div>
 				<div class="map-view" id="map-view">
 					<svg class="map-svg" id="map-svg" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice">
