@@ -2067,6 +2067,17 @@
 		border-color: var(--link);
 	}
 
+	/* Remove increment/decrement spinners from number inputs */
+	.generator-input::-webkit-inner-spin-button,
+	.generator-input::-webkit-outer-spin-button {
+		-webkit-appearance: none;
+		margin: 0;
+	}
+
+	.generator-input[type="number"] {
+		-moz-appearance: textfield;
+	}
+
 	.generator-results {
 		min-height: 200px;
 		background: var(--hover);
