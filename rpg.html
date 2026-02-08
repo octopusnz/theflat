@@ -2076,6 +2076,16 @@
 
 	.generator-input[type="number"] {
 		-moz-appearance: textfield;
+		appearance: textfield;
+	}
+
+	select.generator-input {
+		cursor: pointer;
+		background-image: linear-gradient(45deg, transparent 50%, var(--fg) 50%), linear-gradient(135deg, var(--fg) 50%, transparent 50%);
+		background-position: calc(100% - 20px) calc(1em + 2px), calc(100% - 15px) calc(1em + 2px);
+		background-size: 5px 5px, 5px 5px;
+		background-repeat: no-repeat;
+		padding-right: 40px;
 	}
 
 	.generator-results {
@@ -2432,11 +2442,102 @@
 									<div class="empty-state">Click "Generate Encounter" to create a random encounter</div>
 								</div>
 							</div>
-						</div>
-					</div>
-				</div>
 
-				<!-- Add Item Modal -->
+						<!-- NPC Generator -->
+						<div class="generator-section">
+							<div class="generator-header">
+								<h3>👤 Random NPC</h3>
+								<button class="btn" id="btn-generate-npc">🎲 Generate NPC</button>
+							</div>
+							<div class="generator-results" id="npc-results">
+								<div class="empty-state">Click "Generate NPC" to create a random character</div>
+							</div>
+						</div>
+
+						<!-- Town/Location Generator -->
+						<div class="generator-section">
+							<div class="generator-header">
+								<h3>🏰 Random Settlement</h3>
+								<button class="btn" id="btn-generate-town">🎲 Generate Settlement</button>
+							</div>
+							<div class="generator-controls">
+								<label>
+									<span>Settlement Type:</span>
+									<select id="town-type" class="generator-input">
+										<option value="random">Random</option>
+										<option value="village">Village</option>
+										<option value="town">Town</option>
+										<option value="city">City</option>
+									</select>
+								</label>
+							</div>
+							<div class="generator-results" id="town-results">
+								<div class="empty-state">Click "Generate Settlement" to create a random location</div>
+							</div>
+						</div>
+
+						<!-- Quest Generator -->
+						<div class="generator-section">
+							<div class="generator-header">
+								<h3>📜 Random Quest</h3>
+								<button class="btn" id="btn-generate-quest">🎲 Generate Quest</button>
+							</div>
+							<div class="generator-results" id="quest-results">
+								<div class="empty-state">Click "Generate Quest" to create a random plot hook</div>
+							</div>
+						</div>
+
+						<!-- Treasure Hoard Generator -->
+						<div class="generator-section">
+							<div class="generator-header">
+								<h3>💰 Treasure Hoard</h3>
+								<button class="btn" id="btn-generate-hoard">🎲 Generate Hoard</button>
+							</div>
+							<div class="generator-controls">
+								<label>
+									<span>Challenge Rating:</span>
+									<select id="hoard-cr" class="generator-input">
+										<option value="0-4">CR 0-4</option>
+										<option value="5-10" selected>CR 5-10</option>
+										<option value="11-16">CR 11-16</option>
+										<option value="17+">CR 17+</option>
+									</select>
+								</label>
+							</div>
+							<div class="generator-results" id="hoard-results">
+								<div class="empty-state">Click "Generate Hoard" to create a treasure hoard</div>
+							</div>
+						</div>
+
+						<!-- Name Generator -->
+						<div class="generator-section">
+							<div class="generator-header">
+								<h3>✨ Random Names</h3>
+								<button class="btn" id="btn-generate-names">🎲 Generate Names</button>
+							</div>
+							<div class="generator-controls">
+								<label>
+									<span>Name Type:</span>
+									<select id="name-type" class="generator-input">
+										<option value="fantasy">Fantasy</option>
+										<option value="human">Human</option>
+										<option value="elven">Elven</option>
+										<option value="dwarven">Dwarven</option>
+										<option value="orcish">Orcish</option>
+										<option value="place">Place</option>
+										<option value="tavern">Tavern</option>
+										<option value="shop">Shop</option>
+									</select>
+								</label>
+								<label>
+									<span>Number of names:</span>
+									<input type="number" id="name-count" min="1" max="20" value="10" class="generator-input">
+								</label>
+							</div>
+							<div class="generator-results" id="name-results">
+								<div class="empty-state">Click "Generate Names" to create random names</div>
+							</div>
+						</div>
 				<div class="modal hidden" id="add-item-modal">
 					<div class="modal-content">
 						<div class="modal-header">
@@ -5526,6 +5627,329 @@ async loadInventory() {
 				resultsDiv.innerHTML = '<div class="empty-state">An error occurred while generating encounter</div>';
 			}
 		}
+
+		// NPC Generator
+		generateNPC() {
+			const resultsDiv = document.getElementById('npc-results');
+			resultsDiv.innerHTML = '<div class="generator-loading">Generating NPC...</div>';
+
+			setTimeout(() => {
+				const races = ['Human', 'Elf', 'Dwarf', 'Halfling', 'Gnome', 'Half-Elf', 'Half-Orc', 'Tiefling', 'Dragonborn', 'Goliath'];
+				const genders = ['Male', 'Female', 'Non-binary'];
+				const professions = ['Merchant', 'Blacksmith', 'Innkeeper', 'Guard', 'Scholar', 'Priest', 'Farmer', 'Noble', 'Thief', 'Bard', 'Alchemist', 'Herbalist', 'Sailor', 'Soldier', 'Mage'];
+				const personalities = ['Friendly', 'Suspicious', 'Greedy', 'Helpful', 'Nervous', 'Confident', 'Arrogant', 'Timid', 'Jovial', 'Grumpy', 'Secretive', 'Honest', 'Deceitful', 'Brave', 'Cowardly'];
+				const traits = ['has a distinctive scar', 'speaks in a whisper', 'laughs constantly', 'has unusual colored eyes', 'wears fancy jewelry', 'carries a lucky charm', 'has a pronounced limp', 'smells of exotic spices', 'has elaborate tattoos', 'speaks very quickly', 'has a thick accent', 'is missing a finger', 'wears colorful clothing', 'has a pet bird', 'chews on herbs'];
+				const motivations = ['seeking revenge', 'protecting their family', 'accumulating wealth', 'gaining power', 'finding love', 'uncovering secrets', 'serving their deity', 'pursuing knowledge', 'escaping their past', 'proving themselves', 'seeking redemption', 'maintaining order', 'causing chaos', 'helping others', 'surviving'];
+				const secrets = ['is actually nobility in hiding', 'owes a large debt to criminals', 'knows the location of hidden treasure', 'is secretly a spy', 'has magical abilities they hide', 'is being blackmailed', 'witnessed a crime', 'is related to someone important', 'has a terminal illness', 'is not who they claim to be'];
+
+				const firstNames = {
+					human: ['Alden', 'Brynn', 'Cade', 'Dara', 'Elara', 'Finn', 'Gwen', 'Hale', 'Iris', 'Jorn'],
+					elf: ['Aelindra', 'Belanor', 'Caladwen', 'Daemion', 'Elenwe', 'Faelyn', 'Galadhel', 'Halueth', 'Isilwen', 'Loralei'],
+					dwarf: ['Baern', 'Dolgrin', 'Eberk', 'Gurdis', 'Hilde', 'Katra', 'Morgran', 'Rurik', 'Thargin', 'Vistra'],
+					halfling: ['Benny', 'Cora', 'Denny', 'Elma', 'Finn', 'Greta', 'Harry', 'Lily', 'Milo', 'Rose']
+				};
+
+				const race = races[Math.floor(Math.random() * races.length)];
+				const gender = genders[Math.floor(Math.random() * genders.length)];
+				const profession = professions[Math.floor(Math.random() * professions.length)];
+				const personality = personalities[Math.floor(Math.random() * personalities.length)];
+				const trait = traits[Math.floor(Math.random() * traits.length)];
+				const motivation = motivations[Math.floor(Math.random() * motivations.length)];
+				const secret = secrets[Math.floor(Math.random() * secrets.length)];
+				
+				const nameList = firstNames[race.toLowerCase()] || firstNames.human;
+				const name = nameList[Math.floor(Math.random() * nameList.length)];
+
+				let html = '<div class="generator-item">';
+				html += `<h4>${name}</h4>`;
+				html += '<div class="generator-item-meta">';
+				html += `<span><strong>Race:</strong> ${race}</span>`;
+				html += `<span><strong>Gender:</strong> ${gender}</span>`;
+				html += `<span><strong>Profession:</strong> ${profession}</span>`;
+				html += '</div>';
+				html += `<div class="generator-item-desc"><strong>Personality:</strong> ${personality}</div>`;
+				html += `<div class="generator-item-desc"><strong>Distinctive Feature:</strong> ${trait}</div>`;
+				html += `<div class="generator-item-desc"><strong>Motivation:</strong> Currently ${motivation}</div>`;
+				html += `<div class="generator-item-desc"><strong>Secret:</strong> ${secret}</div>`;
+				html += '</div>';
+
+				resultsDiv.innerHTML = html;
+			}, 300);
+		}
+
+		// Town/Location Generator
+		generateTown() {
+			const resultsDiv = document.getElementById('town-results');
+			const typeSelect = document.getElementById('town-type').value;
+			
+			resultsDiv.innerHTML = '<div class="generator-loading">Generating settlement...</div>';
+
+			setTimeout(() => {
+				const settlementTypes = typeSelect === 'random' ? ['village', 'town', 'city'] : [typeSelect];
+				const type = settlementTypes[Math.floor(Math.random() * settlementTypes.length)];
+				
+				const populations = {
+					village: [50, 500],
+					town: [500, 5000],
+					city: [5000, 50000]
+				};
+
+				const prefixes = ['North', 'South', 'East', 'West', 'New', 'Old', 'Upper', 'Lower', 'High', 'Deep', 'Silver', 'Golden', 'Shadow', 'Bright', 'Dark'];
+				const roots = ['haven', 'dale', 'ford', 'bridge', 'wood', 'stone', 'garde', 'mere', 'brook', 'field', 'mill', 'port', 'crest', 'hill', 'mount'];
+				const features = ['Ancient ruins nearby', 'Built on a river crossroads', 'Famous for its market', 'Has a dark reputation', 'Known for excellent craftsmanship', 'Surrounded by farmland', 'Near a haunted forest', 'Protected by high walls', 'Has a prestigious academy', 'Site of a historic battle'];
+				const governments = ['Council of Elders', 'Hereditary Lord/Lady', 'Elected Mayor', 'Merchant Guild', 'Religious Leader', 'Military Commander'];
+				
+				const shops = ['General Store', 'Blacksmith', 'Tavern', 'Inn', 'Temple', 'Herbalist', 'Stables', 'Fletcher', 'Jeweler', 'Alchemist', 'Bookstore', 'Armorer', 'Leatherworker', 'Bakery'];
+				const taverns = ['The Prancing Pony', 'The Dragon\'s Flagon', 'The Rusty Anchor', 'The Golden Goblet', 'The Sleeping Giant', 'The Merry Minstrel', 'The Silver Stag', 'The Broken Shield', 'The Dancing Bear', 'The Laughing Fox'];
+
+				const name = prefixes[Math.floor(Math.random() * prefixes.length)] + roots[Math.floor(Math.random() * roots.length)];
+				const pop = Math.floor(Math.random() * (populations[type][1] - populations[type][0]) + populations[type][0]);
+				const feature = features[Math.floor(Math.random() * features.length)];
+				const government = governments[Math.floor(Math.random() * governments.length)];
+				
+				const numShops = type === 'village' ? 3 : type === 'town' ? 6 : 10;
+				const shuffledShops = shops.sort(() => 0.5 - Math.random()).slice(0, numShops);
+				const tavernName = taverns[Math.floor(Math.random() * taverns.length)];
+
+				let html = '<div class="generator-item">';
+				html += `<h4>${name}</h4>`;
+				html += '<div class="generator-item-meta">';
+				html += `<span><strong>Type:</strong> ${type.charAt(0).toUpperCase() + type.slice(1)}</span>`;
+				html += `<span><strong>Population:</strong> ~${pop.toLocaleString()}</span>`;
+				html += `<span><strong>Government:</strong> ${government}</span>`;
+				html += '</div>';
+				html += `<div class="generator-item-desc"><strong>Notable Feature:</strong> ${feature}</div>`;
+				html += `<div class="generator-item-desc"><strong>Main Tavern:</strong> ${tavernName}</div>`;
+				html += `<div class="generator-item-desc"><strong>Available Services:</strong> ${shuffledShops.join(', ')}</div>`;
+				html += '</div>';
+
+				resultsDiv.innerHTML = html;
+			}, 300);
+		}
+
+		// Quest Generator
+		generateQuest() {
+			const resultsDiv = document.getElementById('quest-results');
+			resultsDiv.innerHTML = '<div class="generator-loading">Generating quest...</div>';
+
+			setTimeout(() => {
+				const questTypes = ['Retrieval', 'Rescue', 'Investigation', 'Escort', 'Elimination', 'Exploration', 'Delivery', 'Protection'];
+				const objectives = {
+					'Retrieval': ['a stolen artifact', 'a magical item', 'ancient scrolls', 'a family heirloom', 'evidence of a crime'],
+					'Rescue': ['a kidnapped noble', 'missing villagers', 'an imprisoned ally', 'a captured merchant', 'lost children'],
+					'Investigation': ['mysterious disappearances', 'strange occurrences', 'a murder', 'corruption in the guard', 'cult activity'],
+					'Escort': ['a merchant caravan', 'a noble dignitary', 'a religious pilgrim', 'refugees', 'valuable cargo'],
+					'Elimination': ['a dangerous monster', 'bandits terrorizing the road', 'an enemy spy', 'a crime lord', 'undead threats'],
+					'Exploration': ['ancient ruins', 'an uncharted territory', 'a mysterious cave system', 'a lost civilization', 'a magical anomaly'],
+					'Delivery': ['an urgent message', 'medical supplies', 'a peace treaty', 'rare components', 'diplomatic gifts'],
+					'Protection': ['a town under siege', 'a VIP during an event', 'an important trial', 'harvest festival', 'sacred grounds']
+				};
+				const locations = ['in the nearby mountains', 'within the cursed forest', 'in the city sewers', 'at an abandoned castle', 'in the desert ruins', 'on a remote island', 'within enemy territory', 'at the old lighthouse', 'in the frozen north', 'beneath the city'];
+				const complications = ['but time is running out', 'while avoiding detection', 'against a rival group', 'despite political complications', 'with limited resources', 'while pursued by enemies', 'in hostile territory', 'during a dangerous storm', 'with unreliable allies', 'under a curse'];
+				const rewards = ['a generous gold reward', 'a magical item', 'land and title', 'valuable information', 'a powerful ally', 'rare spell components', 'a reputation boost', 'ancient knowledge', 'trade connections', 'political favor'];
+
+				const type = questTypes[Math.floor(Math.random() * questTypes.length)];
+				const objective = objectives[type][Math.floor(Math.random() * objectives[type].length)];
+				const location = locations[Math.floor(Math.random() * locations.length)];
+				const complication = complications[Math.floor(Math.random() * complications.length)];
+				const reward = rewards[Math.floor(Math.random() * rewards.length)];
+
+				let html = '<div class="generator-item">';
+				html += `<h4>${type} Quest</h4>`;
+				html += `<div class="generator-item-desc"><strong>Objective:</strong> ${type} ${objective}</div>`;
+				html += `<div class="generator-item-desc"><strong>Location:</strong> ${location}</div>`;
+				html += `<div class="generator-item-desc"><strong>Complication:</strong> ${complication}</div>`;
+				html += `<div class="generator-item-desc"><strong>Reward:</strong> The party will receive ${reward}</div>`;
+				html += '</div>';
+
+				resultsDiv.innerHTML = html;
+			}, 300);
+		}
+
+		// Treasure Hoard Generator
+		async generateTreasureHoard() {
+			const resultsDiv = document.getElementById('hoard-results');
+			const cr = document.getElementById('hoard-cr').value;
+			
+			resultsDiv.innerHTML = '<div class="generator-loading">Generating treasure hoard...</div>';
+
+			try {
+				const equipment = await this.loadEquipment();
+				
+				// Currency ranges based on CR
+				const currencyRanges = {
+					'0-4': { cp: [600, 2000], sp: [300, 1000], gp: [50, 200], pp: [0, 20] },
+					'5-10': { cp: [2000, 6000], sp: [1000, 3000], gp: [200, 800], pp: [20, 100] },
+					'11-16': { cp: [5000, 15000], sp: [2000, 8000], gp: [800, 3000], pp: [100, 500] },
+					'17+': { cp: [10000, 50000], sp: [5000, 20000], gp: [3000, 15000], pp: [500, 2000] }
+				};
+
+				const range = currencyRanges[cr];
+				const cp = Math.floor(Math.random() * (range.cp[1] - range.cp[0]) + range.cp[0]);
+				const sp = Math.floor(Math.random() * (range.sp[1] - range.sp[0]) + range.sp[0]);
+				const gp = Math.floor(Math.random() * (range.gp[1] - range.gp[0]) + range.gp[0]);
+				const pp = Math.floor(Math.random() * (range.pp[1] - range.pp[0]) + range.pp[0]);
+
+				// Number of items based on CR
+				const itemCounts = {
+					'0-4': [1, 3],
+					'5-10': [2, 5],
+					'11-16': [3, 7],
+					'17+': [4, 10]
+				};
+
+				const itemCount = Math.floor(Math.random() * (itemCounts[cr][1] - itemCounts[cr][0]) + itemCounts[cr][0]);
+				
+				// Get random items
+				const randomItems = [];
+				const usedIndices = new Set();
+				
+				for (let i = 0; i < itemCount && equipment.length > 0; i++) {
+					let randomIndex;
+					do {
+						randomIndex = Math.floor(Math.random() * equipment.length);
+					} while (usedIndices.has(randomIndex));
+					
+					usedIndices.add(randomIndex);
+					randomItems.push(equipment[randomIndex]);
+				}
+
+				// Fetch details
+				const itemsWithDetails = await Promise.all(
+					randomItems.map(async (item) => {
+						if (item.url) {
+							const details = await this.getEquipmentDetails(item.url);
+							return details || item;
+						}
+						return item;
+					})
+				);
+
+				// Gemstones
+				const gems = ['Diamond', 'Ruby', 'Emerald', 'Sapphire', 'Amethyst', 'Pearl', 'Opal', 'Jade', 'Tourmaline', 'Topaz'];
+				const numGems = Math.floor(Math.random() * 5);
+				const gemList = [];
+				for (let i = 0; i < numGems; i++) {
+					const gem = gems[Math.floor(Math.random() * gems.length)];
+					const value = [10, 50, 100, 500, 1000][Math.floor(Math.random() * 5)];
+					gemList.push(`${gem} (${value} gp)`);
+				}
+
+				let html = '<div class="generator-item">';
+				html += `<h4>Treasure Hoard (CR ${cr})</h4>`;
+				html += '<div class="generator-item-meta">';
+				html += `<span><strong>💰 Currency</strong></span>`;
+				html += '</div>';
+				html += '<div class="generator-item-desc">';
+				html += `${cp.toLocaleString()} copper, ${sp.toLocaleString()} silver, ${gp.toLocaleString()} gold, ${pp.toLocaleString()} platinum`;
+				html += '</div>';
+
+				if (gemList.length > 0) {
+					html += '<div class="generator-item-meta" style="margin-top: 12px;">';
+					html += `<span><strong>💎 Gemstones</strong></span>`;
+					html += '</div>';
+					html += '<div class="generator-item-desc">';
+					html += gemList.join(', ');
+					html += '</div>';
+				}
+
+				if (itemsWithDetails.length > 0) {
+					html += '<div class="generator-item-meta" style="margin-top: 12px;">';
+					html += `<span><strong>⚔️ Items</strong></span>`;
+					html += '</div>';
+					html += '<div class="generator-item-desc"><ul style="margin: 8px 0; padding-left: 20px;">';
+					itemsWithDetails.forEach(item => {
+						html += `<li>${item.name || item.index}</li>`;
+					});
+					html += '</ul></div>';
+				}
+
+				html += '</div>';
+				resultsDiv.innerHTML = html;
+				
+			} catch (error) {
+				console.error('Error generating hoard:', error);
+				resultsDiv.innerHTML = '<div class="empty-state">An error occurred while generating treasure hoard</div>';
+			}
+		}
+
+		// Name Generator
+		generateNames() {
+			const resultsDiv = document.getElementById('name-results');
+			const type = document.getElementById('name-type').value;
+			const count = parseInt(document.getElementById('name-count').value) || 10;
+			
+			resultsDiv.innerHTML = '<div class="generator-loading">Generating names...</div>';
+
+			setTimeout(() => {
+				const names = [];
+
+				const nameData = {
+					fantasy: {
+						syllables: ['al', 'an', 'ar', 'bel', 'car', 'dar', 'el', 'far', 'gal', 'hal', 'il', 'kar', 'lar', 'mar', 'nar', 'or', 'ral', 'sar', 'tar', 'val', 'xan', 'yar', 'zar', 'dor', 'fen', 'wen', 'lyn', 'mir', 'nor', 'ren']
+					},
+					human: ['Alden', 'Beatrice', 'Cedric', 'Diana', 'Edmund', 'Fiona', 'Gregory', 'Helena', 'Isaac', 'Julia', 'Marcus', 'Natalie', 'Oliver', 'Penelope', 'Roland', 'Sophia', 'Thomas', 'Victoria', 'William', 'Amelia'],
+					elven: ['Aelindra', 'Belanor', 'Caladwen', 'Daemion', 'Elenwe', 'Faelyn', 'Galadhel', 'Halueth', 'Isilwen', 'Loralei', 'Naevys', 'Orophin', 'Silaqui', 'Thalion', 'Valorin', 'Celebrian', 'Finduilas', 'Miriel', 'Aerandir', 'Lindir'],
+					dwarven: ['Baern', 'Dolgrin', 'Eberk', 'Gurdis', 'Hilde', 'Katra', 'Morgran', 'Rurik', 'Thargin', 'Vistra', 'Adrik', 'Bardryn', 'Eldeth', 'Falkrunn', 'Gimgen', 'Harbek', 'Kathra', 'Riswynn', 'Torbera', 'Vondal'],
+					orcish: ['Ghorza', 'Durgash', 'Marzog', 'Uzgash', 'Bagrak', 'Shagrol', 'Urzoth', 'Mogdurz', 'Ghorbash', 'Larzog', 'Borgakh', 'Sharamph', 'Shapob', 'Krognak', 'Mazoga', 'Ugor', 'Ghorub', 'Shuk', 'Bagol', 'Yarug'],
+					place: {
+						prefixes: ['North', 'South', 'East', 'West', 'New', 'Old', 'High', 'Low', 'Silver', 'Golden', 'Iron', 'Storm', 'Shadow', 'Bright', 'Dark', 'White', 'Black', 'Green', 'Red', 'Blue'],
+						suffixes: ['haven', 'dale', 'ford', 'bridge', 'wood', 'stone', 'garde', 'mere', 'brook', 'field', 'mill', 'ton', 'port', 'crest', 'hill', 'mount', 'vale', 'wick', 'bury', 'ham']
+					},
+					tavern: {
+						adjectives: ['Prancing', 'Dancing', 'Sleeping', 'Drunken', 'Golden', 'Silver', 'Rusty', 'Merry', 'Laughing', 'Broken', 'Red', 'Black', 'Green', 'Blue', 'Wild', 'Tipsy', 'Jolly', 'Hungry', 'Thirsty', 'Lucky'],
+						nouns: ['Pony', 'Dragon', 'Giant', 'Dwarf', 'Goblin', 'Flagon', 'Tankard', 'Barrel', 'Sword', 'Shield', 'Crown', 'Stag', 'Bear', 'Fox', 'Wolf', 'Eagle', 'Lion', 'Boar', 'Anchor', 'Compass']
+					},
+					shop: {
+						types: ['Emporium', 'Shop', 'Shoppe', 'Market', 'Store', 'Boutique', 'Trading Post', 'Merchant'],
+						themes: ['Curiosities', 'Wares', 'Goods', 'Treasures', 'Sundries', 'Supplies', 'Provisions', 'Oddities']
+					}
+				};
+
+				for (let i = 0; i < count; i++) {
+					let name;
+					
+					if (type === 'fantasy') {
+						const sylCount = 2 + Math.floor(Math.random() * 2);
+						const syllables = nameData.fantasy.syllables;
+						name = '';
+						for (let j = 0; j < sylCount; j++) {
+							name += syllables[Math.floor(Math.random() * syllables.length)];
+						}
+						name = name.charAt(0).toUpperCase() + name.slice(1);
+					} else if (type === 'place') {
+						const prefix = nameData.place.prefixes[Math.floor(Math.random() * nameData.place.prefixes.length)];
+						const suffix = nameData.place.suffixes[Math.floor(Math.random() * nameData.place.suffixes.length)];
+						name = prefix + suffix;
+					} else if (type === 'tavern') {
+						const adj = nameData.tavern.adjectives[Math.floor(Math.random() * nameData.tavern.adjectives.length)];
+						const noun = nameData.tavern.nouns[Math.floor(Math.random() * nameData.tavern.nouns.length)];
+						name = `The ${adj} ${noun}`;
+					} else if (type === 'shop') {
+						const owner = nameData.human[Math.floor(Math.random() * nameData.human.length)].split(' ')[0];
+						const shopType = nameData.shop.types[Math.floor(Math.random() * nameData.shop.types.length)];
+						const theme = nameData.shop.themes[Math.floor(Math.random() * nameData.shop.themes.length)];
+						name = Math.random() > 0.5 ? `${owner}'s ${shopType}` : `${owner}'s ${theme}`;
+					} else {
+						const nameList = nameData[type];
+						name = nameList[Math.floor(Math.random() * nameList.length)];
+					}
+					
+					names.push(name);
+				}
+
+				let html = '<div class="generator-item">';
+				html += `<h4>Generated ${type.charAt(0).toUpperCase() + type.slice(1)} Names</h4>`;
+				html += '<div class="generator-item-desc"><ul style="margin: 8px 0; padding-left: 20px; columns: 2;">';
+				names.forEach(name => {
+					html += `<li>${name}</li>`;
+				});
+				html += '</ul></div>';
+				html += '</div>';
+
+				resultsDiv.innerHTML = html;
+			}, 300);
+		}
 	}
 
 	// Initialize managers
@@ -5536,6 +5960,11 @@ async loadInventory() {
 	// Wire up generator button handlers
 	const btnGenerateLoot = document.getElementById('btn-generate-loot');
 	const btnGenerateEncounter = document.getElementById('btn-generate-encounter');
+	const btnGenerateNPC = document.getElementById('btn-generate-npc');
+	const btnGenerateTown = document.getElementById('btn-generate-town');
+	const btnGenerateQuest = document.getElementById('btn-generate-quest');
+	const btnGenerateHoard = document.getElementById('btn-generate-hoard');
+	const btnGenerateNames = document.getElementById('btn-generate-names');
 	
 	if (btnGenerateLoot) {
 		btnGenerateLoot.addEventListener('click', () => {
@@ -5546,6 +5975,36 @@ async loadInventory() {
 	if (btnGenerateEncounter) {
 		btnGenerateEncounter.addEventListener('click', () => {
 			window.randomGenerators.generateEncounter();
+		});
+	}
+
+	if (btnGenerateNPC) {
+		btnGenerateNPC.addEventListener('click', () => {
+			window.randomGenerators.generateNPC();
+		});
+	}
+
+	if (btnGenerateTown) {
+		btnGenerateTown.addEventListener('click', () => {
+			window.randomGenerators.generateTown();
+		});
+	}
+
+	if (btnGenerateQuest) {
+		btnGenerateQuest.addEventListener('click', () => {
+			window.randomGenerators.generateQuest();
+		});
+	}
+
+	if (btnGenerateHoard) {
+		btnGenerateHoard.addEventListener('click', () => {
+			window.randomGenerators.generateTreasureHoard();
+		});
+	}
+
+	if (btnGenerateNames) {
+		btnGenerateNames.addEventListener('click', () => {
+			window.randomGenerators.generateNames();
 		});
 	}
 	
