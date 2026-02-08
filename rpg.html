@@ -2159,6 +2159,247 @@
 			}
 	}
 
+	/* Sessions Page */
+	.sessions-content {
+		display: flex;
+		flex: 1;
+		min-height: 0;
+	}
+
+	.sessions-container {
+		display: flex;
+		width: 100%;
+		gap: 16px;
+		min-height: 0;
+	}
+
+	.sessions-list-sidebar {
+		flex: 0 0 280px;
+		border-right: 1px solid var(--border);
+		overflow-y: auto;
+		padding: 12px;
+	}
+
+	.sessions-list {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.session-item {
+		padding: 12px;
+		border: 1px solid var(--border);
+		border-radius: 6px;
+		cursor: pointer;
+		background: var(--bg);
+		transition: all 0.2s;
+	}
+
+	.session-item:hover {
+		background: var(--hover);
+		border-color: var(--link);
+	}
+
+	.session-item.active {
+		background: var(--link);
+		color: var(--bg);
+		border-color: var(--link);
+	}
+
+	.session-item-date {
+		font-size: 0.75rem;
+		opacity: 0.7;
+		margin-top: 4px;
+	}
+
+	.sessions-editor {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+		overflow-y: auto;
+		padding: 20px;
+	}
+
+	.session-empty-state {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		height: 100%;
+		text-align: center;
+		color: var(--muted-fg);
+		font-size: 1.1rem;
+	}
+
+	.session-form {
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+	}
+
+	.session-form-header {
+		display: flex;
+		gap: 12px;
+		align-items: flex-start;
+		border-bottom: 2px solid var(--border);
+		padding-bottom: 12px;
+	}
+
+	.session-title-input {
+		flex: 1;
+		font-size: 1.4rem;
+		font-weight: 600;
+		border: none;
+		padding: 8px 12px;
+		background: transparent;
+		color: var(--fg);
+		outline: none;
+		border-radius: 4px;
+	}
+
+	.session-title-input:focus {
+		background: var(--hover);
+	}
+
+	.session-form-actions {
+		display: flex;
+		gap: 8px;
+	}
+
+	.btn-icon {
+		background: none;
+		border: 1px solid var(--border);
+		border-radius: 4px;
+		padding: 6px 10px;
+		cursor: pointer;
+		color: var(--fg);
+		font-size: 1.2rem;
+		transition: all 0.2s;
+	}
+
+	.btn-icon:hover {
+		background: var(--hover);
+		border-color: var(--link);
+	}
+
+	.session-meta {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 12px;
+		padding: 12px;
+		background: var(--hover);
+		border-radius: 6px;
+	}
+
+	.session-meta-item {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		font-size: 0.875rem;
+		font-weight: 500;
+	}
+
+	.session-date-input,
+	.session-duration-input {
+		padding: 8px 12px;
+		border: 1px solid var(--border);
+		border-radius: 4px;
+		background: var(--bg);
+		color: var(--fg);
+		font-family: inherit;
+		font-size: inherit;
+	}
+
+	.session-date-input:focus,
+	.session-duration-input:focus {
+		outline: none;
+		border-color: var(--link);
+	}
+
+	.session-sections {
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+	}
+
+	.session-section {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.session-section h4 {
+		margin: 0;
+		font-size: 0.95rem;
+		font-weight: 600;
+		color: var(--link);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.session-textarea {
+		padding: 12px;
+		border: 1px solid var(--border);
+		border-radius: 6px;
+		background: var(--bg);
+		color: var(--fg);
+		font-family: inherit;
+		font-size: 0.9rem;
+		resize: vertical;
+		min-height: 100px;
+		line-height: 1.5;
+	}
+
+	.session-textarea:focus {
+		outline: none;
+		border-color: var(--link);
+		box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
+	}
+
+	.session-actions {
+		display: flex;
+		gap: 12px;
+		padding-top: 12px;
+		border-top: 1px solid var(--border);
+	}
+
+	@media (max-width: 1024px) {
+		.sessions-list-sidebar {
+			flex: 0 0 200px;
+		}
+	}
+
+	@media (max-width: 768px) {
+		.sessions-container {
+			flex-direction: column;
+			gap: 0;
+		}
+
+		.sessions-list-sidebar {
+			flex: 0 0 auto;
+			max-height: 40vh;
+			border-right: none;
+			border-bottom: 1px solid var(--border);
+		}
+
+		.sessions-editor {
+			flex: 1;
+			padding: 12px;
+		}
+
+		.session-form-header {
+			flex-direction: column;
+		}
+
+		.session-meta {
+			grid-template-columns: 1fr;
+		}
+
+		.session-textarea {
+			min-height: 80px;
+		}
+	}
+
 	</style>
 	</head>
 	<body>
@@ -2179,6 +2420,7 @@
 				<button class="nav-btn" data-page="search">Search</button>
 				<button class="nav-btn" data-page="inventory">Party Inventory</button>
 				<button class="nav-btn" data-page="characters">Characters</button>
+				<button class="nav-btn" data-page="sessions">Sessions</button>
 				<button class="nav-btn" data-page="generators">Random Generators</button>
 			</nav>
 		</header>
@@ -2575,6 +2817,244 @@
 							<div class="generator-results" id="weather-results">
 								<div class="empty-state">Click "Generate Weather" to create weather conditions</div>
 							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Sessions Page -->
+		<div class="page hidden" id="sessions-page">
+			<div class="page-header">
+				<h2>Campaign Sessions</h2>
+				<button class="btn" id="btn-new-session">+ New Session</button>
+			</div>
+			<div class="page-content sessions-content">
+				<div class="sessions-container">
+					<aside class="sessions-list-sidebar">
+						<div class="sessions-list" id="sessions-list">
+							<div class="empty-state">No sessions yet. Click "New Session" to begin.</div>
+						</div>
+					</aside>
+					<div class="sessions-editor">
+						<div class="session-empty-state" id="session-empty-state">
+							<p>Select a session to view or create a new one</p>
+						</div>
+						<div class="session-form hidden" id="session-form">
+							<div class="session-form-header">
+								<input type="text" id="session-title" class="session-title-input" placeholder="Session Title" maxlength="100">
+								<div class="session-form-actions">
+									<button class="btn-icon" id="btn-delete-session" title="Delete session">🗑️</button>
+									<button class="btn-icon" id="btn-close-session" title="Close">✕</button>
+								</div>
+							</div>
+							<div class="session-meta">
+								<label class="session-meta-item">
+									<span>Date:</span>
+									<input type="date" id="session-date" class="session-date-input">
+								</label>
+								<label class="session-meta-item">
+									<span>Duration:</span>
+									<input type="text" id="session-duration" class="session-duration-input" placeholder="e.g., 4 hours" maxlength="50">
+								</label>
+							</div>
+							<div class="session-sections">
+								<div class="session-section">
+									<h4>Summary</h4>
+									<textarea id="session-summary" class="session-textarea" placeholder="Brief overview of the session..."></textarea>
+								</div>
+								<div class="session-section">
+									<h4>Key Events</h4>
+									<textarea id="session-events" class="session-textarea" placeholder="Important battles, discoveries, or story beats..."></textarea>
+								</div>
+								<div class="session-section">
+									<h4>NPCs Met</h4>
+									<textarea id="session-npcs" class="session-textarea" placeholder="New NPCs encountered, their reactions, etc..."></textarea>
+								</div>
+								<div class="session-section">
+									<h4>Loot & Rewards</h4>
+									<textarea id="session-loot" class="session-textarea" placeholder="Items, gold, experience, or other rewards..."></textarea>
+								</div>
+								<div class="session-section">
+									<h4>Notes & Questions</h4>
+									<textarea id="session-notes" class="session-textarea" placeholder="Campaign notes, mysteries to solve, follow-ups..."></textarea>
+								</div>
+							</div>
+							<div class="session-actions">
+								<button class="btn" id="btn-save-session">Save Session</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="page hidden" id="generators-page">
+			<div class="page-header">
+				<h2>Random Generators</h2>
+			</div>
+			<div class="page-content">
+				<div class="generators-container">
+					<!-- Random Loot Generator -->
+					<div class="generator-section">
+						<div class="generator-header">
+							<h3>💎 Random Loot Table</h3>
+							<button class="btn" id="btn-generate-loot">🎲 Generate Loot</button>
+						</div>
+						<div class="generator-controls">
+							<label>
+								<span>Number of items:</span>
+								<input type="number" id="loot-count" min="1" max="20" value="5" class="generator-input">
+							</label>
+						</div>
+						<div class="generator-results" id="loot-results">
+							<div class="empty-state">Click "Generate Loot" to create a random loot table</div>
+						</div>
+					</div>
+
+					<!-- Random Encounter Generator -->
+					<div class="generator-section">
+						<div class="generator-header">
+							<h3>⚔️ Random Encounter</h3>
+							<button class="btn" id="btn-generate-encounter">🎲 Generate Encounter</button>
+						</div>
+						<div class="generator-controls">
+							<label>
+								<span>Number of monsters:</span>
+								<input type="number" id="encounter-count" min="1" max="10" value="3" class="generator-input">
+							</label>
+						</div>
+						<div class="generator-results" id="encounter-results">
+							<div class="empty-state">Click "Generate Encounter" to create a random encounter</div>
+						</div>
+					</div>
+
+					<!-- NPC Generator -->
+					<div class="generator-section">
+						<div class="generator-header">
+							<h3>👤 Random NPC</h3>
+							<button class="btn" id="btn-generate-npc">🎲 Generate NPC</button>
+						</div>
+						<div class="generator-results" id="npc-results">
+							<div class="empty-state">Click "Generate NPC" to create a random character</div>
+						</div>
+					</div>
+
+					<!-- Town/Location Generator -->
+					<div class="generator-section">
+						<div class="generator-header">
+							<h3>🏰 Random Settlement</h3>
+							<button class="btn" id="btn-generate-town">🎲 Generate Settlement</button>
+						</div>
+						<div class="generator-controls">
+							<label>
+								<span>Settlement Type:</span>
+								<select id="town-type" class="generator-input">
+									<option value="random">Random</option>
+									<option value="village">Village</option>
+									<option value="town">Town</option>
+									<option value="city">City</option>
+								</select>
+							</label>
+						</div>
+						<div class="generator-results" id="town-results">
+							<div class="empty-state">Click "Generate Settlement" to create a random location</div>
+						</div>
+					</div>
+
+					<!-- Quest Generator -->
+					<div class="generator-section">
+						<div class="generator-header">
+							<h3>📜 Random Quest</h3>
+							<button class="btn" id="btn-generate-quest">🎲 Generate Quest</button>
+						</div>
+						<div class="generator-results" id="quest-results">
+							<div class="empty-state">Click "Generate Quest" to create a random plot hook</div>
+						</div>
+					</div>
+
+					<!-- Treasure Hoard Generator -->
+					<div class="generator-section">
+						<div class="generator-header">
+							<h3>💰 Treasure Hoard</h3>
+							<button class="btn" id="btn-generate-hoard">🎲 Generate Hoard</button>
+						</div>
+						<div class="generator-controls">
+							<label>
+								<span>Challenge Rating:</span>
+								<select id="hoard-cr" class="generator-input">
+									<option value="0-4">CR 0-4</option>
+									<option value="5-10" selected>CR 5-10</option>
+									<option value="11-16">CR 11-16</option>
+									<option value="17+">CR 17+</option>
+								</select>
+							</label>
+						</div>
+						<div class="generator-results" id="hoard-results">
+							<div class="empty-state">Click "Generate Hoard" to create a treasure hoard</div>
+						</div>
+					</div>
+
+					<!-- Name Generator -->
+					<div class="generator-section">
+						<div class="generator-header">
+							<h3>✨ Random Names</h3>
+							<button class="btn" id="btn-generate-names">🎲 Generate Names</button>
+						</div>
+						<div class="generator-controls">
+							<label>
+								<span>Name Type:</span>
+								<select id="name-type" class="generator-input">
+									<option value="fantasy">Fantasy</option>
+									<option value="human">Human</option>
+									<option value="elven">Elven</option>
+									<option value="dwarven">Dwarven</option>
+									<option value="orcish">Orcish</option>
+									<option value="place">Place</option>
+									<option value="tavern">Tavern</option>
+									<option value="shop">Shop</option>
+								</select>
+							</label>
+							<label>
+								<span>Number of names:</span>
+								<input type="number" id="name-count" min="1" max="20" value="10" class="generator-input">
+							</label>
+						</div>
+						<div class="generator-results" id="name-results">
+							<div class="empty-state">Click "Generate Names" to create random names</div>
+						</div>
+					</div>
+
+					<!-- Weather/Environment Generator -->
+					<div class="generator-section">
+						<div class="generator-header">
+							<h3>🌤️ Weather & Environment</h3>
+							<button class="btn" id="btn-generate-weather">🎲 Generate Weather</button>
+						</div>
+						<div class="generator-controls">
+							<label>
+								<span>Climate:</span>
+								<select id="weather-climate" class="generator-input">
+									<option value="temperate">Temperate</option>
+									<option value="tropical">Tropical</option>
+									<option value="arctic">Arctic</option>
+									<option value="desert">Desert</option>
+									<option value="mountain">Mountain</option>
+									<option value="coastal">Coastal</option>
+								</select>
+							</label>
+							<label>
+								<span>Season:</span>
+								<select id="weather-season" class="generator-input">
+									<option value="spring">Spring</option>
+									<option value="summer">Summer</option>
+									<option value="autumn">Autumn</option>
+									<option value="winter">Winter</option>
+								</select>
+							</label>
+						</div>
+						<div class="generator-results" id="weather-results">
+							<div class="empty-state">Click "Generate Weather" to create weather conditions</div>
 						</div>
 					</div>
 				</div>
@@ -6129,13 +6609,171 @@ async loadInventory() {
 	}
 }
 
+	// Session Manager
+	class SessionManager {
+		constructor() {
+			this.sessions = [];
+			this.currentSessionId = null;
+		}
+
+		init() {
+			this.loadSessions();
+			this.setupEventListeners();
+			this.render();
+		}
+
+		loadSessions() {
+			// Load from localStorage
+			const saved = localStorage.getItem('rpg-sessions');
+			this.sessions = saved ? JSON.parse(saved) : [];
+		}
+
+		saveSessions() {
+			localStorage.setItem('rpg-sessions', JSON.stringify(this.sessions));
+		}
+
+		setupEventListeners() {
+			const btnNewSession = document.getElementById('btn-new-session');
+			const btnSaveSession = document.getElementById('btn-save-session');
+			const btnDeleteSession = document.getElementById('btn-delete-session');
+			const btnCloseSession = document.getElementById('btn-close-session');
+
+			if (btnNewSession) {
+				btnNewSession.addEventListener('click', () => this.newSession());
+			}
+
+			if (btnSaveSession) {
+				btnSaveSession.addEventListener('click', () => this.saveSession());
+			}
+
+			if (btnDeleteSession) {
+				btnDeleteSession.addEventListener('click', () => this.deleteCurrentSession());
+			}
+
+			if (btnCloseSession) {
+				btnCloseSession.addEventListener('click', () => this.closeForm());
+			}
+		}
+
+		newSession() {
+			const session = {
+				id: Date.now().toString(),
+				title: 'New Session',
+				date: new Date().toISOString().split('T')[0],
+				duration: '',
+				summary: '',
+				events: '',
+				npcs: '',
+				loot: '',
+				notes: ''
+			};
+
+			this.sessions.unshift(session);
+			this.saveSessions();
+			this.selectSession(session.id);
+			this.render();
+		}
+
+		selectSession(id) {
+			this.currentSessionId = id;
+			this.showForm();
+			this.render();
+		}
+
+		saveSession() {
+			if (!this.currentSessionId) return;
+
+			const session = this.sessions.find(s => s.id === this.currentSessionId);
+			if (!session) return;
+
+			session.title = document.getElementById('session-title').value || 'Untitled Session';
+			session.date = document.getElementById('session-date').value;
+			session.duration = document.getElementById('session-duration').value;
+			session.summary = document.getElementById('session-summary').value;
+			session.events = document.getElementById('session-events').value;
+			session.npcs = document.getElementById('session-npcs').value;
+			session.loot = document.getElementById('session-loot').value;
+			session.notes = document.getElementById('session-notes').value;
+
+			this.saveSessions();
+			this.render();
+		}
+
+		deleteCurrentSession() {
+			if (!this.currentSessionId) return;
+
+			if (confirm('Delete this session? This cannot be undone.')) {
+				this.sessions = this.sessions.filter(s => s.id !== this.currentSessionId);
+				this.saveSessions();
+				this.currentSessionId = null;
+				this.closeForm();
+				this.render();
+			}
+		}
+
+		showForm() {
+			const form = document.getElementById('session-form');
+			const empty = document.getElementById('session-empty-state');
+
+			if (this.currentSessionId) {
+				const session = this.sessions.find(s => s.id === this.currentSessionId);
+				if (session) {
+					document.getElementById('session-title').value = session.title;
+					document.getElementById('session-date').value = session.date;
+					document.getElementById('session-duration').value = session.duration;
+					document.getElementById('session-summary').value = session.summary;
+					document.getElementById('session-events').value = session.events;
+					document.getElementById('session-npcs').value = session.npcs;
+					document.getElementById('session-loot').value = session.loot;
+					document.getElementById('session-notes').value = session.notes;
+
+					if (form) form.classList.remove('hidden');
+					if (empty) empty.classList.add('hidden');
+				}
+			}
+		}
+
+		closeForm() {
+			const form = document.getElementById('session-form');
+			const empty = document.getElementById('session-empty-state');
+
+			this.currentSessionId = null;
+
+			if (form) form.classList.add('hidden');
+			if (empty) empty.classList.remove('hidden');
+			this.render();
+		}
+
+		render() {
+			const list = document.getElementById('sessions-list');
+			if (!list) return;
+
+			if (this.sessions.length === 0) {
+				list.innerHTML = '<div class="empty-state">No sessions yet. Click "New Session" to begin.</div>';
+				return;
+			}
+
+			list.innerHTML = this.sessions.map(session => `
+				<div class="session-item ${session.id === this.currentSessionId ? 'active' : ''}" data-id="${session.id}">
+					<div><strong>${session.title}</strong></div>
+					<div class="session-item-date">${session.date || 'No date'}</div>
+				</div>
+			`).join('');
+
+			// Add click handlers
+			list.querySelectorAll('.session-item').forEach(item => {
+				item.addEventListener('click', () => {
+					this.selectSession(item.dataset.id);
+				});
+			});
+		}
+	}
+
 	// Initialize managers
 	window.inventoryManager = new InventoryManager();
 	window.searchPageManager = new SearchPageManager();
 	window.randomGenerators = new RandomGenerators();
-	
-	// Wire up generator button handlers
-	const btnGenerateLoot = document.getElementById('btn-generate-loot');
+	window.sessionManager = new SessionManager();
 	const btnGenerateEncounter = document.getElementById('btn-generate-encounter');
 	const btnGenerateNPC = document.getElementById('btn-generate-npc');
 	const btnGenerateTown = document.getElementById('btn-generate-town');
@@ -6198,11 +6836,13 @@ async loadInventory() {
 			setupThemeToggle();
 			initApp();
 			loadCharacterSheet();
+			window.sessionManager.init();
 		});
 	} else {
 		setupThemeToggle();
 		initApp();
 		loadCharacterSheet();
+		window.sessionManager.init();
 	}
 	
 	// Load default inventory if needed
