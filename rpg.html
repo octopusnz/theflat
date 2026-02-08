@@ -3463,6 +3463,7 @@
 		if (savedTheme === 'dark' || savedTheme === 'light') {
 			applyTheme(savedTheme);
 		} else {
+			localStorage.setItem('theme', 'dark');
 			applyTheme('dark');
 		}
 
@@ -4709,6 +4710,7 @@ document.getElementById('btn-import').addEventListener('change', async (e) => {
 		const inventoryPage = document.getElementById('inventory-page');
 		const charactersPage = document.getElementById('characters-page');
 		const generatorsPage = document.getElementById('generators-page');
+		const sessionsPage = document.getElementById('sessions-page');
 		const mapToolbar = document.querySelector('.map-toolbar');
 		const mapView = document.getElementById('map-view');
 		
@@ -4720,6 +4722,10 @@ document.getElementById('btn-import').addEventListener('change', async (e) => {
 			inventoryPage.classList.add('hidden');
 			generatorsPage.classList.remove('active');
 			generatorsPage.classList.add('hidden');
+			charactersPage.classList.remove('active');
+			charactersPage.classList.add('hidden');
+			sessionsPage.classList.remove('active');
+			sessionsPage.classList.add('hidden');
 			mapToolbar.classList.add('hidden');
 			mapView.classList.add('hidden');
 		} 
@@ -4733,6 +4739,8 @@ document.getElementById('btn-import').addEventListener('change', async (e) => {
 			charactersPage.classList.add('hidden');
 			generatorsPage.classList.remove('active');
 			generatorsPage.classList.add('hidden');
+			sessionsPage.classList.remove('active');
+			sessionsPage.classList.add('hidden');
 			mapToolbar.classList.add('hidden');
 			mapView.classList.add('hidden');
 		} 
@@ -4746,6 +4754,8 @@ document.getElementById('btn-import').addEventListener('change', async (e) => {
 			inventoryPage.classList.add('hidden');
 			generatorsPage.classList.remove('active');
 			generatorsPage.classList.add('hidden');
+			sessionsPage.classList.remove('active');
+			sessionsPage.classList.add('hidden');
 			mapToolbar.classList.add('hidden');
 			mapView.classList.add('hidden');
 		}
@@ -4759,6 +4769,23 @@ document.getElementById('btn-import').addEventListener('change', async (e) => {
 			inventoryPage.classList.add('hidden');
 			charactersPage.classList.remove('active');
 			charactersPage.classList.add('hidden');
+			sessionsPage.classList.remove('active');
+			sessionsPage.classList.add('hidden');
+			mapToolbar.classList.add('hidden');
+			mapView.classList.add('hidden');
+		}
+		// For sessions page
+		else if (pageName === 'sessions') {
+			sessionsPage.classList.add('active');
+			sessionsPage.classList.remove('hidden');
+			searchPage.classList.remove('active');
+			searchPage.classList.add('hidden');
+			inventoryPage.classList.remove('active');
+			inventoryPage.classList.add('hidden');
+			charactersPage.classList.remove('active');
+			charactersPage.classList.add('hidden');
+			generatorsPage.classList.remove('active');
+			generatorsPage.classList.add('hidden');
 			mapToolbar.classList.add('hidden');
 			mapView.classList.add('hidden');
 		}
@@ -4772,6 +4799,8 @@ document.getElementById('btn-import').addEventListener('change', async (e) => {
 			charactersPage.classList.add('hidden');
 			generatorsPage.classList.remove('active');
 			generatorsPage.classList.add('hidden');
+			sessionsPage.classList.remove('active');
+			sessionsPage.classList.add('hidden');
 			mapToolbar.classList.remove('hidden');
 			mapView.classList.remove('hidden');
 		}
