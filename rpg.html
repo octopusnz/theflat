@@ -391,7 +391,17 @@
 				will-change: transform;
 				transform: translate3d(0, 0, 0);
 				backface-visibility: hidden;
-			touch-action: none;
+				touch-action: none;
+			}
+
+			.map-svg.ready {
+				opacity: 1;
+				image-rendering: crisp-edges;
+			}
+
+			.map-view.loading::after {
+				content: '';
+				position: absolute;
 				top: 50%;
 				left: 50%;
 				width: 24px;
@@ -404,19 +414,19 @@
 				transform: translate(-50%, -50%);
 			}
 
-	/* Optimize map locations for performance */
+		/* Optimize map locations for performance */
 
-	.map-location {
-		cursor: pointer;
-	}
+		.map-location {
+			cursor: pointer;
+		}
 
-	.map-location circle {
-		fill: var(--link);
-		stroke: var(--bg);
-		stroke-width: 2;
-	}
+		.map-location circle {
+			fill: var(--link);
+			stroke: var(--bg);
+			stroke-width: 2;
+		}
 
-	.map-location text {
+		.map-location text {
 		fill: #ffffff;
 		font-size: 120px;
 		font-weight: 600;
