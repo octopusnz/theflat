@@ -1751,6 +1751,198 @@
 		color: var(--muted-fg);
 	}
 
+	/* Character Sheet */
+	.character-sheet {
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+	}
+
+	.character-header {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: 12px;
+		border-bottom: 2px solid var(--border);
+		padding-bottom: 12px;
+	}
+
+	.character-name {
+		font-size: 1.6rem;
+		font-weight: 700;
+	}
+
+	.character-meta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px 12px;
+		color: var(--muted-fg);
+		font-size: 0.9rem;
+	}
+
+	.character-badges {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+
+	.character-badge {
+		background: var(--hover);
+		border: 1px solid var(--border);
+		border-radius: 999px;
+		padding: 6px 10px;
+		font-size: 0.8rem;
+		font-weight: 600;
+	}
+
+	.character-columns {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+		gap: 16px;
+	}
+
+	.character-panel {
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+		background: var(--bg);
+		border: 1px solid var(--border);
+		border-radius: 10px;
+		padding: 16px;
+	}
+
+	.summary-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+		gap: 12px;
+	}
+
+	.summary-card {
+		background: var(--hover);
+		border: 1px solid var(--border);
+		border-radius: 8px;
+		padding: 10px;
+		text-align: center;
+	}
+
+	.summary-label {
+		font-size: 0.75rem;
+		color: var(--muted-fg);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.summary-value {
+		font-size: 1.1rem;
+		font-weight: 700;
+		margin-top: 4px;
+	}
+
+	.abilities-grid {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 12px;
+	}
+
+	.ability-card {
+		background: var(--hover);
+		border: 1px solid var(--border);
+		border-radius: 8px;
+		padding: 10px;
+		text-align: center;
+	}
+
+	.ability-name {
+		font-size: 0.75rem;
+		color: var(--muted-fg);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.ability-score {
+		font-size: 1.2rem;
+		font-weight: 700;
+		margin-top: 4px;
+	}
+
+	.ability-mod {
+		font-size: 0.9rem;
+		color: var(--muted-fg);
+	}
+
+	.character-section {
+		border: 1px solid var(--border);
+		border-radius: 10px;
+		padding: 16px;
+		background: var(--bg);
+	}
+
+	.character-section h3 {
+		margin: 0 0 12px;
+		font-size: 1rem;
+		color: var(--link);
+	}
+
+	.character-list {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.character-list-item {
+		display: flex;
+		justify-content: space-between;
+		gap: 12px;
+		border-bottom: 1px dashed var(--border);
+		padding-bottom: 6px;
+	}
+
+	.character-list-item:last-child {
+		border-bottom: none;
+		padding-bottom: 0;
+	}
+
+	.spell-level {
+		margin-bottom: 12px;
+	}
+
+	.spell-level h4 {
+		margin: 0 0 8px;
+		font-size: 0.9rem;
+		color: var(--fg);
+	}
+
+	.spell-tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+	}
+
+	.spell-tag {
+		background: var(--hover);
+		border: 1px solid var(--border);
+		border-radius: 999px;
+		padding: 4px 8px;
+		font-size: 0.8rem;
+	}
+
+	.spell-tag.is-prepared {
+		border-color: var(--link);
+		color: var(--link);
+		font-weight: 600;
+	}
+
+	.character-loading,
+	.character-error {
+		padding: 20px;
+		text-align: center;
+		color: var(--muted-fg);
+	}
+
 	@media (max-width: 768px) {
 		.page-content {
 			padding: 12px;
@@ -1783,6 +1975,10 @@
 			flex-direction: column;
 			align-items: flex-start;
 			gap: 12px;
+		}
+
+		.abilities-grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
 
 		.inventory-item-controls {
@@ -1826,6 +2022,7 @@
 				<button class="nav-btn" data-page="map">World Map</button>
 				<button class="nav-btn" data-page="search">Search</button>
 				<button class="nav-btn" data-page="inventory">Party Inventory</button>
+				<button class="nav-btn" data-page="characters">Characters</button>
 			</nav>
 		</header>
 		<div class="mobile-overlay" id="mobile-overlay"></div>
@@ -2035,6 +2232,18 @@
 							</div>
 							<div class="inventory-items" id="inventory-items">
 								<div class="empty-state">No items in inventory. Click "Add Item" to begin.</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Characters Page -->
+					<div class="page hidden" id="characters-page">
+						<div class="page-header">
+							<h2>Characters</h2>
+						</div>
+						<div class="page-content">
+							<div class="character-sheet" id="character-sheet">
+								<div class="character-loading">Loading character...</div>
 							</div>
 						</div>
 					</div>
@@ -3679,13 +3888,15 @@ document.getElementById('btn-import').addEventListener('change', async (e) => {
 		map: mapContainer,
 		home: document.getElementById('search-page'), // Reusing search as home-like
 		search: document.getElementById('search-page'),
-		inventory: document.getElementById('inventory-page')
+		inventory: document.getElementById('inventory-page'),
+		characters: document.getElementById('characters-page')
 	};
 
 	function showPage(pageName) {
 		// Hide all pages and show only the active one
 		const searchPage = document.getElementById('search-page');
 		const inventoryPage = document.getElementById('inventory-page');
+		const charactersPage = document.getElementById('characters-page');
 		const mapToolbar = document.querySelector('.map-toolbar');
 		const mapView = document.getElementById('map-view');
 		
@@ -3704,15 +3915,30 @@ document.getElementById('btn-import').addEventListener('change', async (e) => {
 			inventoryPage.classList.remove('hidden');
 			searchPage.classList.remove('active');
 			searchPage.classList.add('hidden');
+			charactersPage.classList.remove('active');
+			charactersPage.classList.add('hidden');
 			mapToolbar.classList.add('hidden');
 			mapView.classList.add('hidden');
 		} 
+		// For characters page
+		else if (pageName === 'characters') {
+			charactersPage.classList.add('active');
+			charactersPage.classList.remove('hidden');
+			searchPage.classList.remove('active');
+			searchPage.classList.add('hidden');
+			inventoryPage.classList.remove('active');
+			inventoryPage.classList.add('hidden');
+			mapToolbar.classList.add('hidden');
+			mapView.classList.add('hidden');
+		}
 		// For map
 		else if (pageName === 'map') {
 			searchPage.classList.remove('active');
 			searchPage.classList.add('hidden');
 			inventoryPage.classList.remove('active');
 			inventoryPage.classList.add('hidden');
+			charactersPage.classList.remove('active');
+			charactersPage.classList.add('hidden');
 			mapToolbar.classList.remove('hidden');
 			mapView.classList.remove('hidden');
 		}
@@ -4007,6 +4233,316 @@ async loadInventory() {
 				});
 			}
 			this.saveInventory();
+		}
+	}
+
+	// ============================================
+	// Character Sheet
+	// ============================================
+
+	function escapeHtml(value) {
+		if (value === null || value === undefined) return '';
+		return String(value)
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#39;');
+	}
+
+	function getStatValue(list, statId) {
+		if (!Array.isArray(list)) return null;
+		const entry = list.find(item => item.id === statId);
+		return entry && entry.value !== null && entry.value !== undefined ? entry.value : null;
+	}
+
+	function getAbilityScore(data, statId) {
+		const override = getStatValue(data.overrideStats, statId);
+		if (override !== null) return override;
+		const base = getStatValue(data.stats, statId) || 0;
+		const bonus = getStatValue(data.bonusStats, statId) || 0;
+		return base + bonus;
+	}
+
+	function abilityMod(score) {
+		return Math.floor((score - 10) / 2);
+	}
+
+	function formatMod(value) {
+		return value >= 0 ? `+${value}` : `${value}`;
+	}
+
+	function formatTrait(value) {
+		if (!value) return '';
+		if (Array.isArray(value)) return value.join(' ');
+		return String(value);
+	}
+
+	function renderCharacterSheet(data) {
+		const container = document.getElementById('character-sheet');
+		if (!container) return;
+
+		const alignmentMap = {
+			1: 'Lawful Good',
+			2: 'Neutral Good',
+			3: 'Chaotic Good',
+			4: 'Lawful Neutral',
+			5: 'Neutral',
+			6: 'Chaotic Neutral',
+			7: 'Lawful Evil',
+			8: 'Neutral Evil',
+			9: 'Chaotic Evil'
+		};
+
+		const name = data.name || 'Unnamed Character';
+		const race = (data.race && (data.race.fullName || data.race.name)) || 'Unknown Race';
+		const background = (data.background && data.background.definition && data.background.definition.name) || 'Unknown Background';
+		const classes = Array.isArray(data.classes)
+			? data.classes.map(cls => {
+				const className = (cls.definition && cls.definition.name) || 'Class';
+				const level = cls.level || 0;
+				return `${className} ${level}`;
+			}).join(' / ')
+			: 'Unknown Class';
+		const levelTotal = Array.isArray(data.classes)
+			? data.classes.reduce((sum, cls) => sum + (cls.level || 0), 0)
+			: 0;
+		const profBonus = levelTotal ? 2 + Math.floor((levelTotal - 1) / 4) : 2;
+		const alignment = alignmentMap[data.alignmentId] || 'Unknown';
+		const faith = data.faith || 'Unknown';
+		const gender = data.gender || 'Unknown';
+		const age = data.age || 'Unknown';
+		const height = data.height || 'Unknown';
+		const weight = data.weight || 'Unknown';
+
+		const baseHp = data.baseHitPoints || 0;
+		const bonusHp = data.bonusHitPoints || 0;
+		const overrideHp = data.overrideHitPoints;
+		const maxHp = overrideHp !== null && overrideHp !== undefined ? overrideHp : baseHp + bonusHp;
+		const removedHp = data.removedHitPoints || 0;
+		const tempHp = data.temporaryHitPoints || 0;
+		const currentHp = Math.max(0, maxHp - removedHp);
+
+		const abilities = [
+			{ id: 1, short: 'STR', label: 'Strength' },
+			{ id: 2, short: 'DEX', label: 'Dexterity' },
+			{ id: 3, short: 'CON', label: 'Constitution' },
+			{ id: 4, short: 'INT', label: 'Intelligence' },
+			{ id: 5, short: 'WIS', label: 'Wisdom' },
+			{ id: 6, short: 'CHA', label: 'Charisma' }
+		];
+
+		const abilityHtml = abilities.map(ability => {
+			const score = getAbilityScore(data, ability.id);
+			const mod = abilityMod(score);
+			return `
+				<div class="ability-card">
+					<div class="ability-name">${ability.short}</div>
+					<div class="ability-score">${score}</div>
+					<div class="ability-mod">${formatMod(mod)}</div>
+				</div>
+			`;
+		}).join('');
+
+		const currencies = data.currencies || {};
+		const currencyList = [
+			{ label: 'PP', value: currencies.pp || 0 },
+			{ label: 'GP', value: currencies.gp || 0 },
+			{ label: 'EP', value: currencies.ep || 0 },
+			{ label: 'SP', value: currencies.sp || 0 },
+			{ label: 'CP', value: currencies.cp || 0 }
+		];
+
+		const currencyHtml = currencyList.map(item => `
+			<li class="character-list-item">
+				<span>${item.label}</span>
+				<strong>${item.value}</strong>
+			</li>
+		`).join('');
+
+		const equipment = Array.isArray(data.inventory) ? data.inventory : [];
+		const equipmentHtml = equipment.length
+			? equipment.map(item => {
+				const def = item.definition || {};
+				const nameText = def.name || 'Unknown Item';
+				const typeText = def.type || def.filterType || 'Item';
+				const qtyText = item.quantity || 1;
+				const equippedText = item.equipped ? 'Equipped' : 'Carried';
+				return `
+					<li class="character-list-item">
+						<span>${escapeHtml(nameText)} (${escapeHtml(typeText)})</span>
+						<strong>${qtyText} - ${equippedText}</strong>
+					</li>
+				`;
+			}).join('')
+			: '<li class="character-list-item"><span>No equipment listed</span><strong>N/A</strong></li>';
+
+		const spellsByLevel = {};
+		const classSpells = Array.isArray(data.classSpells) ? data.classSpells : [];
+		classSpells.forEach(group => {
+			const spells = Array.isArray(group.spells) ? group.spells : [];
+			spells.forEach(spell => {
+				const def = spell.definition || {};
+				const level = def.level !== undefined ? def.level : 0;
+				const nameText = def.name || 'Unknown Spell';
+				if (!spellsByLevel[level]) spellsByLevel[level] = [];
+				spellsByLevel[level].push({
+					name: nameText,
+					prepared: !!spell.prepared
+				});
+			});
+		});
+
+		const spellLevels = Object.keys(spellsByLevel)
+			.map(level => parseInt(level, 10))
+			.sort((a, b) => a - b);
+
+		const spellsHtml = spellLevels.length
+			? spellLevels.map(level => {
+				const label = level === 0 ? 'Cantrips' : `Level ${level}`;
+				const tags = spellsByLevel[level]
+					.sort((a, b) => a.name.localeCompare(b.name))
+					.map(spell => {
+						const preparedClass = spell.prepared ? ' is-prepared' : '';
+						return `<span class="spell-tag${preparedClass}">${escapeHtml(spell.name)}</span>`;
+					})
+					.join('');
+				return `
+					<div class="spell-level">
+						<h4>${label}</h4>
+						<div class="spell-tags">${tags}</div>
+					</div>
+				`;
+			}).join('')
+			: '<div class="empty-state">No spells listed</div>';
+
+		const traits = data.traits || {};
+		const traitEntries = [
+			{ label: 'Personality', value: formatTrait(traits.personalityTraits) },
+			{ label: 'Ideals', value: formatTrait(traits.ideals) },
+			{ label: 'Bonds', value: formatTrait(traits.bonds) },
+			{ label: 'Flaws', value: formatTrait(traits.flaws) },
+			{ label: 'Appearance', value: formatTrait(traits.appearance) }
+		].filter(item => item.value);
+
+		const traitsHtml = traitEntries.length
+			? traitEntries.map(entry => `
+				<li class="character-list-item">
+					<span>${escapeHtml(entry.label)}</span>
+					<strong>${escapeHtml(entry.value)}</strong>
+				</li>
+			`).join('')
+			: '<li class="character-list-item"><span>No personality traits listed</span><strong>N/A</strong></li>';
+
+		container.innerHTML = `
+			<div class="character-header">
+				<div>
+					<div class="character-name">${escapeHtml(name)}</div>
+					<div class="character-meta">
+						<span>${escapeHtml(race)}</span>
+						<span>${escapeHtml(classes)}</span>
+						<span>${escapeHtml(background)}</span>
+						<span>${escapeHtml(alignment)}</span>
+					</div>
+				</div>
+				<div class="character-badges">
+					<span class="character-badge">Level ${levelTotal}</span>
+					<span class="character-badge">Proficiency +${profBonus}</span>
+				</div>
+			</div>
+
+			<div class="character-columns">
+				<div class="character-panel">
+					<div class="summary-grid">
+						<div class="summary-card">
+							<div class="summary-label">Max HP</div>
+							<div class="summary-value">${maxHp}</div>
+						</div>
+						<div class="summary-card">
+							<div class="summary-label">Current HP</div>
+							<div class="summary-value">${currentHp}</div>
+						</div>
+						<div class="summary-card">
+							<div class="summary-label">Temp HP</div>
+							<div class="summary-value">${tempHp}</div>
+						</div>
+						<div class="summary-card">
+							<div class="summary-label">Faith</div>
+							<div class="summary-value">${escapeHtml(faith)}</div>
+						</div>
+						<div class="summary-card">
+							<div class="summary-label">Gender</div>
+							<div class="summary-value">${escapeHtml(gender)}</div>
+						</div>
+						<div class="summary-card">
+							<div class="summary-label">Age</div>
+							<div class="summary-value">${escapeHtml(age)}</div>
+						</div>
+						<div class="summary-card">
+							<div class="summary-label">Height</div>
+							<div class="summary-value">${escapeHtml(height)}</div>
+						</div>
+						<div class="summary-card">
+							<div class="summary-label">Weight</div>
+							<div class="summary-value">${escapeHtml(weight)}</div>
+						</div>
+					</div>
+
+					<div class="character-section">
+						<h3>Ability Scores</h3>
+						<div class="abilities-grid">
+							${abilityHtml}
+						</div>
+					</div>
+
+					<div class="character-section">
+						<h3>Personality</h3>
+						<ul class="character-list">
+							${traitsHtml}
+						</ul>
+					</div>
+				</div>
+
+				<div class="character-panel">
+					<div class="character-section">
+						<h3>Currencies</h3>
+						<ul class="character-list">
+							${currencyHtml}
+						</ul>
+					</div>
+
+					<div class="character-section">
+						<h3>Equipment</h3>
+						<ul class="character-list">
+							${equipmentHtml}
+						</ul>
+					</div>
+				</div>
+			</div>
+
+			<div class="character-section">
+				<h3>Spells</h3>
+				${spellsHtml}
+			</div>
+		`;
+	}
+
+	async function loadCharacterSheet() {
+		const container = document.getElementById('character-sheet');
+		if (!container) return;
+
+		container.innerHTML = '<div class="character-loading">Loading character...</div>';
+		try {
+			const response = await fetch('darkstone.json');
+			if (!response.ok) {
+				throw new Error(`Failed to load darkstone.json (${response.status})`);
+			}
+			const payload = await response.json();
+			const data = payload.data || {};
+			renderCharacterSheet(data);
+		} catch (error) {
+			console.error('[ERROR] Failed to load character:', error);
+			container.innerHTML = '<div class="character-error">Unable to load character data.</div>';
 		}
 	}
 
@@ -4508,10 +5044,12 @@ async loadInventory() {
 		document.addEventListener('DOMContentLoaded', () => {
 			setupThemeToggle();
 			initApp();
+			loadCharacterSheet();
 		});
 	} else {
 		setupThemeToggle();
 		initApp();
+		loadCharacterSheet();
 	}
 	
 	// Load default inventory if needed
