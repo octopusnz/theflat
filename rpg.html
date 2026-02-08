@@ -2010,19 +2010,19 @@
 							<div class="currency-inputs">
 								<div class="currency-item">
 									<label><span class="coin-icon coin-platinum">⬤</span> Platinum (pp)</label>
-									<input type="number" id="currency-platinum" class="currency-input" min="0" value="0">
+									<input type="text" id="currency-platinum" class="currency-input" inputmode="numeric" pattern="[0-9]*" value="0">
 								</div>
 								<div class="currency-item">
 									<label><span class="coin-icon coin-gold">⬤</span> Gold (gp)</label>
-									<input type="number" id="currency-gold" class="currency-input" min="0" value="0">
+									<input type="text" id="currency-gold" class="currency-input" inputmode="numeric" pattern="[0-9]*" value="0">
 								</div>
 								<div class="currency-item">
 									<label><span class="coin-icon coin-silver">⬤</span> Silver (sp)</label>
-									<input type="number" id="currency-silver" class="currency-input" min="0" value="0">
+									<input type="text" id="currency-silver" class="currency-input" inputmode="numeric" pattern="[0-9]*" value="0">
 								</div>
 								<div class="currency-item">
 									<label><span class="coin-icon coin-copper">⬤</span> Copper (cp)</label>
-									<input type="number" id="currency-copper" class="currency-input" min="0" value="0">
+									<input type="text" id="currency-copper" class="currency-input" inputmode="numeric" pattern="[0-9]*" value="0">
 								</div>
 							</div>
 						</div>
@@ -2535,7 +2535,6 @@
 			this.dragTarget = this.mainGroup || this.locationsLayer || this.svg;
 			if (this.dragTarget) {
 				this.dragTarget.style.willChange = 'transform';
-				this.dragTarget.style.pointerEvents = 'none';
 			}
 	}
 
@@ -2555,9 +2554,8 @@
 		this.isDragging = false;
 		this.svg.style.cursor = 'grab';
 		
-		// Re-enable pointer events and remove will-change
+		// Remove will-change after drag completes
 		if (this.dragTarget) {
-			this.dragTarget.style.pointerEvents = 'auto';
 			const target = this.dragTarget;
 			setTimeout(() => {
 				target.style.willChange = 'auto';
