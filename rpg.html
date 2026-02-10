@@ -1928,6 +1928,17 @@
 		padding-bottom: 0;
 	}
 
+	.character-list-item.is-block {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 4px;
+	}
+
+	.character-list-subtext {
+		font-size: 0.8rem;
+		color: var(--muted-fg);
+	}
+
 	.equipment-item {
 		align-items: center;
 	}
@@ -5198,6 +5209,11 @@ async loadInventory() {
 		return String(value);
 	}
 
+	function stripHtml(value) {
+		if (!value) return '';
+		return String(value).replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+	}
+
 	function renderCharacterSheet(data) {
 		const container = document.getElementById('character-sheet');
 		if (!container) return;
@@ -5242,6 +5258,35 @@ async loadInventory() {
 		const removedHp = data.removedHitPoints || 0;
 		const tempHp = data.temporaryHitPoints || 0;
 		const currentHp = Math.max(0, maxHp - removedHp);
+
+		const dexScore = getAbilityScore(data, 2);
+		const dexMod = abilityMod(dexScore);
+		const equippedArmor = Array.isArray(data.inventory)
+			? data.inventory.filter(item => item.equipped && item.definition && item.definition.armorClass !== null && item.definition.armorClass !== undefined)
+			: [];
+		const baseArmorClass = equippedArmor.reduce((sum, item) => sum + (item.definition.armorClass || 0), 0);
+		const armorClassModifier = (() => {
+			const modifiers = data.modifiers || {};
+			const list = [];
+			if (Array.isArray(modifiers)) {
+				list.push(...modifiers);
+			} else if (modifiers && typeof modifiers === 'object') {
+				Object.values(modifiers).forEach(value => {
+					if (Array.isArray(value)) list.push(...value);
+				});
+			}
+			return list.reduce((sum, mod) => {
+				if (mod && mod.friendlySubtypeName === 'Armor Class' && typeof mod.value === 'number') {
+					return sum + mod.value;
+				}
+				return sum;
+			}, 0);
+		})();
+		const armorClass = baseArmorClass
+			? baseArmorClass + armorClassModifier
+			: 10 + dexMod + armorClassModifier;
+		const initiative = formatMod(dexMod);
+		const speedValue = data.race?.weightSpeeds?.normal?.walk || data.race?.weightSpeeds?.normal || null;
 
 		const abilities = [
 			{ id: 1, short: 'STR', label: 'Strength' },
@@ -5372,6 +5417,36 @@ async loadInventory() {
 			`).join('')
 			: '<li class="character-list-item"><span>No personality traits listed</span><strong>N/A</strong></li>';
 
+		const feats = Array.isArray(data.feats) ? data.feats : [];
+		const featsHtml = feats.length
+			? feats.map(feat => {
+				const def = feat.definition || {};
+				const name = def.name || 'Feat';
+				const snippet = stripHtml(def.snippet || def.description || '');
+				return `
+					<li class="character-list-item is-block">
+						<strong>${escapeHtml(name)}</strong>
+						${snippet ? `<span class="character-list-subtext">${escapeHtml(snippet)}</span>` : ''}
+					</li>
+				`;
+			}).join('')
+			: '<li class="character-list-item"><span>No feats listed</span><strong>N/A</strong></li>';
+
+		const racialTraits = data.race?.racialTraits || [];
+		const racialTraitsHtml = racialTraits.length
+			? racialTraits.map(trait => {
+				const def = trait.definition || {};
+				const name = def.name || 'Trait';
+				const snippet = stripHtml(def.snippet || def.description || '');
+				return `
+					<li class="character-list-item is-block">
+						<strong>${escapeHtml(name)}</strong>
+						${snippet ? `<span class="character-list-subtext">${escapeHtml(snippet)}</span>` : ''}
+					</li>
+				`;
+			}).join('')
+			: '<li class="character-list-item"><span>No racial traits listed</span><strong>N/A</strong></li>';
+
 		container.innerHTML = `
 			<div class="character-header">
 				<div>
@@ -5403,6 +5478,18 @@ async loadInventory() {
 						<div class="summary-card">
 							<div class="summary-label">Temp HP</div>
 							<div class="summary-value">${tempHp}</div>
+						</div>
+						<div class="summary-card">
+							<div class="summary-label">Armor Class</div>
+							<div class="summary-value">${armorClass}</div>
+						</div>
+						<div class="summary-card">
+							<div class="summary-label">Initiative</div>
+							<div class="summary-value">${initiative}</div>
+						</div>
+						<div class="summary-card">
+							<div class="summary-label">Speed</div>
+							<div class="summary-value">${speedValue ? `${speedValue} ft` : 'Unknown'}</div>
 						</div>
 						<div class="summary-card">
 							<div class="summary-label">Faith</div>
@@ -5453,6 +5540,20 @@ async loadInventory() {
 						<h3>Equipment</h3>
 						<ul class="character-list">
 							${equipmentHtml}
+						</ul>
+					</div>
+
+					<div class="character-section">
+						<h3>Feats</h3>
+						<ul class="character-list">
+							${featsHtml}
+						</ul>
+					</div>
+
+					<div class="character-section">
+						<h3>Racial Traits</h3>
+						<ul class="character-list">
+							${racialTraitsHtml}
 						</ul>
 					</div>
 				</div>
