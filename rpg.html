@@ -2014,6 +2014,19 @@
 		border-radius: 999px;
 		padding: 3px 7px;
 		font-size: 0.75rem;
+		cursor: pointer;
+		line-height: 1.2;
+		appearance: none;
+	}
+
+	.spell-tag:not(.is-prepared):hover {
+		border-color: var(--link);
+		color: var(--link);
+	}
+
+	.spell-tag:focus-visible {
+		outline: 2px solid var(--focus);
+		outline-offset: 2px;
 	}
 
 	.spell-tag.is-prepared {
@@ -4069,6 +4082,115 @@ async function showEquipmentDetails(equipment) {
 	}
 }
 
+let spellIndexCache = null;
+
+async function loadSpellIndex() {
+	if (spellIndexCache) return spellIndexCache;
+
+	try {
+		const response = await fetch('/data/spells.json');
+		if (response.ok) {
+			const data = await response.json();
+			spellIndexCache = data.results || data;
+			return spellIndexCache;
+		}
+	} catch (error) {
+		console.debug('Loading spells from API fallback');
+	}
+
+	try {
+		const response = await fetch('https://www.dnd5eapi.co/api/2014/spells');
+		if (response.ok) {
+			const data = await response.json();
+			spellIndexCache = data.results || data;
+			return spellIndexCache;
+		}
+	} catch (error) {
+		console.error('Failed to load spells:', error);
+	}
+
+	spellIndexCache = [];
+	return spellIndexCache;
+}
+
+function renderSpellDetailsHtml(spell) {
+	if (!spell) {
+		return '<div class="empty-state"><p>No spell details found.</p></div>';
+	}
+
+	let html = '<div class="detail-section">';
+	html += '<h3>Spell Details</h3>';
+
+	if (spell.level !== undefined) {
+		const levelName = spell.level === 0 ? 'Cantrip' : `Level ${spell.level}`;
+		html += `<p><strong>Level:</strong> ${escapeHtml(levelName)}</p>`;
+	}
+	if (spell.school) {
+		const schoolName = spell.school.name || spell.school;
+		html += `<p><strong>School:</strong> ${escapeHtml(schoolName)}</p>`;
+	}
+	if (spell.casting_time) html += `<p><strong>Casting Time:</strong> ${escapeHtml(spell.casting_time)}</p>`;
+	if (spell.range) html += `<p><strong>Range:</strong> ${escapeHtml(spell.range)}</p>`;
+	if (spell.components && Array.isArray(spell.components)) {
+		html += `<p><strong>Components:</strong> ${escapeHtml(spell.components.join(', '))}</p>`;
+	}
+	if (spell.material) html += `<p><strong>Material:</strong> ${escapeHtml(spell.material)}</p>`;
+	if (spell.duration) html += `<p><strong>Duration:</strong> ${escapeHtml(spell.duration)}</p>`;
+	if (spell.attack_type) html += `<p><strong>Attack Type:</strong> ${escapeHtml(spell.attack_type)}</p>`;
+	if (spell.save?.ability?.name) {
+		html += `<p><strong>Saving Throw:</strong> ${escapeHtml(spell.save.ability.name)}</p>`;
+	}
+	if (spell.concentration) html += '<p><strong>Concentration:</strong> Yes</p>';
+	if (spell.ritual) html += '<p><strong>Ritual:</strong> Yes</p>';
+
+	if (spell.desc) {
+		const descList = Array.isArray(spell.desc) ? spell.desc : [spell.desc];
+		html += descList.map(text => `<p>${escapeHtml(text)}</p>`).join('');
+	}
+
+	if (spell.higher_level && Array.isArray(spell.higher_level) && spell.higher_level.length > 0) {
+		html += '<h4>At Higher Levels</h4>';
+		html += spell.higher_level.map(text => `<p>${escapeHtml(text)}</p>`).join('');
+	}
+
+	html += '</div>';
+	return html;
+}
+
+async function showSpellDetails(spellName) {
+	const panel = document.getElementById('detail-panel');
+	const title = document.getElementById('detail-title');
+	const content = document.getElementById('detail-content');
+
+	// Hide equipment panel if it's open
+	hideEquipmentPanel();
+
+	title.textContent = spellName || 'Spell';
+	content.innerHTML = '<div class="character-loading">Loading spell details...</div>';
+	panel.classList.remove('hidden');
+
+	try {
+		const spells = await loadSpellIndex();
+		const normalized = (spellName || '').toLowerCase().trim();
+		const entry = spells.find(spell => (spell.name || '').toLowerCase() === normalized);
+
+		if (!entry || !entry.url) {
+			content.innerHTML = '<div class="empty-state"><p>No spell details found.</p></div>';
+			return;
+		}
+
+		const response = await fetch(`https://www.dnd5eapi.co${entry.url}`);
+		if (!response.ok) {
+			throw new Error('Failed to load spell details');
+		}
+		const details = await response.json();
+		content.innerHTML = renderSpellDetailsHtml(details);
+	} catch (error) {
+		console.error('[ERROR] Failed to load spell details:', error);
+		content.innerHTML = '<div class="empty-state"><p>Unable to load spell details.</p></div>';
+	}
+}
+
 	function showAllCategories() {
 		const panel = document.getElementById('detail-panel');
 		const title = document.getElementById('detail-title');
@@ -4432,6 +4554,18 @@ function showItemDetails(category, itemId) {
 			showEquipmentPanel();
 		}
 	});
+
+	const characterSheet = document.getElementById('character-sheet');
+	if (characterSheet && !characterSheet.dataset.spellClickBound) {
+		characterSheet.addEventListener('click', (e) => {
+			const tag = e.target.closest('.spell-tag');
+			if (!tag) return;
+			const spellName = tag.dataset.spellName;
+			if (!spellName) return;
+			showSpellDetails(spellName);
+		});
+		characterSheet.dataset.spellClickBound = 'true';
+	}
 
 	// Close equipment panel
 	document.getElementById('btn-close-equipment').addEventListener('click', hideEquipmentPanel);
@@ -5201,7 +5335,7 @@ async loadInventory() {
 					.sort((a, b) => a.name.localeCompare(b.name))
 					.map(spell => {
 						const preparedClass = spell.prepared ? ' is-prepared' : '';
-						return `<span class="spell-tag${preparedClass}">${escapeHtml(spell.name)}</span>`;
+						return `<button type="button" class="spell-tag${preparedClass}" data-spell-name="${escapeHtml(spell.name)}">${escapeHtml(spell.name)}</button>`;
 					})
 					.join('');
 				return `
