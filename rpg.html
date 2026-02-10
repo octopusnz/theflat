@@ -1777,7 +1777,7 @@
 	.character-sheet {
 		display: flex;
 		flex-direction: column;
-		gap: 16px;
+		gap: 12px;
 	}
 
 	.character-header {
@@ -1787,11 +1787,11 @@
 		justify-content: space-between;
 		gap: 12px;
 		border-bottom: 2px solid var(--border);
-		padding-bottom: 12px;
+		padding-bottom: 10px;
 	}
 
 	.character-name {
-		font-size: 1.6rem;
+		font-size: 1.5rem;
 		font-weight: 700;
 	}
 
@@ -1800,7 +1800,7 @@
 		flex-wrap: wrap;
 		gap: 8px 12px;
 		color: var(--muted-fg);
-		font-size: 0.9rem;
+		font-size: 0.85rem;
 	}
 
 	.character-badges {
@@ -1813,38 +1813,38 @@
 		background: var(--hover);
 		border: 1px solid var(--border);
 		border-radius: 999px;
-		padding: 6px 10px;
-		font-size: 0.8rem;
+		padding: 5px 9px;
+		font-size: 0.75rem;
 		font-weight: 600;
 	}
 
 	.character-columns {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-		gap: 16px;
+		gap: 12px;
 	}
 
 	.character-panel {
 		display: flex;
 		flex-direction: column;
-		gap: 16px;
+		gap: 12px;
 		background: var(--bg);
 		border: 1px solid var(--border);
 		border-radius: 10px;
-		padding: 16px;
+		padding: 14px;
 	}
 
 	.summary-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-		gap: 12px;
+		gap: 10px;
 	}
 
 	.summary-card {
 		background: var(--hover);
 		border: 1px solid var(--border);
 		border-radius: 8px;
-		padding: 10px;
+		padding: 8px;
 		text-align: center;
 	}
 
@@ -1856,7 +1856,7 @@
 	}
 
 	.summary-value {
-		font-size: 1.1rem;
+		font-size: 1.05rem;
 		font-weight: 700;
 		margin-top: 4px;
 	}
@@ -1864,14 +1864,14 @@
 	.abilities-grid {
 		display: grid;
 		grid-template-columns: repeat(3, minmax(0, 1fr));
-		gap: 12px;
+		gap: 10px;
 	}
 
 	.ability-card {
 		background: var(--hover);
 		border: 1px solid var(--border);
 		border-radius: 8px;
-		padding: 10px;
+		padding: 8px;
 		text-align: center;
 	}
 
@@ -1883,7 +1883,7 @@
 	}
 
 	.ability-score {
-		font-size: 1.2rem;
+		font-size: 1.1rem;
 		font-weight: 700;
 		margin-top: 4px;
 	}
@@ -1896,13 +1896,13 @@
 	.character-section {
 		border: 1px solid var(--border);
 		border-radius: 10px;
-		padding: 16px;
+		padding: 12px;
 		background: var(--bg);
 	}
 
 	.character-section h3 {
-		margin: 0 0 12px;
-		font-size: 1rem;
+		margin: 0 0 10px;
+		font-size: 0.95rem;
 		color: var(--link);
 	}
 
@@ -1912,7 +1912,7 @@
 		padding: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 8px;
+		gap: 6px;
 	}
 
 	.character-list-item {
@@ -1920,7 +1920,7 @@
 		justify-content: space-between;
 		gap: 12px;
 		border-bottom: 1px dashed var(--border);
-		padding-bottom: 6px;
+		padding-bottom: 4px;
 	}
 
 	.character-list-item:last-child {
@@ -1928,33 +1928,98 @@
 		padding-bottom: 0;
 	}
 
+	.equipment-item {
+		align-items: center;
+	}
+
+	.equipment-main {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		min-width: 0;
+	}
+
+	.equipment-name {
+		font-weight: 600;
+	}
+
+	.equipment-type {
+		font-size: 0.75rem;
+		color: var(--muted-fg);
+	}
+
+	.equipment-meta {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		font-size: 0.85rem;
+	}
+
+	.equipment-qty {
+		font-weight: 600;
+	}
+
+	.equipment-badge {
+		border: 1px solid var(--link);
+		color: var(--link);
+		border-radius: 6px;
+		padding: 1px 6px;
+		font-size: 0.7rem;
+		font-weight: 700;
+	}
+
 	.spell-level {
-		margin-bottom: 12px;
+		border: 1px solid var(--border);
+		border-radius: 10px;
+		padding: 10px;
+		background: var(--hover);
+	}
+
+	.spells-grid {
+		display: grid;
+		gap: 10px;
+		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	}
+
+	.spell-level-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 8px;
+		margin-bottom: 8px;
 	}
 
 	.spell-level h4 {
-		margin: 0 0 8px;
+		margin: 0;
 		font-size: 0.9rem;
 		color: var(--fg);
+	}
+
+	.spell-level-meta {
+		display: flex;
+		gap: 8px;
+		font-size: 0.75rem;
+		color: var(--muted-fg);
 	}
 
 	.spell-tags {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 6px;
+		gap: 4px;
 	}
 
 	.spell-tag {
-		background: var(--hover);
+		background: var(--bg);
 		border: 1px solid var(--border);
 		border-radius: 999px;
-		padding: 4px 8px;
-		font-size: 0.8rem;
+		padding: 3px 7px;
+		font-size: 0.75rem;
 	}
 
 	.spell-tag.is-prepared {
 		border-color: var(--link);
-		color: var(--link);
+		background: var(--link);
+		color: var(--bg);
 		font-weight: 600;
 	}
 
@@ -5087,11 +5152,19 @@ async loadInventory() {
 				const nameText = def.name || 'Unknown Item';
 				const typeText = def.type || def.filterType || 'Item';
 				const qtyText = item.quantity || 1;
-				const equippedText = item.equipped ? 'Equipped' : 'Carried';
+				const equippedBadge = item.equipped
+					? '<span class="equipment-badge" title="Equipped">E</span>'
+					: '';
 				return `
-					<li class="character-list-item">
-						<span>${escapeHtml(nameText)} (${escapeHtml(typeText)})</span>
-						<strong>${qtyText} - ${equippedText}</strong>
+					<li class="character-list-item equipment-item">
+						<div class="equipment-main">
+							<span class="equipment-name">${escapeHtml(nameText)}</span>
+							<span class="equipment-type">${escapeHtml(typeText)}</span>
+						</div>
+						<div class="equipment-meta">
+							<span class="equipment-qty">x${qtyText}</span>
+							${equippedBadge}
+						</div>
 					</li>
 				`;
 			}).join('')
@@ -5118,8 +5191,12 @@ async loadInventory() {
 			.sort((a, b) => a - b);
 
 		const spellsHtml = spellLevels.length
-			? spellLevels.map(level => {
+			? `<div class="spells-grid">${spellLevels.map(level => {
 				const label = level === 0 ? 'Cantrips' : `Level ${level}`;
+				const preparedCount = spellsByLevel[level].filter(spell => spell.prepared).length;
+				const totalCount = spellsByLevel[level].length;
+				const countLabel = `${totalCount} spell${totalCount === 1 ? '' : 's'}`;
+				const preparedLabel = preparedCount ? `${preparedCount} prepared` : '';
 				const tags = spellsByLevel[level]
 					.sort((a, b) => a.name.localeCompare(b.name))
 					.map(spell => {
@@ -5129,11 +5206,17 @@ async loadInventory() {
 					.join('');
 				return `
 					<div class="spell-level">
-						<h4>${label}</h4>
+						<div class="spell-level-header">
+							<h4>${label}</h4>
+							<div class="spell-level-meta">
+								<span>${countLabel}</span>
+								${preparedLabel ? `<span>${preparedLabel}</span>` : ''}
+							</div>
+						</div>
 						<div class="spell-tags">${tags}</div>
 					</div>
 				`;
-			}).join('')
+			}).join('')}</div>`
 			: '<div class="empty-state">No spells listed</div>';
 
 		const traits = data.traits || {};
