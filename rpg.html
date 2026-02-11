@@ -4571,6 +4571,14 @@ document.getElementById('btn-import').addEventListener('change', async (e) => {
 		const mapToolbar = document.querySelector('.map-toolbar');
 		const mapView = document.getElementById('map-view');
 		
+		// Reset all page scrolls before hiding
+		[searchPage, inventoryPage, charactersPage, generatorsPage, sessionsPage].forEach(page => {
+			if (page) {
+				const pageContent = page.querySelector('.page-content');
+				if (pageContent) pageContent.scrollTop = 0;
+			}
+		});
+		
 		// For search page
 		if (pageName === 'search') {
 			searchPage.classList.add('active');
