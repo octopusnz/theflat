@@ -1777,7 +1777,7 @@
 	.character-sheet {
 		display: flex;
 		flex-direction: column;
-		gap: 16px;
+		gap: 12px;
 	}
 
 	.character-header {
@@ -1787,11 +1787,11 @@
 		justify-content: space-between;
 		gap: 12px;
 		border-bottom: 2px solid var(--border);
-		padding-bottom: 12px;
+		padding-bottom: 10px;
 	}
 
 	.character-name {
-		font-size: 1.6rem;
+		font-size: 1.5rem;
 		font-weight: 700;
 	}
 
@@ -1800,7 +1800,7 @@
 		flex-wrap: wrap;
 		gap: 8px 12px;
 		color: var(--muted-fg);
-		font-size: 0.9rem;
+		font-size: 0.85rem;
 	}
 
 	.character-badges {
@@ -1813,38 +1813,38 @@
 		background: var(--hover);
 		border: 1px solid var(--border);
 		border-radius: 999px;
-		padding: 6px 10px;
-		font-size: 0.8rem;
+		padding: 5px 9px;
+		font-size: 0.75rem;
 		font-weight: 600;
 	}
 
 	.character-columns {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-		gap: 16px;
+		gap: 12px;
 	}
 
 	.character-panel {
 		display: flex;
 		flex-direction: column;
-		gap: 16px;
+		gap: 12px;
 		background: var(--bg);
 		border: 1px solid var(--border);
 		border-radius: 10px;
-		padding: 16px;
+		padding: 14px;
 	}
 
 	.summary-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-		gap: 12px;
+		gap: 10px;
 	}
 
 	.summary-card {
 		background: var(--hover);
 		border: 1px solid var(--border);
 		border-radius: 8px;
-		padding: 10px;
+		padding: 8px;
 		text-align: center;
 	}
 
@@ -1856,7 +1856,7 @@
 	}
 
 	.summary-value {
-		font-size: 1.1rem;
+		font-size: 1.05rem;
 		font-weight: 700;
 		margin-top: 4px;
 	}
@@ -1864,14 +1864,14 @@
 	.abilities-grid {
 		display: grid;
 		grid-template-columns: repeat(3, minmax(0, 1fr));
-		gap: 12px;
+		gap: 10px;
 	}
 
 	.ability-card {
 		background: var(--hover);
 		border: 1px solid var(--border);
 		border-radius: 8px;
-		padding: 10px;
+		padding: 8px;
 		text-align: center;
 	}
 
@@ -1883,7 +1883,7 @@
 	}
 
 	.ability-score {
-		font-size: 1.2rem;
+		font-size: 1.1rem;
 		font-weight: 700;
 		margin-top: 4px;
 	}
@@ -1896,13 +1896,13 @@
 	.character-section {
 		border: 1px solid var(--border);
 		border-radius: 10px;
-		padding: 16px;
+		padding: 12px;
 		background: var(--bg);
 	}
 
 	.character-section h3 {
-		margin: 0 0 12px;
-		font-size: 1rem;
+		margin: 0 0 10px;
+		font-size: 0.95rem;
 		color: var(--link);
 	}
 
@@ -1912,7 +1912,7 @@
 		padding: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 8px;
+		gap: 6px;
 	}
 
 	.character-list-item {
@@ -1920,7 +1920,7 @@
 		justify-content: space-between;
 		gap: 12px;
 		border-bottom: 1px dashed var(--border);
-		padding-bottom: 6px;
+		padding-bottom: 4px;
 	}
 
 	.character-list-item:last-child {
@@ -1928,33 +1928,133 @@
 		padding-bottom: 0;
 	}
 
+	.character-list-item.is-block {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 4px;
+	}
+
+	.character-list-subtext {
+		font-size: 0.8rem;
+		color: var(--muted-fg);
+	}
+
+	.equipment-item {
+		align-items: center;
+	}
+
+	.equipment-main {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		min-width: 0;
+	}
+
+	.equipment-name {
+		font-weight: 600;
+	}
+
+	.equipment-type {
+		font-size: 0.75rem;
+		color: var(--muted-fg);
+	}
+
+	.equipment-meta {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		font-size: 0.85rem;
+	}
+
+	.equipment-qty {
+		font-weight: 600;
+	}
+
+	.equipment-badge {
+		border: 1px solid var(--link);
+		color: var(--link);
+		border-radius: 6px;
+		padding: 1px 6px;
+		font-size: 0.7rem;
+		font-weight: 700;
+	}
+
 	.spell-level {
-		margin-bottom: 12px;
+		border: 1px solid var(--border);
+		border-radius: 10px;
+		padding: 10px;
+		background: var(--hover);
+	}
+
+	.spells-grid {
+		display: grid;
+		gap: 10px;
+		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	}
+
+	.spell-level-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 8px;
+		margin-bottom: 8px;
 	}
 
 	.spell-level h4 {
-		margin: 0 0 8px;
+		margin: 0;
 		font-size: 0.9rem;
 		color: var(--fg);
+	}
+
+	.spell-level-meta {
+		display: flex;
+		gap: 8px;
+		font-size: 0.75rem;
+		color: var(--muted-fg);
 	}
 
 	.spell-tags {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 6px;
+		gap: 4px;
 	}
 
 	.spell-tag {
-		background: var(--hover);
+		background: var(--bg);
+		background-color: var(--bg);
 		border: 1px solid var(--border);
 		border-radius: 999px;
-		padding: 4px 8px;
-		font-size: 0.8rem;
+		padding: 3px 7px;
+		font-size: 0.75rem;
+		color: var(--fg);
+		cursor: pointer;
+		line-height: 1.2;
+		appearance: none;
+		-webkit-appearance: none;
+		-webkit-text-fill-color: var(--fg);
+	}
+
+	.spell-tag:active,
+	.spell-tag:visited {
+		color: var(--fg);
+		background-color: var(--bg);
+	}
+
+	.spell-tag:not(.is-prepared):hover {
+		border-color: var(--link);
+		color: var(--link);
+	}
+
+	.spell-tag:focus-visible {
+		outline: 2px solid var(--focus);
+		outline-offset: 2px;
 	}
 
 	.spell-tag.is-prepared {
 		border-color: var(--link);
-		color: var(--link);
+		background: var(--link);
+		color: var(--bg);
+		-webkit-text-fill-color: var(--bg);
 		font-weight: 600;
 	}
 
@@ -2846,10 +2946,9 @@
 					</div>
 				</div>
 			</div>
-		</div>
 
-		<!-- Sessions Page -->
-		<div class="page hidden" id="sessions-page">
+			<!-- Sessions Page -->
+			<div class="page hidden" id="sessions-page">
 			<div class="page-header">
 				<h2>Campaign Sessions</h2>
 				<button class="btn" id="btn-new-session">+ New Session</button>
@@ -2913,6 +3012,8 @@
 				</div>
 			</div>
 		</div>
+		</main>
+	</div>
 
 	<!-- Add Item Modal -->
 	<div class="modal hidden" id="add-item-modal">
@@ -4003,6 +4104,115 @@ async function showEquipmentDetails(equipment) {
 	}
 }
 
+let spellIndexCache = null;
+
+async function loadSpellIndex() {
+	if (spellIndexCache) return spellIndexCache;
+
+	try {
+		const response = await fetch('/data/spells.json');
+		if (response.ok) {
+			const data = await response.json();
+			spellIndexCache = data.results || data;
+			return spellIndexCache;
+		}
+	} catch (error) {
+		console.debug('Loading spells from API fallback');
+	}
+
+	try {
+		const response = await fetch('https://www.dnd5eapi.co/api/2014/spells');
+		if (response.ok) {
+			const data = await response.json();
+			spellIndexCache = data.results || data;
+			return spellIndexCache;
+		}
+	} catch (error) {
+		console.error('Failed to load spells:', error);
+	}
+
+	spellIndexCache = [];
+	return spellIndexCache;
+}
+
+function renderSpellDetailsHtml(spell) {
+	if (!spell) {
+		return '<div class="empty-state"><p>No spell details found.</p></div>';
+	}
+
+	let html = '<div class="detail-section">';
+	html += '<h3>Spell Details</h3>';
+
+	if (spell.level !== undefined) {
+		const levelName = spell.level === 0 ? 'Cantrip' : `Level ${spell.level}`;
+		html += `<p><strong>Level:</strong> ${escapeHtml(levelName)}</p>`;
+	}
+	if (spell.school) {
+		const schoolName = spell.school.name || spell.school;
+		html += `<p><strong>School:</strong> ${escapeHtml(schoolName)}</p>`;
+	}
+	if (spell.casting_time) html += `<p><strong>Casting Time:</strong> ${escapeHtml(spell.casting_time)}</p>`;
+	if (spell.range) html += `<p><strong>Range:</strong> ${escapeHtml(spell.range)}</p>`;
+	if (spell.components && Array.isArray(spell.components)) {
+		html += `<p><strong>Components:</strong> ${escapeHtml(spell.components.join(', '))}</p>`;
+	}
+	if (spell.material) html += `<p><strong>Material:</strong> ${escapeHtml(spell.material)}</p>`;
+	if (spell.duration) html += `<p><strong>Duration:</strong> ${escapeHtml(spell.duration)}</p>`;
+	if (spell.attack_type) html += `<p><strong>Attack Type:</strong> ${escapeHtml(spell.attack_type)}</p>`;
+	if (spell.save?.ability?.name) {
+		html += `<p><strong>Saving Throw:</strong> ${escapeHtml(spell.save.ability.name)}</p>`;
+	}
+	if (spell.concentration) html += '<p><strong>Concentration:</strong> Yes</p>';
+	if (spell.ritual) html += '<p><strong>Ritual:</strong> Yes</p>';
+
+	if (spell.desc) {
+		const descList = Array.isArray(spell.desc) ? spell.desc : [spell.desc];
+		html += descList.map(text => `<p>${escapeHtml(text)}</p>`).join('');
+	}
+
+	if (spell.higher_level && Array.isArray(spell.higher_level) && spell.higher_level.length > 0) {
+		html += '<h4>At Higher Levels</h4>';
+		html += spell.higher_level.map(text => `<p>${escapeHtml(text)}</p>`).join('');
+	}
+
+	html += '</div>';
+	return html;
+}
+
+async function showSpellDetails(spellName) {
+	const panel = document.getElementById('detail-panel');
+	const title = document.getElementById('detail-title');
+	const content = document.getElementById('detail-content');
+
+	// Hide equipment panel if it's open
+	hideEquipmentPanel();
+
+	title.textContent = spellName || 'Spell';
+	content.innerHTML = '<div class="character-loading">Loading spell details...</div>';
+	panel.classList.remove('hidden');
+
+	try {
+		const spells = await loadSpellIndex();
+		const normalized = (spellName || '').toLowerCase().trim();
+		const entry = spells.find(spell => (spell.name || '').toLowerCase() === normalized);
+
+		if (!entry || !entry.url) {
+			content.innerHTML = '<div class="empty-state"><p>No spell details found.</p></div>';
+			return;
+		}
+
+		const response = await fetch(`https://www.dnd5eapi.co${entry.url}`);
+		if (!response.ok) {
+			throw new Error('Failed to load spell details');
+		}
+		const details = await response.json();
+		content.innerHTML = renderSpellDetailsHtml(details);
+	} catch (error) {
+		console.error('[ERROR] Failed to load spell details:', error);
+		content.innerHTML = '<div class="empty-state"><p>Unable to load spell details.</p></div>';
+	}
+}
+
 	function showAllCategories() {
 		const panel = document.getElementById('detail-panel');
 		const title = document.getElementById('detail-title');
@@ -4366,6 +4576,18 @@ function showItemDetails(category, itemId) {
 			showEquipmentPanel();
 		}
 	});
+
+	const characterSheet = document.getElementById('character-sheet');
+	if (characterSheet && !characterSheet.dataset.spellClickBound) {
+		characterSheet.addEventListener('click', (e) => {
+			const tag = e.target.closest('.spell-tag');
+			if (!tag) return;
+			const spellName = tag.dataset.spellName;
+			if (!spellName) return;
+			showSpellDetails(spellName);
+		});
+		characterSheet.dataset.spellClickBound = 'true';
+	}
 
 	// Close equipment panel
 	document.getElementById('btn-close-equipment').addEventListener('click', hideEquipmentPanel);
@@ -5005,6 +5227,11 @@ async loadInventory() {
 		return String(value);
 	}
 
+	function stripHtml(value) {
+		if (!value) return '';
+		return String(value).replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+	}
+
 	function renderCharacterSheet(data) {
 		const container = document.getElementById('character-sheet');
 		if (!container) return;
@@ -5050,6 +5277,35 @@ async loadInventory() {
 		const tempHp = data.temporaryHitPoints || 0;
 		const currentHp = Math.max(0, maxHp - removedHp);
 
+		const dexScore = getAbilityScore(data, 2);
+		const dexMod = abilityMod(dexScore);
+		const equippedArmor = Array.isArray(data.inventory)
+			? data.inventory.filter(item => item.equipped && item.definition && item.definition.armorClass !== null && item.definition.armorClass !== undefined)
+			: [];
+		const baseArmorClass = equippedArmor.reduce((sum, item) => sum + (item.definition.armorClass || 0), 0);
+		const armorClassModifier = (() => {
+			const modifiers = data.modifiers || {};
+			const list = [];
+			if (Array.isArray(modifiers)) {
+				list.push(...modifiers);
+			} else if (modifiers && typeof modifiers === 'object') {
+				Object.values(modifiers).forEach(value => {
+					if (Array.isArray(value)) list.push(...value);
+				});
+			}
+			return list.reduce((sum, mod) => {
+				if (mod && mod.friendlySubtypeName === 'Armor Class' && typeof mod.value === 'number') {
+					return sum + mod.value;
+				}
+				return sum;
+			}, 0);
+		})();
+		const armorClass = baseArmorClass
+			? baseArmorClass + armorClassModifier
+			: 10 + dexMod + armorClassModifier;
+		const initiative = formatMod(dexMod);
+		const speedValue = data.race?.weightSpeeds?.normal?.walk || data.race?.weightSpeeds?.normal || null;
+
 		const abilities = [
 			{ id: 1, short: 'STR', label: 'Strength' },
 			{ id: 2, short: 'DEX', label: 'Dexterity' },
@@ -5094,11 +5350,19 @@ async loadInventory() {
 				const nameText = def.name || 'Unknown Item';
 				const typeText = def.type || def.filterType || 'Item';
 				const qtyText = item.quantity || 1;
-				const equippedText = item.equipped ? 'Equipped' : 'Carried';
+				const equippedBadge = item.equipped
+					? '<span class="equipment-badge" title="Equipped">E</span>'
+					: '';
 				return `
-					<li class="character-list-item">
-						<span>${escapeHtml(nameText)} (${escapeHtml(typeText)})</span>
-						<strong>${qtyText} - ${equippedText}</strong>
+					<li class="character-list-item equipment-item">
+						<div class="equipment-main">
+							<span class="equipment-name">${escapeHtml(nameText)}</span>
+							<span class="equipment-type">${escapeHtml(typeText)}</span>
+						</div>
+						<div class="equipment-meta">
+							<span class="equipment-qty">x${qtyText}</span>
+							${equippedBadge}
+						</div>
 					</li>
 				`;
 			}).join('')
@@ -5125,22 +5389,32 @@ async loadInventory() {
 			.sort((a, b) => a - b);
 
 		const spellsHtml = spellLevels.length
-			? spellLevels.map(level => {
+			? `<div class="spells-grid">${spellLevels.map(level => {
 				const label = level === 0 ? 'Cantrips' : `Level ${level}`;
+				const preparedCount = spellsByLevel[level].filter(spell => spell.prepared).length;
+				const totalCount = spellsByLevel[level].length;
+				const countLabel = `${totalCount} spell${totalCount === 1 ? '' : 's'}`;
+				const preparedLabel = preparedCount ? `${preparedCount} prepared` : '';
 				const tags = spellsByLevel[level]
 					.sort((a, b) => a.name.localeCompare(b.name))
 					.map(spell => {
 						const preparedClass = spell.prepared ? ' is-prepared' : '';
-						return `<span class="spell-tag${preparedClass}">${escapeHtml(spell.name)}</span>`;
+						return `<button type="button" class="spell-tag${preparedClass}" data-spell-name="${escapeHtml(spell.name)}">${escapeHtml(spell.name)}</button>`;
 					})
 					.join('');
 				return `
 					<div class="spell-level">
-						<h4>${label}</h4>
+						<div class="spell-level-header">
+							<h4>${label}</h4>
+							<div class="spell-level-meta">
+								<span>${countLabel}</span>
+								${preparedLabel ? `<span>${preparedLabel}</span>` : ''}
+							</div>
+						</div>
 						<div class="spell-tags">${tags}</div>
 					</div>
 				`;
-			}).join('')
+			}).join('')}</div>`
 			: '<div class="empty-state">No spells listed</div>';
 
 		const traits = data.traits || {};
@@ -5160,6 +5434,36 @@ async loadInventory() {
 				</li>
 			`).join('')
 			: '<li class="character-list-item"><span>No personality traits listed</span><strong>N/A</strong></li>';
+
+		const feats = Array.isArray(data.feats) ? data.feats : [];
+		const featsHtml = feats.length
+			? feats.map(feat => {
+				const def = feat.definition || {};
+				const name = def.name || 'Feat';
+				const snippet = stripHtml(def.snippet || def.description || '');
+				return `
+					<li class="character-list-item is-block">
+						<strong>${escapeHtml(name)}</strong>
+						${snippet ? `<span class="character-list-subtext">${escapeHtml(snippet)}</span>` : ''}
+					</li>
+				`;
+			}).join('')
+			: '<li class="character-list-item"><span>No feats listed</span><strong>N/A</strong></li>';
+
+		const racialTraits = data.race?.racialTraits || [];
+		const racialTraitsHtml = racialTraits.length
+			? racialTraits.map(trait => {
+				const def = trait.definition || {};
+				const name = def.name || 'Trait';
+				const snippet = stripHtml(def.snippet || def.description || '');
+				return `
+					<li class="character-list-item is-block">
+						<strong>${escapeHtml(name)}</strong>
+						${snippet ? `<span class="character-list-subtext">${escapeHtml(snippet)}</span>` : ''}
+					</li>
+				`;
+			}).join('')
+			: '<li class="character-list-item"><span>No racial traits listed</span><strong>N/A</strong></li>';
 
 		container.innerHTML = `
 			<div class="character-header">
@@ -5192,6 +5496,18 @@ async loadInventory() {
 						<div class="summary-card">
 							<div class="summary-label">Temp HP</div>
 							<div class="summary-value">${tempHp}</div>
+						</div>
+						<div class="summary-card">
+							<div class="summary-label">Armor Class</div>
+							<div class="summary-value">${armorClass}</div>
+						</div>
+						<div class="summary-card">
+							<div class="summary-label">Initiative</div>
+							<div class="summary-value">${initiative}</div>
+						</div>
+						<div class="summary-card">
+							<div class="summary-label">Speed</div>
+							<div class="summary-value">${speedValue ? `${speedValue} ft` : 'Unknown'}</div>
 						</div>
 						<div class="summary-card">
 							<div class="summary-label">Faith</div>
@@ -5242,6 +5558,20 @@ async loadInventory() {
 						<h3>Equipment</h3>
 						<ul class="character-list">
 							${equipmentHtml}
+						</ul>
+					</div>
+
+					<div class="character-section">
+						<h3>Feats</h3>
+						<ul class="character-list">
+							${featsHtml}
+						</ul>
+					</div>
+
+					<div class="character-section">
+						<h3>Racial Traits</h3>
+						<ul class="character-list">
+							${racialTraitsHtml}
 						</ul>
 					</div>
 				</div>
@@ -6529,7 +6859,51 @@ async loadInventory() {
 		loadSessions() {
 			// Load from localStorage
 			const saved = localStorage.getItem('rpg-sessions');
-			this.sessions = saved ? JSON.parse(saved) : [];
+			if (saved) {
+				this.sessions = JSON.parse(saved);
+				return;
+			}
+
+			this.sessions = this.getDefaultSessions();
+			this.saveSessions();
+		}
+
+		getDefaultSessions() {
+			return [
+				{
+					id: 'sample-001',
+					title: 'Session 1: The Fallen Waystone',
+					date: '2026-02-01',
+					duration: '3.5 hours',
+					summary: 'The party followed rumors of a broken waystone and discovered a hidden vault beneath the old road.',
+					events: 'Tracked missing traders, solved a sigil lock puzzle, defeated two stone sentinels.',
+					npcs: 'Marla the caravan scout; Brother Keth, a wandering cleric.',
+					loot: 'Map fragment, 120 gp, waystone shard.',
+					notes: 'The shard hums near ley lines. Vault door seals at midnight.'
+				},
+				{
+					id: 'sample-002',
+					title: 'Session 2: Fog on the Gilden Marsh',
+					date: '2026-02-08',
+					duration: '4 hours',
+					summary: 'A marsh fog revealed a drowned village and a pact gone wrong.',
+					events: 'Negotiated with marshfolk, escaped a sinking walkway, banished a mist wraith.',
+					npcs: 'Reeve Halden; Sable, a marsh guide.',
+					loot: 'Silver amulet, 2 healing draughts.',
+					notes: 'Wraith is tied to the bell tower. The pact ledger is missing.'
+				},
+				{
+					id: 'sample-003',
+					title: 'Session 3: Ashes at Emberhall',
+					date: '2026-02-15',
+					duration: '3 hours',
+					summary: 'Emberhall smolders after a raid. The party rallied survivors and traced the attackers.',
+					events: 'Rescued trapped townsfolk, chased raiders, uncovered a cult brand.',
+					npcs: 'Captain Rysa; Old Joran the miller.',
+					loot: 'Cult signet, 80 gp, scorched journal.',
+					notes: 'The brand matches the vault sigils. Raiders headed north.'
+				}
+			];
 		}
 
 		saveSessions() {
