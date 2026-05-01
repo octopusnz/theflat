@@ -81,13 +81,43 @@ jobs:
           TOTAL_BYTES=$(echo "$LANGUAGE_STATS" | jq '[.[]] | add // 0')
           TOTAL_LINES=$(echo "$TOTAL_BYTES / 50" | bc)
           
-          # Get top 5 repos by stars
-          TOP_REPOS=$(echo "$REPOS" | jq '[sort_by(-.stargazers_count) | .[:5] | .[] | {
+          # Get repos with stars > 0, sorted by stars descending
+          STARRED_REPOS=$(echo "$REPOS" | jq '[.[] | select(.stargazers_count > 0)] | sort_by(-.stargazers_count) | [.[] | {
             name: .name,
             description: .description,
             html_url: .html_url,
             stargazers_count: .stargazers_count
           }]')
+
+          # Fetch pinned repos via GraphQL API to use as fallback
+          GRAPHQL_BODY=$(jq -cn --arg username "$GITHUB_USERNAME" \
+            '{query: ("{ user(login: \"" + $username + "\") { pinnedItems(first: 6, types: REPOSITORY) { nodes { ... on Repository { name description url stargazerCount } } } } }")}')
+          PINNED_RAW=$(curl -s -H "Authorization: bearer $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -X POST \
+            -d "$GRAPHQL_BODY" \
+            "https://api.github.com/graphql")
+
+          if echo "$PINNED_RAW" | jq -e 'has("errors")' > /dev/null 2>&1; then
+            echo "Warning: Could not fetch pinned repos: $(echo "$PINNED_RAW" | jq -r '.errors[0].message // "Unknown error"')"
+            PINNED_REPOS='[]'
+          else
+            PINNED_REPOS=$(echo "$PINNED_RAW" | jq '[.data.user.pinnedItems.nodes[] | {
+              name: .name,
+              description: .description,
+              html_url: .url,
+              stargazers_count: .stargazerCount
+            }]')
+          fi
+
+          # Build top repos: starred repos first, then fill remaining slots with pinned repos
+          TOP_REPOS=$(echo "$STARRED_REPOS $PINNED_REPOS" | jq -s '
+            .[0] as $starred |
+            .[1] as $pinned |
+            ($starred | map(.name)) as $starred_names |
+            ($pinned | map(select(.name as $n | $starred_names | index($n) == null))) as $extra |
+            ($starred + $extra)[:5]
+          ')
           
           # Create final JSON
           cat > github-stats.json << EOF
