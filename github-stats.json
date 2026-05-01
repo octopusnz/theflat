@@ -1,14 +1,14 @@
 {
-  "updated_at": "2026-04-24T00:42:55Z",
+  "updated_at": "2026-05-01T04:50:48Z",
   "total_repos": 14,
   "total_watchers": 0,
-  "total_lines": 19985,
+  "total_lines": 21021,
   "followers": 3,
   "languages": {
   "HTML": 278848,
-  "Shell": 99044,
+  "Shell": 130792,
+  "C": 387983,
   "Rust": 81586,
-  "C": 367956,
   "C++": 102923,
   "Makefile": 18235,
   "Ruby": 14080,
@@ -26,15 +26,15 @@
     "stargazers_count": 0
   },
   {
-    "name": "dungeon",
-    "description": "Adventures in Rust making a mini RPG",
-    "html_url": "https://github.com/octopusnz/dungeon",
-    "stargazers_count": 0
-  },
-  {
     "name": "purple",
     "description": "Adventures in C",
     "html_url": "https://github.com/octopusnz/purple",
+    "stargazers_count": 0
+  },
+  {
+    "name": "dungeon",
+    "description": "Adventures in Rust making a mini RPG",
+    "html_url": "https://github.com/octopusnz/dungeon",
     "stargazers_count": 0
   },
   {
