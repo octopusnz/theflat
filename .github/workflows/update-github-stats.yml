@@ -107,13 +107,13 @@ jobs:
               description: .description,
               html_url: .url,
               stargazers_count: .stargazerCount
-            }]')
+            }]' 2>/dev/null || echo '[]')
           fi
 
           # Build top repos: starred repos first, then fill remaining slots with pinned repos
           TOP_REPOS=$(echo "$STARRED_REPOS $PINNED_REPOS" | jq -s '
             .[0] as $starred |
-            .[1] as $pinned |
+            (.[1] // []) as $pinned |
             ($starred | map(.name)) as $starred_names |
             ($pinned | map(select(.name as $n | $starred_names | index($n) == null))) as $extra |
             ($starred + $extra)[:5]
