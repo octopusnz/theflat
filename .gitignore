@@ -11,3 +11,6 @@ build/
 .env.local
 .DS_Store
 
+# Python
+.venv/
+
