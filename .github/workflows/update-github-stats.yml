@@ -33,11 +33,22 @@ jobs:
             -H "Accept: application/vnd.github.v3+json" \
             "https://api.github.com/users/$GITHUB_USERNAME")
           
+          if echo "$USER_DATA" | jq -e 'type != "object" or has("message")' > /dev/null 2>&1; then
+            echo "Error fetching user data: $(echo "$USER_DATA" | jq -r '.message // "Unknown error"')"
+            exit 1
+          fi
+
           # Fetch repositories (excluding forks)
-          REPOS=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+          REPOS_RAW=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
             -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/users/$GITHUB_USERNAME/repos?per_page=100&sort=updated" \
-            | jq '[.[] | select(.fork == false)]')
+            "https://api.github.com/users/$GITHUB_USERNAME/repos?per_page=100&sort=updated")
+
+          if echo "$REPOS_RAW" | jq -e 'type != "array"' > /dev/null 2>&1; then
+            echo "Error fetching repositories: $(echo "$REPOS_RAW" | jq -r '.message // "Unknown error"')"
+            exit 1
+          fi
+
+          REPOS=$(echo "$REPOS_RAW" | jq '[.[] | select(.fork == false)]')
           
           # Calculate stats
           TOTAL_REPOS=$(echo "$REPOS" | jq 'length')
