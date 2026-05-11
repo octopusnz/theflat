@@ -13,27 +13,24 @@
 		<link rel="dns-prefetch" href="https://www.googletagmanager.com">
 
 		<meta charset="utf-8">
-		<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
-		<link rel="icon" href="/favicon.ico" type="image/x-icon">
 		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=10, viewport-fit=cover" id="viewport">
 		<script>
 			// Apply theme BEFORE page render to prevent flash
 			(function() {
 				const savedTheme = localStorage.getItem('theme');
 				// Default to dark mode - only add light class if explicitly saved
-				console.log(`[EARLY-SCRIPT] Theme initialization - saved theme: ${savedTheme || 'none'}`);
 				if (savedTheme === 'light') {
 					document.documentElement.classList.add('theme-light');
 					document.body.classList.add('theme-light');
-					console.log('[EARLY-SCRIPT] Applied theme-light class');
-				} else {
-					console.log('[EARLY-SCRIPT] Using dark theme (default - no class added)');
 				}
 				// If no theme saved, explicitly default to dark (don't add theme-light class)
 			})();
 		</script>
 		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com; connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://www.dnd5eapi.co; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline'; frame-src https://www.googletagmanager.com;">
-		<meta name="theme-color" content="#0b1220">
+		<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+		<meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)">
+		<meta name="msapplication-TileImage" content="/android-chrome-192x192.png">
+		<meta name="msapplication-TileColor" content="#ffffff">
 		<meta name="description" content="RPG Campaign Tracker - Track world events, locations, NPCs and lore">
 		<link rel="canonical" href="https://theflat.gen.nz/rpg.html">
 
@@ -449,7 +446,7 @@
 				font-weight: 600;
 				pointer-events: none;
 				text-anchor: middle;
-				text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8), -1px -1px 2px rgba(0, 0, 0, 0.6);
+				filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.8)) drop-shadow(-1px -1px 2px rgba(0, 0, 0, 0.6));
 			}
 
 			.detail-panel {
@@ -3410,18 +3407,12 @@
 			if (themeMeta) {
 				themeMeta.setAttribute('content', isLight ? '#ffffff' : '#0b1220');
 			}
-			console.log(`[THEME] Applied theme: ${theme} (isLight=${isLight})`);
-		};
+	};
 
-		const savedTheme = localStorage.getItem('theme');
-		console.log(`[THEME] Saved theme from localStorage: ${savedTheme || 'none (will default to dark)'}`);
-		if (savedTheme === 'dark' || savedTheme === 'light') {
-			applyTheme(savedTheme);
-		} else {
-			console.log('[THEME] No saved theme, setting default to dark');
-			localStorage.setItem('theme', 'dark');
-			applyTheme('dark');
-		}
+	const savedTheme = localStorage.getItem('theme');
+	if (savedTheme === 'dark' || savedTheme === 'light') {
+		applyTheme(savedTheme);
+	} else {
 
 		themeButton.addEventListener('click', () => {
 			const isCurrentlyLight = document.body.classList.contains('theme-light');
