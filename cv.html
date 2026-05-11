@@ -20,7 +20,6 @@
 				const savedTheme = localStorage.getItem('theme');
 				if (savedTheme === 'light') {
 					document.documentElement.classList.add('theme-light');
-					document.body.classList.add('theme-light');
 				}
 			})();
 		</script>
@@ -29,10 +28,11 @@
 		<meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)">
 		<meta name="msapplication-TileImage" content="/android-chrome-192x192.png">
 		<meta name="msapplication-TileColor" content="#ffffff">
-		<meta name="description" content="Curriculum Vitae">
+		<meta name="description" content="Jacob Doherty — Senior Digital Producer, Auckland NZ. Experience in digital project delivery, product ownership, and full-stack development.">
+		<meta name="robots" content="noindex, nofollow">
 		<link rel="canonical" href="https://theflat.gen.nz/cv.html">
 
-		<title>CV - theflat.gen.nz</title>
+		<title>CV — theflat.gen.nz</title>
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -41,6 +41,7 @@
         <link rel="manifest" href="/site.webmanifest">
 		<style>
 			:root {
+				color-scheme: light dark;
 				--bg: #0b1220;
 				--fg: #e5e7eb;
 				--muted-fg: #cbd5e1;
@@ -53,7 +54,7 @@
 				--card-bg: #0f172a;
 			}
 
-			body.theme-light {
+			html.theme-light {
 				--bg: #ffffff;
 				--fg: #111827;
 				--muted-fg: #374151;
@@ -611,7 +612,7 @@
 			updateThemeLabel(currentTheme);
 
 			themeToggle.addEventListener('click', () => {
-				const isLight = body.classList.contains('theme-light');
+				const isLight = html.classList.contains('theme-light');
 				
 				if (isLight) {
 					body.classList.remove('theme-light');
