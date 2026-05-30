@@ -2484,7 +2484,7 @@ html.theme-light {
 		gap: 8px;
 	}
 
-	.session-section h4 {
+	.session-section h3 {
 		margin: 0;
 		font-size: 0.95rem;
 		font-weight: 600;
@@ -2561,7 +2561,7 @@ html.theme-light {
 	<body>
 		<!-- Google Tag Manager (noscript) -->
 		<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W8RGXCTR"
-		height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+		height="0" width="0" title="Google Tag Manager" style="display:none;visibility:hidden"></iframe></noscript>
 		<!-- End Google Tag Manager (noscript) -->
 
 		<a href="#main-content" class="skip-link">Skip to main content</a>
@@ -2716,7 +2716,7 @@ html.theme-light {
 			<div class="page hidden" id="search-page">
 				<div class="page-content search-page-content">
 					<div class="search-hero">
-						<h1>Rules Search</h1>
+						<h2>Rules Search</h2>
 						<div class="search-bar-container">
 							<div class="search-input-wrapper">
 								<input type="text" id="search-query" class="search-input-hero" placeholder="Enter text" autocomplete="off">
@@ -3015,23 +3015,23 @@ html.theme-light {
 							</div>
 							<div class="session-sections">
 								<div class="session-section">
-									<h4>Summary</h4>
+									<h3>Summary</h3>
 									<textarea id="session-summary" class="session-textarea" placeholder="Brief overview of the session..."></textarea>
 								</div>
 								<div class="session-section">
-									<h4>Key Events</h4>
+									<h3>Key Events</h3>
 									<textarea id="session-events" class="session-textarea" placeholder="Important battles, discoveries, or story beats..."></textarea>
 								</div>
 								<div class="session-section">
-									<h4>NPCs Met</h4>
+									<h3>NPCs Met</h3>
 									<textarea id="session-npcs" class="session-textarea" placeholder="New NPCs encountered, their reactions, etc..."></textarea>
 								</div>
 								<div class="session-section">
-									<h4>Loot & Rewards</h4>
+									<h3>Loot & Rewards</h3>
 									<textarea id="session-loot" class="session-textarea" placeholder="Items, gold, experience, or other rewards..."></textarea>
 								</div>
 								<div class="session-section">
-									<h4>Notes & Questions</h4>
+									<h3>Notes & Questions</h3>
 									<textarea id="session-notes" class="session-textarea" placeholder="Campaign notes, mysteries to solve, follow-ups..."></textarea>
 								</div>
 							</div>
@@ -3051,7 +3051,7 @@ html.theme-light {
 		<div class="modal-content">
 			<div class="modal-header">
 				<h3>Add Equipment to Inventory</h3>
-				<button class="btn-close" id="btn-close-add-item-modal">&times;</button>
+				<button class="btn-close" id="btn-close-add-item-modal" aria-label="Close">&times;</button>
 			</div>
 			<div class="modal-body">
 				<input type="text" id="add-item-search" class="search-input" placeholder="Search equipment..." autocomplete="off">
@@ -5086,9 +5086,9 @@ async loadInventory() {
 					</div>
 					<div class="inventory-item-controls">
 						<div class="inventory-item-qty">
-							<button class="inventory-qty-btn" data-index="${index}" data-action="decrease">−</button>
+							<button class="inventory-qty-btn" data-index="${index}" data-action="decrease" aria-label="Decrease quantity">−</button>
 							<span class="inventory-qty-display">${item.quantity || 1}</span>
-							<button class="inventory-qty-btn" data-index="${index}" data-action="increase">+</button>
+							<button class="inventory-qty-btn" data-index="${index}" data-action="increase" aria-label="Increase quantity">+</button>
 						</div>
 						<button class="btn-remove-item" data-index="${index}">Remove</button>
 					</div>

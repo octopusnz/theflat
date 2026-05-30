@@ -12,7 +12,7 @@ fi
 
 echo "Checking for orphaned closing tags..."
 # Look for any </div> that might be orphaned near the map container
-orphaned_divs=$(sed -n '1790,1810p' rpg.html | grep -n "^[[:space:]]*</div>" | wc -l)
+orphaned_divs=$(sed -n '1790,1810p' rpg.html | grep -c "^[[:space:]]*</div>")
 echo "   Found $orphaned_divs closing divs in critical section (should be expected closes)"
 
 echo ""
