@@ -37,8 +37,8 @@ echo "Fetching D&D 5e API data..."
 for endpoint in "${ENDPOINTS[@]}"; do
   echo "Fetching $endpoint..."
   
-  # Use curl to fetch and pretty-print JSON
-  if curl -s "$BASE_URL/$endpoint" | jq '.' > "$DATA_DIR/$endpoint.json" 2>/dev/null; then
+  # Use curl to fetch compact JSON
+  if curl -s "$BASE_URL/$endpoint" | jq -c '.' > "$DATA_DIR/$endpoint.json" 2>/dev/null; then
     echo "Saved $endpoint.json"
   else
     echo "Failed to fetch $endpoint"

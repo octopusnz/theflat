@@ -41,7 +41,6 @@ Static site content for **theflat.gen.nz**, hosted on GitHub Pages.
 - `humans.txt`: human-friendly site attribution/metadata
 - `llms.txt`: guidance for LLM tooling
 - `.well-known/security.txt`: security contact information
-- `.well-known/llms.txt`: LLM guidance (well-known path)
 - `.nojekyll`: disables Jekyll processing on GitHub Pages
 - `CNAME`: custom domain configuration
 
