@@ -104,6 +104,6 @@ cat > github-stats.json << EOF
 }
 EOF
 
-echo "✅ GitHub stats generated successfully!"
-echo "📝 File: github-stats.json"
+echo "GitHub stats generated successfully!"
+echo "File: github-stats.json"
 cat github-stats.json
