@@ -1,14 +1,14 @@
 {
-  "updated_at": "2026-06-01T01:42:24Z",
+  "updated_at": "2026-06-02T01:45:29Z",
   "total_repos": 14,
   "total_watchers": 0,
-  "total_lines": 21554,
+  "total_lines": 22035,
   "followers": 3,
   "languages": {
+  "C": 430810,
+  "Shell": 135171,
   "HTML": 282348,
-  "Shell": 133168,
   "Rust": 81586,
-  "C": 408751,
   "C++": 102923,
   "Makefile": 18235,
   "Ruby": 14080,
