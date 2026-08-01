@@ -16,6 +16,7 @@
 		<link rel="preconnect" href="https://www.google-analytics.com">
 		<link rel="dns-prefetch" href="https://www.googletagmanager.com">
 		<link rel="dns-prefetch" href="https://www.google-analytics.com">
+		<link rel="preload" as="image" href="/map.png" fetchpriority="high">
 
 		<script>
 			// Apply theme BEFORE page render to prevent flash
@@ -28,7 +29,7 @@
 				// If no theme saved, explicitly default to dark (don't add theme-light class)
 			})();
 		</script>
-		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://static.cloudflareinsights.com; connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://cloudflareinsights.com https://static.cloudflareinsights.com; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline'; frame-src https://www.googletagmanager.com;">
+		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://static.cloudflareinsights.com; connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://cloudflareinsights.com https://static.cloudflareinsights.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; frame-src https://www.googletagmanager.com;">
 		<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 		<meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)">
 		<meta name="msapplication-TileImage" content="/android-chrome-192x192.png">
@@ -2761,19 +2762,19 @@ html.theme-light {
 							<h3>💰 Currency</h3>
 							<div class="currency-inputs">
 								<div class="currency-item">
-									<label><span class="coin-icon coin-platinum">⬤</span> Platinum (pp)</label>
+									<label for="currency-platinum"><span class="coin-icon coin-platinum">⬤</span> Platinum (pp)</label>
 									<input type="text" id="currency-platinum" class="currency-input" inputmode="numeric" pattern="[0-9]*" value="0">
 								</div>
 								<div class="currency-item">
-									<label><span class="coin-icon coin-gold">⬤</span> Gold (gp)</label>
+									<label for="currency-gold"><span class="coin-icon coin-gold">⬤</span> Gold (gp)</label>
 									<input type="text" id="currency-gold" class="currency-input" inputmode="numeric" pattern="[0-9]*" value="0">
 								</div>
 								<div class="currency-item">
-									<label><span class="coin-icon coin-silver">⬤</span> Silver (sp)</label>
+									<label for="currency-silver"><span class="coin-icon coin-silver">⬤</span> Silver (sp)</label>
 									<input type="text" id="currency-silver" class="currency-input" inputmode="numeric" pattern="[0-9]*" value="0">
 								</div>
 								<div class="currency-item">
-									<label><span class="coin-icon coin-copper">⬤</span> Copper (cp)</label>
+									<label for="currency-copper"><span class="coin-icon coin-copper">⬤</span> Copper (cp)</label>
 									<input type="text" id="currency-copper" class="currency-input" inputmode="numeric" pattern="[0-9]*" value="0">
 								</div>
 							</div>
@@ -3203,13 +3204,12 @@ html.theme-light {
 				}
 
 				async loadStaticMap() {
-					// Try to load PNG first
+					// Check map.png exists without downloading the body, so the browser's
+					// own (cacheable, preloadable) fetch for the same URL does the real work.
 					try {
-					const response = await fetch('/map.png?t=' + Date.now());
+					const response = await fetch('/map.png', { method: 'HEAD' });
 					if (response.ok) {
-						const pngBlob = await response.blob();
-						const pngUrl = URL.createObjectURL(pngBlob);
-						this.data.mapSvg = pngUrl;
+						this.data.mapSvg = '/map.png';
 						this.data.mapType = 'raster';
 						this.data.mapWidth = 11548;
 						this.data.mapHeight = 7724;
