@@ -2,6 +2,14 @@
 
 Static site content for **theflat.gen.nz**, hosted on GitHub Pages.
 
+## Credits
+
+Octopus favicons based on icons created by [Freepik - Flaticon](https://www.flaticon.com/free-icons/octopus)
+
+D&D 5e data provided by the [D&D 5e API](https://www.dnd5eapi.co/) ([5e-bits/5e-srd-api](https://github.com/5e-bits/5e-srd-api)), licensed under the [MIT License](https://github.com/5e-bits/5e-srd-api/blob/main/LICENSE.md).
+
+This work includes material taken from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC and available at [dnd.wizards.com/resources/systems-reference-document](https://dnd.wizards.com/resources/systems-reference-document). The SRD 5.1 is licensed under the [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/legalcode).
+
 ## Pages
 
 - `index.html`: site homepage
@@ -43,7 +51,3 @@ Static site content for **theflat.gen.nz**, hosted on GitHub Pages.
 - `.well-known/security.txt`: security contact information
 - `.nojekyll`: disables Jekyll processing on GitHub Pages
 - `CNAME`: custom domain configuration
-
-## Credits
-
-Octopus favicons based on icons created by [Freepik - Flaticon](https://www.flaticon.com/free-icons/octopus)
