@@ -8,7 +8,7 @@ Octopus favicons based on icons created by [Freepik - Flaticon](https://www.flat
 
 D&D 5e data provided by the [D&D 5e API](https://www.dnd5eapi.co/) ([5e-bits/5e-srd-api](https://github.com/5e-bits/5e-srd-api)), licensed under the [MIT License](https://github.com/5e-bits/5e-srd-api/blob/main/LICENSE.md).
 
-This work includes material taken from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC and available at [dnd.wizards.com/resources/systems-reference-document](https://dnd.wizards.com/resources/systems-reference-document). The SRD 5.1 is licensed under the [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/legalcode).
+This work includes material taken from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC and available at [D&D Beyond](https://dndbeyond.com/srd). The SRD 5.1 is licensed under the [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/legalcode).
 
 ## Pages
 
