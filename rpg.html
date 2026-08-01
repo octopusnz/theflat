@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=10, viewport-fit=cover" id="viewport">
+
 		<!-- Google Tag Manager -->
 		<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 		new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -14,8 +17,6 @@
 		<link rel="dns-prefetch" href="https://www.googletagmanager.com">
 		<link rel="dns-prefetch" href="https://www.google-analytics.com">
 
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=10, viewport-fit=cover" id="viewport">
 		<script>
 			// Apply theme BEFORE page render to prevent flash
 			(function() {
@@ -437,7 +438,6 @@ html.theme-light {
 				opacity: 0;
 				max-width: 100%;
 				max-height: 100%;
-				will-change: transform;
 				transform: translate3d(0, 0, 0);
 				backface-visibility: hidden;
 				touch-action: manipulation;
@@ -2618,7 +2618,7 @@ html.theme-light {
 				<!-- Search Categories Section -->
 				<div class="sidebar-section">
 					<h3 class="sidebar-section-title">Rules Search</h3>
-					<input type="text" id="search-category-filter" placeholder="Filter searches..." autocomplete="off" class="search-category-filter">
+					<input type="text" id="search-category-filter" placeholder="Filter searches..." autocomplete="off" class="search-category-filter" aria-label="Filter rules search categories">
 				</div>
 				<ul class="category-list search-category-list search-category-scrollable" id="search-category-list">
 					<li class="category-item search-category-item" data-search-type="equipment">
@@ -2719,8 +2719,8 @@ html.theme-light {
 						<h2>Rules Search</h2>
 						<div class="search-bar-container">
 							<div class="search-input-wrapper">
-								<input type="text" id="search-query" class="search-input-hero" placeholder="Enter text" autocomplete="off">
-								<select id="search-type" class="search-type-dropdown">
+								<input type="text" id="search-query" class="search-input-hero" placeholder="Enter text" autocomplete="off" aria-label="Search query">
+								<select id="search-type" class="search-type-dropdown" aria-label="Rules category to search">
 									<option value="equipment">Equipment</option>
 									<option value="spells">Spells</option>
 									<option value="monsters">Monsters</option>
@@ -3054,7 +3054,7 @@ html.theme-light {
 				<button class="btn-close" id="btn-close-add-item-modal" aria-label="Close">&times;</button>
 			</div>
 			<div class="modal-body">
-				<input type="text" id="add-item-search" class="search-input" placeholder="Search equipment..." autocomplete="off">
+				<input type="text" id="add-item-search" class="search-input" placeholder="Search equipment..." autocomplete="off" aria-label="Search equipment to add to inventory">
 				<div class="add-item-results" id="add-item-results">
 					<div class="empty-state">Start typing to search equipment</div>
 				</div>
@@ -3085,7 +3085,7 @@ html.theme-light {
 				<button class="btn-close" id="btn-close-equipment" aria-label="Close equipment">&times;</button>
 			</div>
 			<div class="equipment-search-box">
-				<input type="text" id="equipment-search" placeholder="Search equipment..." autocomplete="off">
+				<input type="text" id="equipment-search" placeholder="Search equipment..." autocomplete="off" aria-label="Search equipment">
 			</div>
 			<div class="equipment-results" id="equipment-results">
 				<div class="equipment-loading">Loading equipment data...</div>
@@ -3120,6 +3120,14 @@ html.theme-light {
 		</div>
 
 		<script>
+			function debounce(fn, delay) {
+				let timeoutId;
+				return function debounced(...args) {
+					clearTimeout(timeoutId);
+					timeoutId = setTimeout(() => fn.apply(this, args), delay);
+				};
+			}
+
 			// Data Store
 			class DataStore {
 				constructor() {
@@ -4642,25 +4650,25 @@ function showItemDetails(category, itemId) {
 	// Equipment search
 	const equipmentSearchInput = document.getElementById('equipment-search');
 	
-	equipmentSearchInput.addEventListener('input', (e) => {
+	equipmentSearchInput.addEventListener('input', debounce((e) => {
 		const query = e.target.value.toLowerCase().trim();
 		const equipment = window.fullEquipmentList || [];
-		
+
 		if (!query) {
 			// Show all equipment when search is cleared
 			displayEquipmentList(equipment);
 			return;
 		}
-		
+
 		// Filter from the full list
 		const filtered = equipment.filter(item => {
 			const name = (item.name || item.index || '').toLowerCase();
 			const category = (item.equipment_category?.name || '').toLowerCase();
 			return name.includes(query) || category.includes(query);
 		});
-		
+
 		displayEquipmentList(filtered);
-	});
+	}, 200));
 
 	// Category filter
 	document.querySelectorAll('.category-item').forEach(item => {
@@ -5118,7 +5126,7 @@ async loadInventory() {
 		}).join('');
 
 			// Attach event listeners
-			document.querySelectorAll('.inventory-qty-btn').forEach(btn => {
+			itemsContainer.querySelectorAll('.inventory-qty-btn').forEach(btn => {
 				btn.addEventListener('click', (e) => {
 					const index = parseInt(e.target.dataset.index);
 					const action = e.target.dataset.action;
@@ -5131,7 +5139,7 @@ async loadInventory() {
 				});
 			});
 
-			document.querySelectorAll('.btn-remove-item').forEach(btn => {
+			itemsContainer.querySelectorAll('.btn-remove-item').forEach(btn => {
 				btn.addEventListener('click', (e) => {
 					const index = parseInt(e.target.dataset.index);
 					this.inventory.items.splice(index, 1);
@@ -5676,7 +5684,7 @@ async loadInventory() {
 			const resultsContainer = document.getElementById('search-results');
 			const searchWrapper = document.querySelector('.search-input-wrapper');
 
-			searchInput.addEventListener('input', () => this.performSearch());
+			searchInput.addEventListener('input', debounce(() => this.performSearch(), 300));
 			typeSelect.addEventListener('change', () => this.performSearch());
 
 			if (searchWrapper) {
