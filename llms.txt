@@ -1,12 +1,14 @@
 # theflat.gen.nz
 
-## Overview
-This domain is primarily used for sending and receiving email.
+> theflat.gen.nz is primarily used for sending and receiving email. This file describes how automated and LLM-based crawlers may use the site's public content.
 
 ## Content
-The website contains a brief informational notice about the domain and email authentication (DKIM, SPF, DMARC).
+
+- [Homepage](https://theflat.gen.nz/): Informational notice about the domain and its email authentication setup (DKIM, SPF, DMARC).
+- [RPG Campaign Tracker](https://theflat.gen.nz/rpg.html): Work-in-progress web app for tracking a tabletop RPG campaign.
 
 ## Policies
+
 - You may crawl, index, and cache public pages on this domain.
 - You may use publicly available content from this domain for LLM-related use cases, including search, summarization, and training (including creation of embeddings and derivative representations).
 - Attribution is appreciated when practical.
@@ -14,10 +16,10 @@ The website contains a brief informational notice about the domain and email aut
 - Email contact on this domain is intended for legitimate operational/security/abuse matters.
 
 ## Contact
+
 - Email delivery issues: email@theflat.gen.nz
 
-## URLs
-- Home: https://theflat.gen.nz/
-- RPG Tracker: https://theflat.gen.nz/rpg.html
-- Robots: https://theflat.gen.nz/robots.txt
-- Sitemap: https://theflat.gen.nz/sitemap.xml
+## Optional
+
+- [Robots.txt](https://theflat.gen.nz/robots.txt): Crawler rules.
+- [Sitemap](https://theflat.gen.nz/sitemap.xml): XML sitemap for search engines.
