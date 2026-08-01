@@ -32,8 +32,6 @@
 		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://static.cloudflareinsights.com; connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://cloudflareinsights.com https://static.cloudflareinsights.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; frame-src https://www.googletagmanager.com;">
 		<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 		<meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)">
-		<meta name="msapplication-TileImage" content="/android-chrome-192x192.png">
-		<meta name="msapplication-TileColor" content="#ffffff">
 		<meta name="description" content="RPG Campaign Tracker for tabletop RPGs — track world events, locations, NPCs, lore, spells, and inventory for your D&amp;D 5e campaign.">
 		<link rel="canonical" href="https://theflat.gen.nz/rpg.html">
 
@@ -2568,17 +2566,17 @@ html.theme-light {
 		<a href="#main-content" class="skip-link">Skip to main content</a>
 
 		<header>
-			<button id="btn-menu" aria-label="Toggle menu">☰</button>
+			<button type="button" id="btn-menu" aria-label="Toggle menu">☰</button>
 			<h1 id="page-title" style="cursor: pointer;">RPG Campaign Tracker</h1>
-			<button class="btn-menu-close hidden" id="btn-menu-close" aria-label="Close menu">✕</button>
+			<button type="button" class="btn-menu-close hidden" id="btn-menu-close" aria-label="Close menu">✕</button>
 			<nav class="nav-links">
-				<button class="nav-btn" data-page="home">Home</button>
-				<button class="nav-btn" data-page="map">World Map</button>
-				<button class="nav-btn" data-page="search">Search</button>
-				<button class="nav-btn" data-page="inventory">Party Inventory</button>
-				<button class="nav-btn" data-page="characters">Characters</button>
-				<button class="nav-btn" data-page="sessions">Sessions</button>
-				<button class="nav-btn" data-page="generators">Random Generators</button>
+				<button type="button" class="nav-btn" data-page="home">Home</button>
+				<button type="button" class="nav-btn" data-page="map">World Map</button>
+				<button type="button" class="nav-btn" data-page="search">Search</button>
+				<button type="button" class="nav-btn" data-page="inventory">Party Inventory</button>
+				<button type="button" class="nav-btn" data-page="characters">Characters</button>
+				<button type="button" class="nav-btn" data-page="sessions">Sessions</button>
+				<button type="button" class="nav-btn" data-page="generators">Random Generators</button>
 			</nav>
 		</header>
 		<div class="mobile-overlay" id="mobile-overlay"></div>
@@ -2589,7 +2587,7 @@ html.theme-light {
 			<aside class="sidebar" id="sidebar">
 				<div class="sidebar-header">
 					<h2>Categories</h2>
-					<button class="sidebar-close" id="btn-close-sidebar" aria-label="Close menu">&times;</button>
+					<button type="button" class="sidebar-close" id="btn-close-sidebar" aria-label="Close menu">&times;</button>
 				</div>
 				<ul class="category-list">
 					<li class="category-item active" data-category="all">
@@ -2613,7 +2611,7 @@ html.theme-light {
 						<span class="badge" id="badge-events">0</span>
 					</li>
 				</ul>
-				<button class="btn" id="btn-add-new">+ Add New</button>
+				<button type="button" class="btn" id="btn-add-new">+ Add New</button>
 				<hr class="sidebar-divider">
 				
 				<!-- Search Categories Section -->
@@ -2683,7 +2681,7 @@ html.theme-light {
 					Upload Map
 					<input type="file" id="btn-upload-map" accept=".jpg,.jpeg,.png,.gif,.webp,image/*" class="hidden">
 				</label>
-				<button class="btn" id="btn-export">Export Data</button>
+				<button type="button" class="btn" id="btn-export">Export Data</button>
 				<label class="btn" id="btn-import-label">
 					Import Data
 					<input type="file" id="btn-import" accept=".json" class="hidden">
@@ -2693,9 +2691,9 @@ html.theme-light {
 		<!-- Map Container -->
 		<main class="map-container" id="main-content">
 				<div class="map-toolbar">
-					<button class="btn-toolbar" id="btn-zoom-in">Zoom In</button>
-					<button class="btn-toolbar" id="btn-zoom-out">Zoom Out</button>
-					<button class="btn-toolbar" id="btn-reset-view">Reset View</button>
+					<button type="button" class="btn-toolbar" id="btn-zoom-in">Zoom In</button>
+					<button type="button" class="btn-toolbar" id="btn-zoom-out">Zoom Out</button>
+					<button type="button" class="btn-toolbar" id="btn-reset-view">Reset View</button>
 					<button class="btn-toolbar" id="btn-theme" type="button" aria-pressed="true">Light Mode</button>
 				</div>
 				<div class="map-view" id="map-view">
@@ -2784,7 +2782,7 @@ html.theme-light {
 						<div class="items-section">
 							<div class="items-header">
 								<h3>Items</h3>
-								<button class="btn-add-item" id="btn-add-item">+ Add Item</button>
+								<button type="button" class="btn-add-item" id="btn-add-item">+ Add Item</button>
 							</div>
 							<div class="inventory-items" id="inventory-items">
 								<div class="empty-state">No items in inventory. Click "Add Item" to begin.</div>
@@ -2817,7 +2815,7 @@ html.theme-light {
 							<div class="generator-section">
 								<div class="generator-header">
 									<h3>💎 Random Loot Table</h3>
-									<button class="btn" id="btn-generate-loot">🎲 Generate Loot</button>
+									<button type="button" class="btn" id="btn-generate-loot">🎲 Generate Loot</button>
 								</div>
 								<div class="generator-controls">
 									<label>
@@ -2834,7 +2832,7 @@ html.theme-light {
 							<div class="generator-section">
 								<div class="generator-header">
 									<h3>⚔️ Random Encounter</h3>
-									<button class="btn" id="btn-generate-encounter">🎲 Generate Encounter</button>
+									<button type="button" class="btn" id="btn-generate-encounter">🎲 Generate Encounter</button>
 								</div>
 								<div class="generator-controls">
 									<label>
@@ -2851,7 +2849,7 @@ html.theme-light {
 						<div class="generator-section">
 							<div class="generator-header">
 								<h3>👤 Random NPC</h3>
-								<button class="btn" id="btn-generate-npc">🎲 Generate NPC</button>
+								<button type="button" class="btn" id="btn-generate-npc">🎲 Generate NPC</button>
 							</div>
 							<div class="generator-results" id="npc-results">
 								<div class="empty-state">Click "Generate NPC" to create a random character</div>
@@ -2862,7 +2860,7 @@ html.theme-light {
 						<div class="generator-section">
 							<div class="generator-header">
 								<h3>🏰 Random Settlement</h3>
-								<button class="btn" id="btn-generate-town">🎲 Generate Settlement</button>
+								<button type="button" class="btn" id="btn-generate-town">🎲 Generate Settlement</button>
 							</div>
 							<div class="generator-controls">
 								<label>
@@ -2884,7 +2882,7 @@ html.theme-light {
 						<div class="generator-section">
 							<div class="generator-header">
 								<h3>📜 Random Quest</h3>
-								<button class="btn" id="btn-generate-quest">🎲 Generate Quest</button>
+								<button type="button" class="btn" id="btn-generate-quest">🎲 Generate Quest</button>
 							</div>
 							<div class="generator-results" id="quest-results">
 								<div class="empty-state">Click "Generate Quest" to create a random plot hook</div>
@@ -2895,7 +2893,7 @@ html.theme-light {
 						<div class="generator-section">
 							<div class="generator-header">
 								<h3>💰 Treasure Hoard</h3>
-								<button class="btn" id="btn-generate-hoard">🎲 Generate Hoard</button>
+								<button type="button" class="btn" id="btn-generate-hoard">🎲 Generate Hoard</button>
 							</div>
 							<div class="generator-controls">
 								<label>
@@ -2917,7 +2915,7 @@ html.theme-light {
 						<div class="generator-section">
 							<div class="generator-header">
 								<h3>✨ Random Names</h3>
-								<button class="btn" id="btn-generate-names">🎲 Generate Names</button>
+								<button type="button" class="btn" id="btn-generate-names">🎲 Generate Names</button>
 							</div>
 							<div class="generator-controls">
 								<label>
@@ -2947,7 +2945,7 @@ html.theme-light {
 						<div class="generator-section">
 							<div class="generator-header">
 								<h3>🌤️ Weather & Environment</h3>
-								<button class="btn" id="btn-generate-weather">🎲 Generate Weather</button>
+								<button type="button" class="btn" id="btn-generate-weather">🎲 Generate Weather</button>
 							</div>
 							<div class="generator-controls">
 								<label>
@@ -2983,7 +2981,7 @@ html.theme-light {
 			<div class="page hidden" id="sessions-page">
 			<div class="page-header">
 				<h2>Campaign Sessions</h2>
-				<button class="btn" id="btn-new-session">+ New Session</button>
+				<button type="button" class="btn" id="btn-new-session">+ New Session</button>
 			</div>
 			<div class="page-content sessions-content">
 				<div class="sessions-container">
@@ -3000,8 +2998,8 @@ html.theme-light {
 							<div class="session-form-header">
 								<input type="text" id="session-title" class="session-title-input" placeholder="Session Title" maxlength="100">
 								<div class="session-form-actions">
-									<button class="btn-icon" id="btn-delete-session" title="Delete session">🗑️</button>
-									<button class="btn-icon" id="btn-close-session" title="Close">✕</button>
+									<button type="button" class="btn-icon" id="btn-delete-session" title="Delete session">🗑️</button>
+									<button type="button" class="btn-icon" id="btn-close-session" title="Close">✕</button>
 								</div>
 							</div>
 							<div class="session-meta">
@@ -3037,7 +3035,7 @@ html.theme-light {
 								</div>
 							</div>
 							<div class="session-actions">
-								<button class="btn" id="btn-save-session">Save Session</button>
+								<button type="button" class="btn" id="btn-save-session">Save Session</button>
 							</div>
 						</div>
 					</div>
@@ -3052,7 +3050,7 @@ html.theme-light {
 		<div class="modal-content">
 			<div class="modal-header">
 				<h3>Add Equipment to Inventory</h3>
-				<button class="btn-close" id="btn-close-add-item-modal" aria-label="Close">&times;</button>
+				<button type="button" class="btn-close" id="btn-close-add-item-modal" aria-label="Close">&times;</button>
 			</div>
 			<div class="modal-body">
 				<input type="text" id="add-item-search" class="search-input" placeholder="Search equipment..." autocomplete="off" aria-label="Search equipment to add to inventory">
@@ -3067,7 +3065,7 @@ html.theme-light {
 		<aside class="detail-panel hidden" id="detail-panel">
 			<div class="detail-header">
 				<h2 id="detail-title">Locations</h2>
-				<button class="btn-close" id="btn-close-detail" aria-label="Close details">&times;</button>
+				<button type="button" class="btn-close" id="btn-close-detail" aria-label="Close details">&times;</button>
 			</div>
 			<div id="detail-content">
 				<div class="empty-state">
@@ -3083,7 +3081,7 @@ html.theme-light {
 					<h2 style="margin: 0;">Equipment Search</h2>
 					<span class="badge" id="badge-equipment-count">0</span>
 				</div>
-				<button class="btn-close" id="btn-close-equipment" aria-label="Close equipment">&times;</button>
+				<button type="button" class="btn-close" id="btn-close-equipment" aria-label="Close equipment">&times;</button>
 			</div>
 			<div class="equipment-search-box">
 				<input type="text" id="equipment-search" placeholder="Search equipment..." autocomplete="off" aria-label="Search equipment">
@@ -3098,7 +3096,7 @@ html.theme-light {
 			<div class="modal-content">
 				<div class="modal-header">
 					<h2>Add New</h2>
-					<button class="btn-close" id="btn-close-modal" aria-label="Close modal">&times;</button>
+					<button type="button" class="btn-close" id="btn-close-modal" aria-label="Close modal">&times;</button>
 				</div>
 				<form id="form-add">
 					<div class="form-group">
@@ -4028,9 +4026,9 @@ if (!window.fullEquipmentList) {
 	const html = equipment.map(item => {
 		const name = item.name || item.index || 'Unknown';
 		const index = item.index || '';
-		return `<div class="equipment-item" data-index="${index}">
-			<div class="equipment-item-name">${name}</div>
-			<div class="equipment-item-type">${item.equipment_category?.name || 'Equipment'}</div>
+		return `<div class="equipment-item" data-index="${escapeHtml(index)}">
+			<div class="equipment-item-name">${escapeHtml(name)}</div>
+			<div class="equipment-item-type">${escapeHtml(item.equipment_category?.name || 'Equipment')}</div>
 		</div>`;
 	}).join('');
 	
@@ -4067,82 +4065,82 @@ async function showEquipmentDetails(equipment) {
 		
 		// Equipment Categories
 		if (details.equipment_category?.name) {
-			html += '<p><strong>Category:</strong> ' + details.equipment_category.name + '</p>';
+			html += '<p><strong>Category:</strong> ' + escapeHtml(details.equipment_category.name) + '</p>';
 		}
-		
+
 		if (details.gear_category?.name) {
-			html += '<p><strong>Gear Type:</strong> ' + details.gear_category.name + '</p>';
+			html += '<p><strong>Gear Type:</strong> ' + escapeHtml(details.gear_category.name) + '</p>';
 		}
-		
+
 		// Weapon-specific fields
 		if (details.weapon_category) {
-			html += '<p><strong>Weapon Type:</strong> ' + details.weapon_category + '</p>';
+			html += '<p><strong>Weapon Type:</strong> ' + escapeHtml(details.weapon_category) + '</p>';
 		}
-		
+
 		if (details.weapon_range) {
-			html += '<p><strong>Range:</strong> ' + details.weapon_range + '</p>';
+			html += '<p><strong>Range:</strong> ' + escapeHtml(details.weapon_range) + '</p>';
 		}
-		
+
 		if (details.category_range) {
-			html += '<p><strong>Classification:</strong> ' + details.category_range + '</p>';
+			html += '<p><strong>Classification:</strong> ' + escapeHtml(details.category_range) + '</p>';
 		}
-		
+
 		// Damage
 		if (details.damage) {
 			let damageText = details.damage.damage_dice || 'unknown';
 			if (details.damage.damage_type?.name) {
 				damageText += ' ' + details.damage.damage_type.name;
 			}
-			html += '<p><strong>Damage:</strong> ' + damageText + '</p>';
+			html += '<p><strong>Damage:</strong> ' + escapeHtml(damageText) + '</p>';
 		}
-		
+
 		// Range information
 		if (details.range?.normal) {
-			html += '<p><strong>Range:</strong> ' + details.range.normal + ' ft</p>';
+			html += '<p><strong>Range:</strong> ' + escapeHtml(details.range.normal) + ' ft</p>';
 		}
-		
+
 		if (details.range?.long) {
-			html += '<p><strong>Long Range:</strong> ' + details.range.long + ' ft</p>';
+			html += '<p><strong>Long Range:</strong> ' + escapeHtml(details.range.long) + ' ft</p>';
 		}
-		
+
 		// Weight
 		if (details.weight !== undefined && details.weight !== null) {
-			html += '<p><strong>Weight:</strong> ' + details.weight + ' lb</p>';
+			html += '<p><strong>Weight:</strong> ' + escapeHtml(details.weight) + ' lb</p>';
 		}
-		
+
 		// Cost
 		if (details.cost?.quantity !== undefined) {
 			const unit = details.cost.unit || 'gp';
-			html += '<p><strong>Cost:</strong> ' + details.cost.quantity + ' ' + unit + '</p>';
+			html += '<p><strong>Cost:</strong> ' + escapeHtml(details.cost.quantity) + ' ' + escapeHtml(unit) + '</p>';
 		}
-		
+
 		// Description
 		if (details.desc && Array.isArray(details.desc) && details.desc.length > 0) {
-			html += '<p>' + details.desc.join('</p><p>') + '</p>';
+			html += '<p>' + details.desc.map(escapeHtml).join('</p><p>') + '</p>';
 		}
-		
+
 		// Special properties
 		if (details.special && Array.isArray(details.special) && details.special.length > 0) {
-			html += '<p><strong>Special:</strong> ' + details.special.join(', ') + '</p>';
+			html += '<p><strong>Special:</strong> ' + details.special.map(escapeHtml).join(', ') + '</p>';
 		}
-		
+
 		// Weapon properties (Heavy, Two-Handed, etc)
 		if (details.properties && Array.isArray(details.properties) && details.properties.length > 0) {
-			const propNames = details.properties.map(p => p.name || p.index).join(', ');
+			const propNames = details.properties.map(p => escapeHtml(p.name || p.index)).join(', ');
 			html += '<p><strong>Properties:</strong> ' + propNames + '</p>';
 		}
-		
+
 		// Contents (for containers)
 		if (details.contents && Array.isArray(details.contents) && details.contents.length > 0) {
 			html += '<p><strong>Contains:</strong></p><ul>';
 			details.contents.forEach(item => {
-				html += '<li>' + (item.item?.name || item.name || 'Unknown') + '</li>';
+				html += '<li>' + escapeHtml(item.item?.name || item.name || 'Unknown') + '</li>';
 			});
 			html += '</ul>';
 		}
 		
 		html += '</div>';
-		html += '<div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);"><button class="btn btn-back-equipment" style="width: 100%;">Back to Equipment</button></div>';
+		html += '<div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);"><button type="button" class="btn btn-back-equipment" style="width: 100%;">Back to Equipment</button></div>';
 		
 		content.innerHTML = html;
 		panel.classList.remove('hidden');
@@ -4154,7 +4152,7 @@ async function showEquipmentDetails(equipment) {
 		const content = document.getElementById('detail-content');
 		
 		title.textContent = equipment?.name || 'Equipment';
-		content.innerHTML = '<div class="empty-state"><p>Error loading equipment details: ' + error.message + '</p><p style="font-size: 0.9em; color: var(--muted-fg);">Check browser console for more details.</p><button class="btn btn-back-equipment" style="width: 100%; margin-top: 20px;">Back to Equipment</button></div>';
+		content.innerHTML = '<div class="empty-state"><p>Error loading equipment details: ' + escapeHtml(error.message) + '</p><p style="font-size: 0.9em; color: var(--muted-fg);">Check browser console for more details.</p><button type="button" class="btn btn-back-equipment" style="width: 100%; margin-top: 20px;">Back to Equipment</button></div>';
 		panel.classList.remove('hidden');
 	}
 }
@@ -5115,11 +5113,11 @@ async loadInventory() {
 					</div>
 					<div class="inventory-item-controls">
 						<div class="inventory-item-qty">
-							<button class="inventory-qty-btn" data-index="${index}" data-action="decrease" aria-label="Decrease quantity">−</button>
+							<button type="button" class="inventory-qty-btn" data-index="${index}" data-action="decrease" aria-label="Decrease quantity">−</button>
 							<span class="inventory-qty-display">${item.quantity || 1}</span>
-							<button class="inventory-qty-btn" data-index="${index}" data-action="increase" aria-label="Increase quantity">+</button>
+							<button type="button" class="inventory-qty-btn" data-index="${index}" data-action="increase" aria-label="Increase quantity">+</button>
 						</div>
-						<button class="btn-remove-item" data-index="${index}">Remove</button>
+						<button type="button" class="btn-remove-item" data-index="${index}">Remove</button>
 					</div>
 				</div>
 			`;
@@ -5201,7 +5199,7 @@ async loadInventory() {
 					<div class="add-item-result-name">${escapeHtml(item.name)}</div>
 					<div class="add-item-result-qty">
 						<input type="number" class="add-item-qty-input" value="1" min="1" data-item-index="${idx}">
-						<button class="btn-add-to-inventory" data-item-index="${idx}">Add</button>
+						<button type="button" class="btn-add-to-inventory" data-item-index="${idx}">Add</button>
 						</div>
 					</div>
 				`).join('');
@@ -5393,8 +5391,8 @@ async loadInventory() {
 
 		const currencyHtml = currencyList.map(item => `
 			<li class="character-list-item">
-				<span>${item.label}</span>
-				<strong>${item.value}</strong>
+				<span>${escapeHtml(item.label)}</span>
+				<strong>${escapeHtml(item.value)}</strong>
 			</li>
 		`).join('');
 
@@ -5807,7 +5805,7 @@ async loadInventory() {
 
 	renderSearchResult(item, type) {
 		let html = `<div class="search-result-item">
-			<h4>${item.name || item.index}</h4>
+			<h4>${escapeHtml(item.name || item.index)}</h4>
 			<div class="search-result-metadata">`;
 
 		// Render type-specific metadata
@@ -5819,9 +5817,9 @@ async loadInventory() {
 		// Add description if available
 		if (item.desc) {
 			if (Array.isArray(item.desc)) {
-				html += `<div class="search-result-description">${item.desc.map(d => `<p>${d}</p>`).join('')}</div>`;
+				html += `<div class="search-result-description">${item.desc.map(d => `<p>${escapeHtml(d)}</p>`).join('')}</div>`;
 			} else if (typeof item.desc === 'string') {
-				html += `<div class="search-result-description"><p>${item.desc}</p></div>`;
+				html += `<div class="search-result-description"><p>${escapeHtml(item.desc)}</p></div>`;
 			}
 		}
 
@@ -5832,7 +5830,7 @@ async loadInventory() {
 				<strong>Explore:</strong>
 				<div class="search-ref-list">`;
 			crossRefs.forEach(ref => {
-				html += `<button type="button" class="search-ref" data-search-type="${ref.type}" data-search-query="${ref.query}">${ref.label}: ${ref.value}</button>`;
+				html += `<button type="button" class="search-ref" data-search-type="${escapeHtml(ref.type)}" data-search-query="${escapeHtml(ref.query)}">${escapeHtml(ref.label)}: ${escapeHtml(ref.value)}</button>`;
 			});
 			html += `</div>
 			</div>`;
@@ -5847,39 +5845,39 @@ async loadInventory() {
 
 		switch(type) {
 			case 'equipment':
-				if (item.equipment_category) html += `<p><strong>Category:</strong> ${item.equipment_category.name}</p>`;
-				if (item.weapon_category) html += `<p><strong>Weapon Type:</strong> ${item.weapon_category}</p>`;
+				if (item.equipment_category) html += `<p><strong>Category:</strong> ${escapeHtml(item.equipment_category.name)}</p>`;
+				if (item.weapon_category) html += `<p><strong>Weapon Type:</strong> ${escapeHtml(item.weapon_category)}</p>`;
 				if (item.armor_class) {
 					const acValue = typeof item.armor_class === 'object' ? item.armor_class.value : item.armor_class;
-					html += `<p><strong>AC:</strong> ${acValue}</p>`;
+					html += `<p><strong>AC:</strong> ${escapeHtml(acValue)}</p>`;
 				}
-				if (item.cost) html += `<p><strong>Cost:</strong> ${item.cost.quantity} ${item.cost.unit}</p>`;
-				if (item.weight) html += `<p><strong>Weight:</strong> ${item.weight} lb.</p>`;
+				if (item.cost) html += `<p><strong>Cost:</strong> ${escapeHtml(item.cost.quantity)} ${escapeHtml(item.cost.unit)}</p>`;
+				if (item.weight) html += `<p><strong>Weight:</strong> ${escapeHtml(item.weight)} lb.</p>`;
 				if (item.damage) {
 					const damageDice = item.damage.damage_dice || item.damage.dice;
 					const damageType = item.damage.damage_type?.name || item.damage.damage_type || 'Unknown';
-					html += `<p><strong>Damage:</strong> ${damageDice} ${damageType}</p>`;
+					html += `<p><strong>Damage:</strong> ${escapeHtml(damageDice)} ${escapeHtml(damageType)}</p>`;
 				}
-				if (item.range?.normal) html += `<p><strong>Range:</strong> ${item.range.normal} ft${item.range.long ? ` / ${item.range.long} ft (long)` : ''}</p>`;
-				if (item.weapon_range) html += `<p><strong>Range Category:</strong> ${item.weapon_range}</p>`;
+				if (item.range?.normal) html += `<p><strong>Range:</strong> ${escapeHtml(item.range.normal)} ft${item.range.long ? ` / ${escapeHtml(item.range.long)} ft (long)` : ''}</p>`;
+				if (item.weapon_range) html += `<p><strong>Range Category:</strong> ${escapeHtml(item.weapon_range)}</p>`;
 				if (item.properties && Array.isArray(item.properties) && item.properties.length > 0) {
-					const propNames = item.properties.map(p => p.name || p).join(', ');
+					const propNames = item.properties.map(p => escapeHtml(p.name || p)).join(', ');
 					html += `<p><strong>Properties:</strong> ${propNames}</p>`;
 				}
-				if (item.rarity) html += `<p><strong>Rarity:</strong> ${item.rarity}</p>`;
+				if (item.rarity) html += `<p><strong>Rarity:</strong> ${escapeHtml(item.rarity)}</p>`;
 				break;
 
 			case 'spells':
 				if (item.level !== undefined) {
 					const levelName = item.level === 0 ? 'Cantrip' : `Level ${item.level}`;
-					html += `<p><strong>Level:</strong> ${levelName}</p>`;
+					html += `<p><strong>Level:</strong> ${escapeHtml(levelName)}</p>`;
 				}
-				if (item.school) html += `<p><strong>School of Magic:</strong> ${item.school.name || item.school}</p>`;
-				if (item.casting_time) html += `<p><strong>Casting Time:</strong> ${item.casting_time}</p>`;
-				if (item.range) html += `<p><strong>Range:</strong> ${item.range}</p>`;
-				if (item.components && Array.isArray(item.components)) html += `<p><strong>Components:</strong> ${item.components.join(', ')}</p>`;
-				if (item.material) html += `<p><strong>Material:</strong> ${item.material}</p>`;
-				if (item.duration) html += `<p><strong>Duration:</strong> ${item.duration}</p>`;
+				if (item.school) html += `<p><strong>School of Magic:</strong> ${escapeHtml(item.school.name || item.school)}</p>`;
+				if (item.casting_time) html += `<p><strong>Casting Time:</strong> ${escapeHtml(item.casting_time)}</p>`;
+				if (item.range) html += `<p><strong>Range:</strong> ${escapeHtml(item.range)}</p>`;
+				if (item.components && Array.isArray(item.components)) html += `<p><strong>Components:</strong> ${item.components.map(escapeHtml).join(', ')}</p>`;
+				if (item.material) html += `<p><strong>Material:</strong> ${escapeHtml(item.material)}</p>`;
+				if (item.duration) html += `<p><strong>Duration:</strong> ${escapeHtml(item.duration)}</p>`;
 				if (item.concentration) html += `<p><strong>Requires Concentration</strong></p>`;
 				if (item.ritual) html += `<p><strong>Can be cast as ritual</strong></p>`;
 				break;
@@ -5887,50 +5885,52 @@ async loadInventory() {
 			case 'monsters':
 				if (item.challenge_rating !== undefined) {
 					const xp = item.xp ? ` (${item.xp.toLocaleString()} XP)` : '';
-					html += `<p><strong>Challenge Rating:</strong> ${item.challenge_rating}${xp}</p>`;
+					html += `<p><strong>Challenge Rating:</strong> ${escapeHtml(item.challenge_rating)}${escapeHtml(xp)}</p>`;
 				}
-				if (item.size) html += `<p><strong>Size:</strong> ${item.size}</p>`;
-				if (item.type) html += `<p><strong>Type:</strong> ${item.type}</p>`;
-				if (item.alignment) html += `<p><strong>Alignment:</strong> ${item.alignment}</p>`;
+				if (item.size) html += `<p><strong>Size:</strong> ${escapeHtml(item.size)}</p>`;
+				if (item.type) html += `<p><strong>Type:</strong> ${escapeHtml(item.type)}</p>`;
+				if (item.alignment) html += `<p><strong>Alignment:</strong> ${escapeHtml(item.alignment)}</p>`;
 				if (item.armor_class) {
 					const acValue = typeof item.armor_class === 'object' ? item.armor_class.base : item.armor_class;
 					const acDesc = typeof item.armor_class === 'object' ? ` (${item.armor_class.description})` : '';
-					html += `<p><strong>AC:</strong> ${acValue}${acDesc}</p>`;
+					html += `<p><strong>AC:</strong> ${escapeHtml(acValue)}${escapeHtml(acDesc)}</p>`;
 				}
-				if (item.hit_points) html += `<p><strong>Hit Points:</strong> ${item.hit_points}</p>`;
-				if (item.hit_die) html += `<p><strong>Hit Dice:</strong> ${item.hit_dice}</p>`;
+				if (item.hit_points) html += `<p><strong>Hit Points:</strong> ${escapeHtml(item.hit_points)}</p>`;
+				if (item.hit_die) html += `<p><strong>Hit Dice:</strong> ${escapeHtml(item.hit_dice)}</p>`;
 				if (item.speed) {
-					const speedStr = typeof item.speed === 'object' ? Object.entries(item.speed).map(([k, v]) => `${k}: ${v}`).join(', ') : item.speed;
+					const speedStr = typeof item.speed === 'object'
+						? Object.entries(item.speed).map(([k, v]) => `${escapeHtml(k)}: ${escapeHtml(v)}`).join(', ')
+						: escapeHtml(item.speed);
 					html += `<p><strong>Speed:</strong> ${speedStr}</p>`;
 				}
-				if (item.language) html += `<p><strong>Languages:</strong> ${item.language}</p>`;
+				if (item.language) html += `<p><strong>Languages:</strong> ${escapeHtml(item.language)}</p>`;
 				break;
 
 			case 'classes':
-				if (item.hit_die) html += `<p><strong>Hit Die:</strong> d${item.hit_die}</p>`;
+				if (item.hit_die) html += `<p><strong>Hit Die:</strong> d${escapeHtml(item.hit_die)}</p>`;
 				if (item.saving_throws && Array.isArray(item.saving_throws)) {
-					html += `<p><strong>Saving Throws:</strong> ${item.saving_throws.map(s => s.name || s).join(', ')}</p>`;
+					html += `<p><strong>Saving Throws:</strong> ${item.saving_throws.map(s => escapeHtml(s.name || s)).join(', ')}</p>`;
 				}
 				if (item.skill_proficiencies && Array.isArray(item.skill_proficiencies)) {
-					html += `<p><strong>Skill Proficiencies Available:</strong> ${item.skill_proficiencies.map(s => s.name || s).join(', ')}</p>`;
+					html += `<p><strong>Skill Proficiencies Available:</strong> ${item.skill_proficiencies.map(s => escapeHtml(s.name || s)).join(', ')}</p>`;
 				}
 				break;
 
 			case 'races':
 				if (item.ability_bonuses) {
-					const bonuses = item.ability_bonuses.map(b => `${b.ability_score.name} +${b.bonus}`).join(', ');
+					const bonuses = item.ability_bonuses.map(b => `${escapeHtml(b.ability_score.name)} +${escapeHtml(b.bonus)}`).join(', ');
 					html += `<p><strong>Ability Bonuses:</strong> ${bonuses}</p>`;
 				} else if (item.ability_bonus_options) {
 					html += `<p><strong>Flexible Ability Bonus Available</strong></p>`;
 				}
-				if (item.speed) html += `<p><strong>Base Walking Speed:</strong> ${item.speed} ft.</p>`;
-				if (item.language_desc) html += `<p><strong>Languages:</strong> ${item.language_desc}</p>`;
-				if (item.size) html += `<p><strong>Size:</strong> ${item.size}</p>`;
+				if (item.speed) html += `<p><strong>Base Walking Speed:</strong> ${escapeHtml(item.speed)} ft.</p>`;
+				if (item.language_desc) html += `<p><strong>Languages:</strong> ${escapeHtml(item.language_desc)}</p>`;
+				if (item.size) html += `<p><strong>Size:</strong> ${escapeHtml(item.size)}</p>`;
 				break;
 
 			case 'skills':
 				if (item.ability_score) {
-					html += `<p><strong>Ability:</strong> ${item.ability_score.name || item.ability_score}</p>`;
+					html += `<p><strong>Ability:</strong> ${escapeHtml(item.ability_score.name || item.ability_score)}</p>`;
 				}
 				break;
 
@@ -5943,47 +5943,47 @@ async loadInventory() {
 				break;
 
 			case 'languages':
-				if (item.type) html += `<p><strong>Type:</strong> ${item.type}</p>`;
-				if (item.script) html += `<p><strong>Script:</strong> ${item.script}</p>`;
+				if (item.type) html += `<p><strong>Type:</strong> ${escapeHtml(item.type)}</p>`;
+				if (item.script) html += `<p><strong>Script:</strong> ${escapeHtml(item.script)}</p>`;
 				break;
 
 			case 'traits':
 				if (item.races && Array.isArray(item.races) && item.races.length > 0) {
-					html += `<p><strong>Races:</strong> ${item.races.map(r => r.name || r).join(', ')}</p>`;
+					html += `<p><strong>Races:</strong> ${item.races.map(r => escapeHtml(r.name || r)).join(', ')}</p>`;
 				}
 				if (item.subraces && Array.isArray(item.subraces) && item.subraces.length > 0) {
-					html += `<p><strong>Subraces:</strong> ${item.subraces.map(s => s.name || s).join(', ')}</p>`;
+					html += `<p><strong>Subraces:</strong> ${item.subraces.map(s => escapeHtml(s.name || s)).join(', ')}</p>`;
 				}
 				break;
 
 			case 'features':
-				if (item.class) html += `<p><strong>Class:</strong> ${item.class.name || item.class}</p>`;
-				if (item.subclass) html += `<p><strong>Subclass:</strong> ${item.subclass.name || item.subclass}</p>`;
-				if (item.level) html += `<p><strong>Available at Level:</strong> ${item.level}</p>`;
+				if (item.class) html += `<p><strong>Class:</strong> ${escapeHtml(item.class.name || item.class)}</p>`;
+				if (item.subclass) html += `<p><strong>Subclass:</strong> ${escapeHtml(item.subclass.name || item.subclass)}</p>`;
+				if (item.level) html += `<p><strong>Available at Level:</strong> ${escapeHtml(item.level)}</p>`;
 				break;
 
 			case 'proficiencies':
-				if (item.type) html += `<p><strong>Type:</strong> ${item.type}</p>`;
+				if (item.type) html += `<p><strong>Type:</strong> ${escapeHtml(item.type)}</p>`;
 				if (item.races && Array.isArray(item.races) && item.races.length > 0) {
-					html += `<p><strong>Available to Races:</strong> ${item.races.map(r => r.name || r).join(', ')}</p>`;
+					html += `<p><strong>Available to Races:</strong> ${item.races.map(r => escapeHtml(r.name || r)).join(', ')}</p>`;
 				}
 				if (item.classes && Array.isArray(item.classes) && item.classes.length > 0) {
-					html += `<p><strong>Available to Classes:</strong> ${item.classes.map(c => c.name || c).join(', ')}</p>`;
+					html += `<p><strong>Available to Classes:</strong> ${item.classes.map(c => escapeHtml(c.name || c)).join(', ')}</p>`;
 				}
 				if (item.subclasses && Array.isArray(item.subclasses) && item.subclasses.length > 0) {
-					html += `<p><strong>Available to Subclasses:</strong> ${item.subclasses.map(s => s.name || s).join(', ')}</p>`;
+					html += `<p><strong>Available to Subclasses:</strong> ${item.subclasses.map(s => escapeHtml(s.name || s)).join(', ')}</p>`;
 				}
 				break;
 
 			case 'subclasses':
-				if (item.class) html += `<p><strong>Class:</strong> ${item.class.name || item.class}</p>`;
-				if (item.subclass_flavor) html += `<p><strong>Flavor:</strong> ${item.subclass_flavor}</p>`;
+				if (item.class) html += `<p><strong>Class:</strong> ${escapeHtml(item.class.name || item.class)}</p>`;
+				if (item.subclass_flavor) html += `<p><strong>Flavor:</strong> ${escapeHtml(item.subclass_flavor)}</p>`;
 				break;
 
 			case 'subraces':
-				if (item.race) html += `<p><strong>Parent Race:</strong> ${item.race.name || item.race}</p>`;
+				if (item.race) html += `<p><strong>Parent Race:</strong> ${escapeHtml(item.race.name || item.race)}</p>`;
 				if (item.ability_bonuses) {
-					const subraceBonus = item.ability_bonuses.map(b => `${b.ability_score.name} +${b.bonus}`).join(', ');
+					const subraceBonus = item.ability_bonuses.map(b => `${escapeHtml(b.ability_score.name)} +${escapeHtml(b.bonus)}`).join(', ');
 					html += `<p><strong>Additional Ability Bonuses:</strong> ${subraceBonus}</p>`;
 				}
 				break;
@@ -6001,8 +6001,8 @@ async loadInventory() {
 				break;
 
 			case 'ability-scores':
-				if (item.full_name) html += `<p><strong>Full Name:</strong> ${item.full_name}</p>`;
-				if (item.description) html += `<p><strong>Description:</strong> ${item.description}</p>`;
+				if (item.full_name) html += `<p><strong>Full Name:</strong> ${escapeHtml(item.full_name)}</p>`;
+				if (item.description) html += `<p><strong>Description:</strong> ${escapeHtml(item.description)}</p>`;
 				break;
 		}
 
@@ -6298,38 +6298,38 @@ async loadInventory() {
 				let html = '';
 				itemsWithDetails.forEach((item, index) => {
 					html += '<div class="generator-item">';
-					html += `<h4>${index + 1}. ${item.name || item.index || 'Unknown Item'}</h4>`;
+					html += `<h4>${index + 1}. ${escapeHtml(item.name || item.index || 'Unknown Item')}</h4>`;
 					html += '<div class="generator-item-meta">';
-					
+
 					if (item.equipment_category) {
-						html += `<span><strong>Category:</strong> ${item.equipment_category.name}</span>`;
+						html += `<span><strong>Category:</strong> ${escapeHtml(item.equipment_category.name)}</span>`;
 					}
-					
+
 					if (item.cost) {
-						html += `<span><strong>Cost:</strong> ${item.cost.quantity} ${item.cost.unit}</span>`;
+						html += `<span><strong>Cost:</strong> ${escapeHtml(item.cost.quantity)} ${escapeHtml(item.cost.unit)}</span>`;
 					}
-					
+
 					if (item.weight) {
-						html += `<span><strong>Weight:</strong> ${item.weight} lb</span>`;
+						html += `<span><strong>Weight:</strong> ${escapeHtml(item.weight)} lb</span>`;
 					}
-					
+
 					if (item.damage) {
 						const damageDice = item.damage.damage_dice || item.damage.dice;
 						const damageType = item.damage.damage_type?.name || 'damage';
-						html += `<span><strong>Damage:</strong> ${damageDice} ${damageType}</span>`;
+						html += `<span><strong>Damage:</strong> ${escapeHtml(damageDice)} ${escapeHtml(damageType)}</span>`;
 					}
-					
+
 					if (item.armor_class) {
 						const ac = typeof item.armor_class === 'object' ? item.armor_class.base : item.armor_class;
-						html += `<span><strong>AC:</strong> ${ac}</span>`;
+						html += `<span><strong>AC:</strong> ${escapeHtml(ac)}</span>`;
 					}
-					
+
 					html += '</div>';
-					
+
 					if (item.desc && Array.isArray(item.desc) && item.desc.length > 0) {
-						html += `<div class="generator-item-desc">${item.desc.join(' ')}</div>`;
+						html += `<div class="generator-item-desc">${item.desc.map(escapeHtml).join(' ')}</div>`;
 					}
-					
+
 					html += '</div>';
 				});
 				
@@ -6384,52 +6384,52 @@ async loadInventory() {
 				let html = '';
 				monstersWithDetails.forEach((monster, index) => {
 					html += '<div class="generator-item">';
-					html += `<h4>${index + 1}. ${monster.name || monster.index || 'Unknown Monster'}</h4>`;
+					html += `<h4>${index + 1}. ${escapeHtml(monster.name || monster.index || 'Unknown Monster')}</h4>`;
 					html += '<div class="generator-item-meta">';
-					
+
 					if (monster.size) {
-						html += `<span><strong>Size:</strong> ${monster.size}</span>`;
+						html += `<span><strong>Size:</strong> ${escapeHtml(monster.size)}</span>`;
 					}
-					
+
 					if (monster.type) {
-						html += `<span><strong>Type:</strong> ${monster.type}</span>`;
+						html += `<span><strong>Type:</strong> ${escapeHtml(monster.type)}</span>`;
 					}
-					
+
 					if (monster.alignment) {
-						html += `<span><strong>Alignment:</strong> ${monster.alignment}</span>`;
+						html += `<span><strong>Alignment:</strong> ${escapeHtml(monster.alignment)}</span>`;
 					}
-					
+
 					if (monster.challenge_rating !== undefined) {
 						const xp = monster.xp ? ` (${monster.xp.toLocaleString()} XP)` : '';
-						html += `<span><strong>CR:</strong> ${monster.challenge_rating}${xp}</span>`;
+						html += `<span><strong>CR:</strong> ${escapeHtml(monster.challenge_rating)}${escapeHtml(xp)}</span>`;
 					}
-					
+
 					if (monster.armor_class) {
-						const ac = typeof monster.armor_class === 'object' ? 
-							(monster.armor_class[0]?.value || monster.armor_class.value || monster.armor_class.base) : 
+						const ac = typeof monster.armor_class === 'object' ?
+							(monster.armor_class[0]?.value || monster.armor_class.value || monster.armor_class.base) :
 							monster.armor_class;
-						html += `<span><strong>AC:</strong> ${ac}</span>`;
+						html += `<span><strong>AC:</strong> ${escapeHtml(ac)}</span>`;
 					}
-					
+
 					if (monster.hit_points) {
-						html += `<span><strong>HP:</strong> ${monster.hit_points}</span>`;
+						html += `<span><strong>HP:</strong> ${escapeHtml(monster.hit_points)}</span>`;
 					}
-					
+
 					html += '</div>';
-					
+
 					// Speed
 					if (monster.speed) {
-						const speedStr = typeof monster.speed === 'object' ? 
-							Object.entries(monster.speed).map(([k, v]) => `${k}: ${v}`).join(', ') : 
-							monster.speed;
+						const speedStr = typeof monster.speed === 'object'
+							? Object.entries(monster.speed).map(([k, v]) => `${escapeHtml(k)}: ${escapeHtml(v)}`).join(', ')
+							: escapeHtml(monster.speed);
 						html += `<div class="generator-item-desc"><strong>Speed:</strong> ${speedStr}</div>`;
 					}
-					
+
 					// Languages
 					if (monster.languages) {
-						html += `<div class="generator-item-desc"><strong>Languages:</strong> ${monster.languages}</div>`;
+						html += `<div class="generator-item-desc"><strong>Languages:</strong> ${escapeHtml(monster.languages)}</div>`;
 					}
-					
+
 					html += '</div>';
 				});
 				
@@ -6672,7 +6672,7 @@ async loadInventory() {
 					html += '</div>';
 					html += '<div class="generator-item-desc"><ul style="margin: 8px 0; padding-left: 20px;">';
 					itemsWithDetails.forEach(item => {
-						html += `<li>${item.name || item.index}</li>`;
+						html += `<li>${escapeHtml(item.name || item.index)}</li>`;
 					});
 					html += '</ul></div>';
 				}
