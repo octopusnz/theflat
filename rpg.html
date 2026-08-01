@@ -3124,6 +3124,7 @@ html.theme-light {
 			class DataStore {
 				constructor() {
 					this.dataFile = '/rpg-data.json';
+					this.storageKey = 'rpg-data';
 					this.data = {
 						locations: [],
 						npcs: [],
@@ -3135,23 +3136,47 @@ html.theme-light {
 
 				async load() {
 					try {
+						const stored = localStorage.getItem(this.storageKey);
+						if (stored) {
+							const parsed = JSON.parse(stored);
+							this.data = {
+								locations: parsed.locations || [],
+								npcs: parsed.npcs || [],
+								items: parsed.items || [],
+								events: parsed.events || []
+							};
+							this.loaded = true;
+							this.updateBadges();
+
+							// Load static map if no custom map is set
+							if (!this.data.mapSvg) {
+								await this.loadStaticMap();
+							}
+
+							return true;
+						}
+					} catch (e) {
+						console.error('Error loading data from localStorage:', e);
+					}
+
+					try {
 						const response = await fetch(this.dataFile);
 						if (response.ok) {
 							this.data = await response.json();
 							this.loaded = true;
 							this.updateBadges();
-							
+
 							// Load static map if no custom map is set
 							if (!this.data.mapSvg) {
 								await this.loadStaticMap();
 							}
-							
+
 							return true;
 						}
 					} catch (e) {
 						console.error('Error loading data from JSON:', e);
 					}
-					
+
 					// Fallback to empty state
 					this.data = {
 						locations: [],
@@ -3194,7 +3219,12 @@ html.theme-light {
 			}
 
 		save() {
-			// Note: This doesn't save to the server automatically
+			try {
+				const { locations, npcs, items, events } = this.data;
+				localStorage.setItem(this.storageKey, JSON.stringify({ locations, npcs, items, events }));
+			} catch (e) {
+				console.error('Error saving data to localStorage:', e);
+			}
 				this.updateBadges();
 			}
 
@@ -3219,7 +3249,7 @@ html.theme-light {
 						// Validate structure
 						if (imported.locations && imported.npcs && imported.items && imported.events) {
 							this.data = imported;
-							this.updateBadges();
+							this.save();
 							return true;
 						} else {
 							throw new Error('Invalid data structure');
@@ -3812,38 +3842,38 @@ function showLocationDetails(locationId) {
 	
 	let html = '<div class="detail-section">';
 	html += '<h3>Description</h3>';
-	html += '<p>' + (location.description || 'No description available.') + '</p>';
+	html += '<p>' + escapeHtml(location.description || 'No description available.') + '</p>';
 	html += '</div>';
-	
+
 	if (location.history) {
 		html += '<div class="detail-section">';
 		html += '<h3>History</h3>';
-		html += '<p>' + location.history + '</p>';
+		html += '<p>' + escapeHtml(location.history) + '</p>';
 		html += '</div>';
 	}
-	
+
 	if (relatedNPCs.length > 0) {
 		html += '<div class="detail-section">';
 		html += '<h3>NPCs</h3>';
 		html += '<ul class="npc-list">';
 		relatedNPCs.forEach(npc => {
 			html += '<li class="npc-item" data-item-id="' + npc.id + '" data-item-type="npcs" style="cursor: pointer;">';
-			html += '<div class="npc-name" style="color: var(--link); text-decoration: underline;">' + npc.name + '</div>';
-			html += '<div class="npc-role">' + (npc.role || 'Unknown role') + '</div>';
+			html += '<div class="npc-name" style="color: var(--link); text-decoration: underline;">' + escapeHtml(npc.name) + '</div>';
+			html += '<div class="npc-role">' + escapeHtml(npc.role || 'Unknown role') + '</div>';
 			html += '</li>';
 		});
 		html += '</ul>';
 		html += '</div>';
 	}
-	
+
 	if (relatedItems.length > 0) {
 		html += '<div class="detail-section">';
 		html += '<h3>Items</h3>';
 		html += '<ul class="item-list">';
 		relatedItems.forEach(item => {
 			html += '<li class="item-item" data-item-id="' + item.id + '" data-item-type="items" style="cursor: pointer;">';
-			html += '<div class="item-name" style="color: var(--link); text-decoration: underline;">' + item.name + '</div>';
-			html += '<div class="item-type">' + (item.type || 'Unknown type') + '</div>';
+			html += '<div class="item-name" style="color: var(--link); text-decoration: underline;">' + escapeHtml(item.name) + '</div>';
+			html += '<div class="item-type">' + escapeHtml(item.type || 'Unknown type') + '</div>';
 			html += '</li>';
 		});
 		html += '</ul>';
@@ -3959,26 +3989,17 @@ async function showEquipmentPanel() {
 	try {
 		const data = await store.getEquipmentList();
 		const equipmentList = data.results || data;
-		
+
 		// Update the badge count
 		if (countBadge) {
 			countBadge.textContent = equipmentList.length || 0;
 		}
-	
-	// Also update the categories screen badge
-	const categoriesBadge = document.getElementById('badge-equipment');
-	if (categoriesBadge) {
-		categoriesBadge.textContent = equipmentList.length || 0;
-	}
-	
+
 	displayEquipmentList(equipmentList);
 } catch (error) {
 	resultsDiv.innerHTML = '<div class="equipment-loading">Error loading equipment data. Please try again.</div>';
 	if (countBadge) {
 		countBadge.textContent = '0';
-	}
-	if (categoriesBadge) {
-		categoriesBadge.textContent = '0';
 	}
 }
 }
@@ -4268,10 +4289,10 @@ async function showSpellDetails(spellName) {
 
 		items.forEach(item => {
 			let html = '<div class="item-list-entry" data-category="' + category + '" data-id="' + item.id + '" style="padding: 12px; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; transition: all 0.2s; background: var(--bg);">';
-			html += '<div style="font-weight: 600; color: var(--link);">' + item.name + '</div>';
-			if (item.role) html += '<div style="font-size: 0.9em; color: var(--muted-fg);">' + item.role + '</div>';
-			if (item.type) html += '<div style="font-size: 0.9em; color: var(--muted-fg);">' + item.type + '</div>';
-			if (item.date) html += '<div style="font-size: 0.9em; color: var(--muted-fg);">' + item.date + '</div>';
+			html += '<div style="font-weight: 600; color: var(--link);">' + escapeHtml(item.name) + '</div>';
+			if (item.role) html += '<div style="font-size: 0.9em; color: var(--muted-fg);">' + escapeHtml(item.role) + '</div>';
+			if (item.type) html += '<div style="font-size: 0.9em; color: var(--muted-fg);">' + escapeHtml(item.type) + '</div>';
+			if (item.date) html += '<div style="font-size: 0.9em; color: var(--muted-fg);">' + escapeHtml(item.date) + '</div>';
 			html += '</div>';
 			allHTML += html;
 		});
@@ -4332,10 +4353,10 @@ if (items.length === 0) {
 
 const itemsHTML = items.map(item => {
 	let html = '<div class="item-list-entry" data-id="' + item.id + '" style="padding: 12px; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; margin-bottom: 8px; transition: all 0.2s;">';
-	html += '<div style="font-weight: 600; color: var(--link);">' + item.name + '</div>';
-	if (item.role) html += '<div style="font-size: 0.9em; color: var(--muted-fg);">' + item.role + '</div>';
-	if (item.type) html += '<div style="font-size: 0.9em; color: var(--muted-fg);">' + item.type + '</div>';
-	if (item.date) html += '<div style="font-size: 0.9em; color: var(--muted-fg);">' + item.date + '</div>';
+	html += '<div style="font-weight: 600; color: var(--link);">' + escapeHtml(item.name) + '</div>';
+	if (item.role) html += '<div style="font-size: 0.9em; color: var(--muted-fg);">' + escapeHtml(item.role) + '</div>';
+	if (item.type) html += '<div style="font-size: 0.9em; color: var(--muted-fg);">' + escapeHtml(item.type) + '</div>';
+	if (item.date) html += '<div style="font-size: 0.9em; color: var(--muted-fg);">' + escapeHtml(item.date) + '</div>';
 	html += '</div>';
 	return html;
 }).join('');
@@ -4374,14 +4395,14 @@ function showItemDetails(category, itemId) {
 			let detailsHTML = '<div class="detail-section">';
 
 			if (category === 'locations') {
-				if (item.description) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Description</h3><p>' + item.description + '</p></div>';
-				if (item.history) detailsHTML += '<div style="margin-bottom: 12px;"><h3>History</h3><p>' + item.history + '</p></div>';
+				if (item.description) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Description</h3><p>' + escapeHtml(item.description) + '</p></div>';
+				if (item.history) detailsHTML += '<div style="margin-bottom: 12px;"><h3>History</h3><p>' + escapeHtml(item.history) + '</p></div>';
 
 				const relatedNPCs = store.getAll('npcs').filter(npc => npc.locationId === itemId);
 				if (relatedNPCs.length > 0) {
 					detailsHTML += '<div style="margin-bottom: 12px;"><h3>NPCs Here</h3><ul>';
 					relatedNPCs.forEach(npc => {
-						detailsHTML += '<li>' + npc.name + (npc.role ? ' - ' + npc.role : '') + '</li>';
+						detailsHTML += '<li>' + escapeHtml(npc.name) + (npc.role ? ' - ' + escapeHtml(npc.role) : '') + '</li>';
 					});
 					detailsHTML += '</ul></div>';
 				}
@@ -4390,30 +4411,30 @@ function showItemDetails(category, itemId) {
 				if (relatedItems.length > 0) {
 					detailsHTML += '<div style="margin-bottom: 12px;"><h3>Items Here</h3><ul>';
 					relatedItems.forEach(itm => {
-						detailsHTML += '<li>' + itm.name + (itm.type ? ' (' + itm.type + ')' : '') + '</li>';
+						detailsHTML += '<li>' + escapeHtml(itm.name) + (itm.type ? ' (' + escapeHtml(itm.type) + ')' : '') + '</li>';
 					});
 					detailsHTML += '</ul></div>';
 				}
 			} else if (category === 'npcs') {
-				if (item.role) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Role/Title</h3><p>' + item.role + '</p></div>';
-				if (item.description) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Description</h3><p>' + item.description + '</p></div>';
+				if (item.role) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Role/Title</h3><p>' + escapeHtml(item.role) + '</p></div>';
+				if (item.description) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Description</h3><p>' + escapeHtml(item.description) + '</p></div>';
 				if (item.locationId) {
 					const location = store.get('locations', item.locationId);
-					if (location) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Location</h3><p>' + location.name + '</p></div>';
+					if (location) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Location</h3><p>' + escapeHtml(location.name) + '</p></div>';
 				}
 			} else if (category === 'items') {
-				if (item.type) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Type</h3><p>' + item.type + '</p></div>';
-				if (item.description) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Description</h3><p>' + item.description + '</p></div>';
+				if (item.type) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Type</h3><p>' + escapeHtml(item.type) + '</p></div>';
+				if (item.description) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Description</h3><p>' + escapeHtml(item.description) + '</p></div>';
 				if (item.locationId) {
 					const location = store.get('locations', item.locationId);
-					if (location) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Found At</h3><p>' + location.name + '</p></div>';
+					if (location) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Found At</h3><p>' + escapeHtml(location.name) + '</p></div>';
 				}
 			} else if (category === 'events') {
-				if (item.date) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Date/Time</h3><p>' + item.date + '</p></div>';
-				if (item.description) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Description</h3><p>' + item.description + '</p></div>';
+				if (item.date) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Date/Time</h3><p>' + escapeHtml(item.date) + '</p></div>';
+				if (item.description) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Description</h3><p>' + escapeHtml(item.description) + '</p></div>';
 				if (item.locationId) {
 					const location = store.get('locations', item.locationId);
-					if (location) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Location</h3><p>' + location.name + '</p></div>';
+					if (location) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Location</h3><p>' + escapeHtml(location.name) + '</p></div>';
 				}
 			}
 
@@ -4458,7 +4479,7 @@ function showItemDetails(category, itemId) {
 				const locations = store.getAll('locations');
 				let locationOptions = '<option value="">None</option>';
 				locations.forEach(loc => {
-					locationOptions += '<option value="' + loc.id + '">' + loc.name + '</option>';
+					locationOptions += '<option value="' + loc.id + '">' + escapeHtml(loc.name) + '</option>';
 				});
 				return '<div class="form-group">' +
 					'<label for="name">Name *</label>' +
@@ -4482,7 +4503,7 @@ function showItemDetails(category, itemId) {
 				const locations = store.getAll('locations');
 				let locationOptions = '<option value="">Unknown</option>';
 				locations.forEach(loc => {
-					locationOptions += '<option value="' + loc.id + '">' + loc.name + '</option>';
+					locationOptions += '<option value="' + loc.id + '">' + escapeHtml(loc.name) + '</option>';
 				});
 				return '<div class="form-group">' +
 					'<label for="name">Name *</label>' +
@@ -4506,7 +4527,7 @@ function showItemDetails(category, itemId) {
 				const locations = store.getAll('locations');
 				let locationOptions = '<option value="">Unknown</option>';
 				locations.forEach(loc => {
-					locationOptions += '<option value="' + loc.id + '">' + loc.name + '</option>';
+					locationOptions += '<option value="' + loc.id + '">' + escapeHtml(loc.name) + '</option>';
 				});
 				return '<div class="form-group">' +
 					'<label for="name">Event Name *</label>' +
@@ -5080,7 +5101,7 @@ async loadInventory() {
 			return `
 				<div class="inventory-item">
 					<div class="inventory-item-info">
-						<h4>${item.name}</h4>
+						<h4>${escapeHtml(item.name)}</h4>
 						<p>${detailText}</p>
 						${damageInfo}
 					</div>
@@ -5169,7 +5190,7 @@ async loadInventory() {
 
 			resultsContainer.innerHTML = fullResults.map((item, idx) => `
 				<div class="add-item-result">
-					<div class="add-item-result-name">${item.name}</div>
+					<div class="add-item-result-name">${escapeHtml(item.name)}</div>
 					<div class="add-item-result-qty">
 						<input type="number" class="add-item-qty-input" value="1" min="1" data-item-index="${idx}">
 						<button class="btn-add-to-inventory" data-item-index="${idx}">Add</button>
@@ -7059,8 +7080,8 @@ async loadInventory() {
 
 			list.innerHTML = this.sessions.map(session => `
 				<div class="session-item ${session.id === this.currentSessionId ? 'active' : ''}" data-id="${session.id}">
-					<div><strong>${session.title}</strong></div>
-					<div class="session-item-date">${session.date || 'No date'}</div>
+					<div><strong>${escapeHtml(session.title)}</strong></div>
+					<div class="session-item-date">${escapeHtml(session.date || 'No date')}</div>
 				</div>
 			`).join('');
 

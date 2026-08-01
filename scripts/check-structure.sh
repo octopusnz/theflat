@@ -35,5 +35,3 @@ echo "   Inventory page elements: $inventory_page"
 
 echo ""
 echo "HTML structure check complete"
-echo ""
-echo "For detailed troubleshooting, see TROUBLESHOOTING.md"

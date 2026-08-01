@@ -622,6 +622,16 @@
 				return num.toString();
 			}
 
+			function escapeHtml(value) {
+				if (value === null || value === undefined) return '';
+				return String(value)
+					.replace(/&/g, '&amp;')
+					.replace(/</g, '&lt;')
+					.replace(/>/g, '&gt;')
+					.replace(/"/g, '&quot;')
+					.replace(/'/g, '&#39;');
+			}
+
 			function renderLanguageStats(languageStats) {
 				const totalBytes = Object.values(languageStats).reduce((sum, bytes) => sum + bytes, 0);
 				const sortedLanguages = Object.entries(languageStats)
@@ -631,16 +641,17 @@
 				const html = sortedLanguages.map(([lang, bytes]) => {
 					const percentage = ((bytes / totalBytes) * 100).toFixed(1);
 					const color = languageColors[lang] || '#8b8b8b';
+					const safeLang = escapeHtml(lang);
 
 					return `
 						<div class="language-item">
 							<div class="language-name">
 							<span class="language-dot" style="background-color: ${color};" aria-hidden="true"></span>
-								<span>${lang}</span>
+								<span>${safeLang}</span>
 							</div>
 							<span aria-label="${percentage} percent">${percentage}%</span>
 						</div>
-						<div class="language-bar" role="progressbar" aria-label="${lang} programming language usage: ${percentage} percent" aria-valuenow="${percentage}" aria-valuemin="0" aria-valuemax="100">
+						<div class="language-bar" role="progressbar" aria-label="${safeLang} programming language usage: ${percentage} percent" aria-valuenow="${percentage}" aria-valuemin="0" aria-valuemax="100">
 							<div class="language-bar-fill" style="transform: scaleX(${percentage / 100}); background: ${color};"></div>
 						</div>
 					`;
@@ -653,12 +664,12 @@
 				const html = repos.map(repo => `
 					<li class="repo-item">
 						<div class="repo-name">
-							<a href="${repo.html_url}" target="_blank" rel="noopener">
-								${repo.name}<span class="visually-hidden"> (opens in new tab)</span>
+							<a href="${escapeHtml(repo.html_url)}" target="_blank" rel="noopener">
+								${escapeHtml(repo.name)}<span class="visually-hidden"> (opens in new tab)</span>
 							</a>
 							${repo.stargazers_count > 0 ? `<span aria-label="${repo.stargazers_count} stars"><span aria-hidden="true">⭐</span> ${repo.stargazers_count}</span>` : ''}
 						</div>
-						${repo.description ? `<div class="repo-description">${repo.description}</div>` : ''}
+						${repo.description ? `<div class="repo-description">${escapeHtml(repo.description)}</div>` : ''}
 					</li>
 				`).join('');
 
