@@ -1388,6 +1388,10 @@ html.theme-light {
 		min-height: 0;
 	}
 
+	.modal-body p {
+		margin: 0;
+	}
+
 	.modal-body .search-input {
 		padding: 12px 16px;
 		border: 2px solid var(--border);
@@ -2686,7 +2690,7 @@ html.theme-light {
 					Import Data
 					<input type="file" id="btn-import" accept=".json" class="hidden">
 				</label>
-				<button type="button" class="btn" id="btn-credits">Credits &amp; Licensing</button>
+				<button type="button" class="btn" id="btn-credits-menu">Credits &amp; Licensing</button>
 			</aside>
 
 		<!-- Map Container -->
@@ -2696,6 +2700,7 @@ html.theme-light {
 					<button type="button" class="btn-toolbar" id="btn-zoom-out">Zoom Out</button>
 					<button type="button" class="btn-toolbar" id="btn-reset-view">Reset View</button>
 					<button class="btn-toolbar" id="btn-theme" type="button" aria-pressed="true">Light Mode</button>
+					<button type="button" class="btn-toolbar" id="btn-credits">Credits</button>
 				</div>
 				<div class="map-view" id="map-view">
 					<svg class="map-svg" id="map-svg" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice">
@@ -3129,7 +3134,7 @@ html.theme-light {
 				<div class="modal-body">
 					<p>Octopus favicons based on icons created by <a href="https://www.flaticon.com/free-icons/octopus" target="_blank" rel="noopener noreferrer">Freepik - Flaticon</a>.</p>
 					<p>D&amp;D 5e data provided by the <a href="https://www.dnd5eapi.co/" target="_blank" rel="noopener noreferrer">D&amp;D 5e API</a> (<a href="https://github.com/5e-bits/5e-srd-api" target="_blank" rel="noopener noreferrer">5e-bits/5e-srd-api</a>), licensed under the <a href="https://github.com/5e-bits/5e-srd-api/blob/main/LICENSE.md" target="_blank" rel="noopener noreferrer">MIT License</a>.</p>
-					<p>This work includes material taken from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC and available at <a href="https://dnd.wizards.com/resources/systems-reference-document" target="_blank" rel="noopener noreferrer">dnd.wizards.com/resources/systems-reference-document</a>. The SRD 5.1 is licensed under the <a href="https://creativecommons.org/licenses/by/4.0/legalcode" target="_blank" rel="noopener noreferrer">Creative Commons Attribution 4.0 International License</a>.</p>
+					<p>This work includes material taken from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC and available at <a href="https://www.dndbeyond.com/srd" target="_blank" rel="noopener noreferrer">dnd.wizards.com/resources/systems-reference-document</a>. The SRD 5.1 is licensed under the <a href="https://creativecommons.org/licenses/by/4.0/legalcode" target="_blank" rel="noopener noreferrer">Creative Commons Attribution 4.0 International License</a>.</p>
 				</div>
 			</div>
 		</div>
@@ -4597,6 +4602,10 @@ function showItemDetails(category, itemId) {
 	const creditsModal = document.getElementById('credits-modal');
 
 	document.getElementById('btn-credits').addEventListener('click', () => {
+		creditsModal.classList.add('active');
+	});
+
+	document.getElementById('btn-credits-menu').addEventListener('click', () => {
 		creditsModal.classList.add('active');
 	});
 
