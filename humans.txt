@@ -12,3 +12,12 @@ Hosting: GitHub Pages
 /* CREDITS */
 Octopus favicons based on icons created by Freepik - Flaticon
 https://www.flaticon.com/free-icons/octopus
+
+D&D 5e data provided by the D&D 5e API licensed under the MIT License.
+https://www.dnd5eapi.co
+
+This work includes material taken from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC.
+The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License.
+https://www.dndbeyond.com/srd
+
+
