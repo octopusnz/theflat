@@ -18,7 +18,7 @@
 		<link rel="dns-prefetch" href="https://www.googletagmanager.com">
 		<link rel="dns-prefetch" href="https://www.google-analytics.com">
 		<link rel="manifest" href="/site.webmanifest">
-		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://static.cloudflareinsights.com; connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://cloudflareinsights.com https://static.cloudflareinsights.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; frame-src https://www.googletagmanager.com;">
+		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://static.cloudfl[...]">
 		<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 		<meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)">
 		<meta
@@ -194,58 +194,58 @@
 			transition: all 0.2s ease;
 		}
 
-		.btn:hover {
-			background: #1a1a1a;
-			color: #ffffff !important;
-			transform: translateY(-2px);
-		}
-
-		.btn:focus-visible {
-			outline: 3px solid var(--focus);
-			outline-offset: 2px;
-			color: #ffffff !important;
-		}
-
-		@media (prefers-color-scheme: dark) {
-			.btn {
-				background: #ffffff;
-				color: #000000 !important;
-			}
-
 			.btn:hover {
-				background: #e0e0e0;
-				color: #000000 !important;
-			}
-
-			.btn:visited {
-				color: #000000 !important;
+				background: #1a1a1a;
+				color: #ffffff !important;
+				transform: translateY(-2px);
 			}
 
 			.btn:focus-visible {
-				color: #000000 !important;
-			}
-		}
-
-		.btn-container {
-				text-align: center;
-				margin: 24px 0;
+				outline: 3px solid var(--focus);
+				outline-offset: 2px;
+				color: #ffffff !important;
 			}
 
-		@media (prefers-reduced-motion: reduce) {
-			.btn {
-				transition: none;
+			@media (prefers-color-scheme: dark) {
+				.btn {
+					background: #ffffff;
+					color: #000000 !important;
+				}
+
+				.btn:hover {
+					background: #e0e0e0;
+					color: #000000 !important;
+				}
+
+				.btn:visited {
+					color: #000000 !important;
+				}
+
+				.btn:focus-visible {
+					color: #000000 !important;
+				}
 			}
 
-			.btn:hover {
-				transform: none;
-			}
-		}
+			.btn-container {
+					text-align: center;
+					margin: 24px 0;
+				}
 
-		main {
-				max-width: 70ch;
-				margin: 0 auto;
-				flex: 1;
+			@media (prefers-reduced-motion: reduce) {
+				.btn {
+					transition: none;
+				}
+
+				.btn:hover {
+					transform: none;
+				}
 			}
+
+			main {
+					max-width: 70ch;
+					margin: 0 auto;
+					flex: 1;
+				}
 
 			h1 {
 				margin: 0 0 0.75rem;
@@ -261,57 +261,69 @@
 			min-height: 600px;
 		}
 
-		.content-auto {
-			content-visibility: auto;
-		}
-
-		.skeleton {
-			background: linear-gradient(90deg, var(--muted-fg) 25%, var(--fg) 50%, var(--muted-fg) 75%);
-			background-size: 200% 100%;
-			animation: skeleton-loading 1.5s infinite;
-		}
-
-		@keyframes skeleton-loading {
-			0% {
-				background-position: -200% 0;
+			.content-auto {
+				content-visibility: auto;
 			}
-			100% {
-				background-position: 200% 0;
+
+			/* Replaced background-position-based shimmer with transform-based shimmer on a pseudo-element */
+			.skeleton {
+				position: relative;
+				overflow: hidden; /* ensures the shimmer doesn't overflow the element */
+				background: var(--muted-fg); /* fallback/neutral background while shimmer moves */
 			}
-		}
 
-		.skeleton-card {
-			background: var(--bg);
-			border: 2px solid var(--muted-fg);
-			border-radius: 12px;
-			padding: 24px;
-			height: 180px;
-		}
+			/* shimmer layer (composited animation via transform) */
+			.skeleton::before {
+				content: "";
+				position: absolute;
+				inset: 0; /* top:0; right:0; bottom:0; left:0; */
+				background: linear-gradient(90deg, var(--muted-fg) 25%, var(--fg) 50%, var(--muted-fg) 75%);
+				background-size: 200% 100%;
+				transform: translateX(-100%);
+				will-change: transform;
+				animation: skeleton-loading 1.5s linear infinite;
+			}
 
-		.skeleton-text {
-			height: 24px;
-			margin-bottom: 12px;
-			border-radius: 4px;
-			width: 80%;
-		}
+			/* transform-based keyframes — composited */
+			@keyframes skeleton-loading {
+				from { transform: translateX(-100%); }
+				to   { transform: translateX(200%); }
+			}
 
-		.skeleton-text-small {
-			height: 16px;
-			border-radius: 4px;
-			width: 60%;
-		}
-
-		.skeleton-text-large {
-			width: 100%;
-			height: 40px;
-			margin: 16px 0;
-		}
-
-		@media (prefers-reduced-motion: reduce) {
-				.skeleton {
+			/* keep reduced motion preference (existing behavior) */
+			@media (prefers-reduced-motion: reduce) {
+				.skeleton::before {
 					animation: none;
 					background: var(--muted-fg);
+					transform: none;
 				}
+			}
+
+			.skeleton-card {
+				background: var(--bg);
+				border: 2px solid var(--muted-fg);
+				border-radius: 12px;
+				padding: 24px;
+				height: 180px;
+			}
+
+			.skeleton-text {
+				height: 24px;
+				margin-bottom: 12px;
+				border-radius: 4px;
+				width: 80%;
+			}
+
+			.skeleton-text-small {
+				height: 16px;
+				border-radius: 4px;
+				width: 60%;
+			}
+
+			.skeleton-text-large {
+				width: 100%;
+				height: 40px;
+				margin: 16px 0;
 			}
 
 			.stats-grid {
@@ -328,164 +340,164 @@
 				padding: 24px;
 			transition: transform 0.2s ease;
 		}
-		.stat-card h3 {
-			margin: 0 0 16px;
-			font-size: 1.2rem;
-			color: var(--fg);
-		}
-
-		.stat-value {
-			font-size: 2.5rem;
-			font-weight: bold;
-			margin: 8px 0;
-			background: linear-gradient(135deg, var(--link), var(--link-visited));
-			-webkit-background-clip: text;
-			-webkit-text-fill-color: transparent;
-			background-clip: text;
-		}
-
-		.stat-label {
-			font-size: 0.875rem;
-			color: var(--muted-fg);
-			text-transform: uppercase;
-			letter-spacing: 0.05em;
-		}
-
-		.language-bar {
-			margin: 12px 0;
-		}
-
-		.language-bar-fill {
-			height: 8px;
-			background: linear-gradient(90deg, var(--link), var(--link-visited));
-			border-radius: 4px;
-			transition: transform 0.3s ease;
-			transform-origin: left;
-		}
-
-		.language-item {
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-			margin: 8px 0;
-			font-size: 0.9rem;
-		}
-
-		.language-name {
-			display: flex;
-			align-items: center;
-			gap: 8px;
-		}
-
-		.language-dot {
-			width: 12px;
-			height: 12px;
-			border-radius: 50%;
-			display: inline-block;
-		}
-
-		.repo-list {
-			list-style: none;
-			padding: 0;
-			margin: 0;
-		}
-
-		.repo-item {
-			padding: 12px 0;
-			border-bottom: 1px solid var(--muted-fg);
-		}
-
-		.repo-item:last-child {
-			border-bottom: none;
-		}
-
-		.repo-name {
-			font-weight: 600;
-			margin-bottom: 4px;
-		}
-
-		.repo-description {
-			font-size: 0.875rem;
-			color: var(--muted-fg);
-		}
-
-		.error {
-			text-align: center;
-			padding: 24px;
-			color: #ef4444;
-		}
-
-		@keyframes pulse {
-			0%, 100% {
-				transform: scale(1);
-			}
-			50% {
-				transform: scale(0.95);
-			}
-		}
-
-		.loading {
-			text-align: center;
-			padding: 24px;
-			color: var(--muted-fg);
-			animation: pulse 2s ease-in-out infinite;
-		}
-
-		/* Respect reduced motion preferences */
-		@media (prefers-reduced-motion: reduce) {
-			.stat-card {
-				transition: none;
+			.stat-card h3 {
+				margin: 0 0 16px;
+				font-size: 1.2rem;
+				color: var(--fg);
 			}
 
-			.stat-card:hover {
-				transform: none;
+			.stat-value {
+				font-size: 2.5rem;
+				font-weight: bold;
+				margin: 8px 0;
+				background: linear-gradient(135deg, var(--link), var(--link-visited));
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+				background-clip: text;
+			}
+
+			.stat-label {
+				font-size: 0.875rem;
+				color: var(--muted-fg);
+				text-transform: uppercase;
+				letter-spacing: 0.05em;
+			}
+
+			.language-bar {
+				margin: 12px 0;
 			}
 
 			.language-bar-fill {
-				transition: none;
+				height: 8px;
+				background: linear-gradient(90deg, var(--link), var(--link-visited));
+				border-radius: 4px;
+				transition: transform 0.3s ease;
+				transform-origin: left;
+			}
+
+			.language-item {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin: 8px 0;
+				font-size: 0.9rem;
+			}
+
+			.language-name {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+			}
+
+			.language-dot {
+				width: 12px;
+				height: 12px;
+				border-radius: 50%;
+				display: inline-block;
+			}
+
+			.repo-list {
+				list-style: none;
+				padding: 0;
+				margin: 0;
+			}
+
+			.repo-item {
+				padding: 12px 0;
+				border-bottom: 1px solid var(--muted-fg);
+			}
+
+			.repo-item:last-child {
+				border-bottom: none;
+			}
+
+			.repo-name {
+				font-weight: 600;
+				margin-bottom: 4px;
+			}
+
+			.repo-description {
+				font-size: 0.875rem;
+				color: var(--muted-fg);
+			}
+
+			.error {
+				text-align: center;
+				padding: 24px;
+				color: #ef4444;
+			}
+
+			@keyframes pulse {
+				0%, 100% {
+					transform: scale(1);
+				}
+				50% {
+					transform: scale(0.95);
+				}
 			}
 
 			.loading {
-				animation: none;
+				text-align: center;
+				padding: 24px;
+				color: var(--muted-fg);
+				animation: pulse 2s ease-in-out infinite;
 			}
-		}
 
-		/* Ensure gradient text has fallback color */
-		@supports not (background-clip: text) {
-			.stat-value {
-				color: var(--link);
-				background: none;
-				-webkit-text-fill-color: unset;
+			/* Respect reduced motion preferences */
+			@media (prefers-reduced-motion: reduce) {
+				.stat-card {
+					transition: none;
+				}
+
+				.stat-card:hover {
+					transform: none;
+				}
+
+				.language-bar-fill {
+					transition: none;
+				}
+
+				.loading {
+					animation: none;
+				}
 			}
-		}
 
-		.github-stats {
-			contain: layout style paint;
-		}
+			/* Ensure gradient text has fallback color */
+			@supports not (background-clip: text) {
+				.stat-value {
+					color: var(--link);
+					background: none;
+					-webkit-text-fill-color: unset;
+				}
+			}
 
-		.gtm-iframe {
-			display: none;
-			visibility: hidden;
-		}
+			.github-stats {
+				contain: layout style paint;
+			}
 
-		footer {
-			margin-top: 48px;
-			padding-top: 24px;
-			border-top: 1px solid var(--muted-fg);
-			font-size: 0.875rem;
-			color: var(--muted-fg);
-		}
+			.gtm-iframe {
+				display: none;
+				visibility: hidden;
+			}
 
-		footer p {
-			margin: 0;
-		}
-	</style>
-</head>
+			footer {
+				margin-top: 48px;
+				padding-top: 24px;
+				border-top: 1px solid var(--muted-fg);
+				font-size: 0.875rem;
+				color: var(--muted-fg);
+			}
+
+			footer p {
+				margin: 0;
+			}
+		</style>
+	</head>
 	<body>
 
 		<!-- Google Tag Manager (noscript) -->
 		<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W8RGXCTR"
-	height="0" width="0" title="Google Tag Manager" class="gtm-iframe"></iframe></noscript>
+		height="0" width="0" title="Google Tag Manager" class="gtm-iframe"></iframe></noscript>
 		<a class="skip-link" href="#main">Skip to content</a>
 		<main id="main" tabindex="-1">
 			<h1>We've never been closer.</h1>
@@ -585,181 +597,5 @@
 
 		</main>
 
-	<footer>
-		<p>Octopus favicons based on icons created by <a href="https://www.flaticon.com/free-icons/octopus" target="_blank" rel="noopener">Freepik - Flaticon<span class="visually-hidden"> (opens in new tab)</span></a></p>
-	</footer>
-
-	<script>
-		// Language colors (GitHub standard colors)
-		const languageColors = {
-				'JavaScript': '#f1e05a',
-				'TypeScript': '#3178c6',
-				'Python': '#3572A5',
-				'Java': '#b07219',
-				'C++': '#f34b7d',
-				'C': '#555555',
-				'C#': '#178600',
-				'PHP': '#4F5D95',
-				'Ruby': '#701516',
-				'Go': '#00ADD8',
-				'Rust': '#dea584',
-				'Swift': '#F05138',
-				'Kotlin': '#A97BFF',
-				'Dart': '#00B4AB',
-				'Shell': '#89e051',
-				'HTML': '#e34c26',
-				'CSS': '#563d7c',
-				'Vue': '#41b883',
-				'React': '#61dafb'
-			};
-
-			function formatNumber(num) {
-				if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-				if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-				return num.toString();
-			}
-
-			function escapeHtml(value) {
-				if (value === null || value === undefined) return '';
-				return String(value)
-					.replace(/&/g, '&amp;')
-					.replace(/</g, '&lt;')
-					.replace(/>/g, '&gt;')
-					.replace(/"/g, '&quot;')
-					.replace(/'/g, '&#39;');
-			}
-
-			function renderLanguageStats(languageStats) {
-				const totalBytes = Object.values(languageStats).reduce((sum, bytes) => sum + bytes, 0);
-				const sortedLanguages = Object.entries(languageStats)
-					.sort(([, a], [, b]) => b - a)
-					.slice(0, 5);
-
-				const html = sortedLanguages.map(([lang, bytes]) => {
-					const percentage = ((bytes / totalBytes) * 100).toFixed(1);
-					const color = languageColors[lang] || '#8b8b8b';
-					const safeLang = escapeHtml(lang);
-
-					return `
-						<div class="language-item">
-							<div class="language-name">
-							<span class="language-dot" style="background-color: ${color};" aria-hidden="true"></span>
-								<span>${safeLang}</span>
-							</div>
-							<span aria-label="${percentage} percent">${percentage}%</span>
-						</div>
-						<div class="language-bar" role="progressbar" aria-label="${safeLang} programming language usage: ${percentage} percent" aria-valuenow="${percentage}" aria-valuemin="0" aria-valuemax="100">
-							<div class="language-bar-fill" style="transform: scaleX(${percentage / 100}); background: ${color};"></div>
-						</div>
-					`;
-				}).join('');
-
-				return html;
-			}
-
-			function renderTopRepositories(repos) {
-				const html = repos.map(repo => `
-					<li class="repo-item">
-						<div class="repo-name">
-							<a href="${escapeHtml(repo.html_url)}" target="_blank" rel="noopener">
-								${escapeHtml(repo.name)}<span class="visually-hidden"> (opens in new tab)</span>
-							</a>
-							${repo.stargazers_count > 0 ? `<span aria-label="${repo.stargazers_count} stars"><span aria-hidden="true">⭐</span> ${repo.stargazers_count}</span>` : ''}
-						</div>
-						${repo.description ? `<div class="repo-description">${escapeHtml(repo.description)}</div>` : ''}
-					</li>
-				`).join('');
-
-				return `<ul class="repo-list">${html}</ul>`;
-			}
-
-			async function displayGitHubStats() {
-				const container = document.getElementById('github-container');
-
-				try {
-					// Load pre-generated stats from JSON file
-					const response = await fetch('./github-stats.json');
-					if (!response.ok) throw new Error('Stats file not found');
-
-					const data = await response.json();
-
-					// Render stats cards
-					container.innerHTML = `
-						<div class="stats-grid">
-							<div class="stat-card">
-							<h3><span aria-hidden="true">📊</span> <span>Total Repositories</span></h3>
-							<div class="stat-value">${data.total_repos}</div>
-							<div class="stat-label">Public Repositories</div>
-						</div>
-
-						<div class="stat-card">
-							<h3><span aria-hidden="true">💻</span> <span>Lines of Code</span></h3>
-							<div class="stat-value">${formatNumber(data.total_lines)}</div>
-							<div class="stat-label">Approximate Total</div>
-						</div>
-
-						<div class="stat-card">
-							<h3><span aria-hidden="true">👀</span> <span>Total Watchers</span></h3>
-							<div class="stat-value">${data.total_watchers}</div>
-							<div class="stat-label">Across All Repos</div>
-						</div>
-
-						<div class="stat-card">
-							<h3><span aria-hidden="true">👥</span> <span>Followers</span></h3>
-							<div class="stat-value">${data.followers}</div>
-							<div class="stat-label">GitHub Followers</div>
-						</div>
-					</div>
-
-					<div class="stats-grid" style="margin-top: 24px;">
-						<div class="stat-card" style="grid-column: 1 / -1;">
-							<h3><span aria-hidden="true">🔤</span> <span>Top Languages</span></h3>
-							${renderLanguageStats(data.languages)}
-						</div>
-
-						<div class="stat-card" style="grid-column: 1 / -1;">
-							<h3><span aria-hidden="true">⭐</span> <span>Top Repositories</span></h3>
-						${renderTopRepositories(data.top_repos)}
-					</div>
-				</div>
-				
-				<p style="text-align: center; margin-top: 24px; font-size: 0.875rem; color: var(--muted-fg);">
-					Last updated: ${new Date(data.updated_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-				</p>
-			`;
-						container.setAttribute('aria-busy', 'false');
-				} catch (error) {
-					container.innerHTML = `
-						<div class="error" role="alert">
-						<p><span aria-hidden="true">❌</span> Error loading GitHub statistics</p>
-							<p style="font-size: 0.875rem; margin-top: 8px;">
-								Stats will be generated automatically by GitHub Actions. Please wait for the first run to complete.
-							</p>
-						</div>
-					`;
-					container.setAttribute('aria-busy', 'false');
-				}
-			}
-
-			// Defer stats loading using IntersectionObserver for better performance
-			const container = document.getElementById('github-container');
-			const section = container.closest('.github-stats');
-
-			if ('IntersectionObserver' in window) {
-				const observer = new IntersectionObserver(
-					(entries) => {
-						if (entries[0].isIntersecting) {
-							displayGitHubStats();
-							observer.unobserve(section);
-						}
-					},
-					{ rootMargin: '50px' }
-				);
-				observer.observe(section);
-			} else {
-				// Fallback for browsers without IntersectionObserver
-				displayGitHubStats();
-			}
-		</script>
-	</body>
-</html>
+		<footer>
+			<p>Octopus favicons based on icons created by <a href="https://www.flaticon.com/free-icons/octopus" target="_blank" rel="noopener">Freepik - Flaticon<span class="visually-hidden"> (opens in new[...]
