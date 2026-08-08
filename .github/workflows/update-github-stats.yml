@@ -11,114 +11,139 @@ on:
     paths:
       - '.github/workflows/update-github-stats.yml'
 
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
 jobs:
   update-stats:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     permissions:
       contents: write
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.GH_STATS_TOKEN }}
 
       - name: Fetch GitHub Stats
         env:
           GITHUB_TOKEN: ${{ secrets.GH_STATS_TOKEN }}
           GITHUB_USERNAME: ${{ github.repository_owner }}
         run: |
-          # Fetch user data
-          USER_DATA=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/users/$GITHUB_USERNAME")
-          
-          if echo "$USER_DATA" | jq -e 'type != "object" or has("message")' > /dev/null 2>&1; then
-            echo "Error fetching user data: $(echo "$USER_DATA" | jq -r '.message // "Unknown error"')"
-            exit 1
-          fi
+          set -euo pipefail
 
-          # Fetch repositories (excluding forks)
-          REPOS_RAW=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/users/$GITHUB_USERNAME/repos?per_page=100&sort=updated")
+          # Single GraphQL query: user info, non-fork owned repos (with per-repo
+          # language breakdown and watcher counts), and pinned repos. Replaces
+          # what used to be 1 (user) + 1 (repo list) + up to 30 (per-repo
+          # languages) + 1 (pinned) REST/GraphQL calls with a single request.
+          GRAPHQL_QUERY='
+            query($username: String!) {
+              user(login: $username) {
+                followers { totalCount }
+                pinnedItems(first: 6, types: REPOSITORY) {
+                  nodes {
+                    ... on Repository {
+                      name
+                      description
+                      url
+                      stargazerCount
+                    }
+                  }
+                }
+                repositories(first: 100, ownerAffiliations: [OWNER], isFork: false, privacy: PUBLIC, orderBy: {field: UPDATED_AT, direction: DESC}) {
+                  totalCount
+                  nodes {
+                    name
+                    description
+                    url
+                    stargazerCount
+                    watchers { totalCount }
+                    languages(first: 10, orderBy: {field: SIZE, direction: DESC}) {
+                      edges {
+                        size
+                        node { name }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          '
 
-          if echo "$REPOS_RAW" | jq -e 'type != "array"' > /dev/null 2>&1; then
-            echo "Error fetching repositories: $(echo "$REPOS_RAW" | jq -r '.message // "Unknown error"')"
-            exit 1
-          fi
+          GRAPHQL_BODY=$(jq -cn --arg query "$GRAPHQL_QUERY" --arg username "$GITHUB_USERNAME" \
+            '{query: $query, variables: {username: $username}}')
 
-          REPOS=$(echo "$REPOS_RAW" | jq '[.[] | select(.fork == false)]')
-          
-          # Calculate stats
-          TOTAL_REPOS=$(echo "$REPOS" | jq 'length')
-          TOTAL_WATCHERS=$(echo "$REPOS" | jq '[.[].watchers_count] | add // 0')
-          FOLLOWERS=$(echo "$USER_DATA" | jq '.followers')
-          
-          # Fetch languages for each repo (limit to 30 repos to avoid rate limits)
-          echo "$REPOS" | jq -c '.[:30]' > repos_temp.json
-          
-          LANGUAGE_STATS='{}'
-          while IFS= read -r repo; do
-            REPO_NAME=$(echo "$repo" | jq -r '.name')
-            LANGUAGES=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-              -H "Accept: application/vnd.github.v3+json" \
-              "https://api.github.com/repos/$GITHUB_USERNAME/$REPO_NAME/languages")
-            
-            # Merge language stats
-            LANGUAGE_STATS=$(echo "$LANGUAGE_STATS $LANGUAGES" | jq -s '
-              reduce .[1] as $lang (.[0]; 
-                reduce ($lang | keys_unsorted[]) as $key (.; 
-                  .[$key] = ((.[$key] // 0) + $lang[$key])
-                )
-              )
-            ')
-          done < <(jq -c '.[]' repos_temp.json)
-          
-          rm repos_temp.json
-          
-          # Calculate total lines of code (approximate)
-          TOTAL_BYTES=$(echo "$LANGUAGE_STATS" | jq '[.[]] | add // 0')
-          TOTAL_LINES=$(echo "$TOTAL_BYTES / 50" | bc)
-          
-          # Get repos with stars > 0, sorted by stars descending
-          STARRED_REPOS=$(echo "$REPOS" | jq '[.[] | select(.stargazers_count > 0)] | sort_by(-.stargazers_count) | [.[] | {
-            name: .name,
-            description: .description,
-            html_url: .html_url,
-            stargazers_count: .stargazers_count
-          }]')
-
-          # Fetch pinned repos via GraphQL API to use as fallback
-          GRAPHQL_BODY=$(jq -cn --arg username "$GITHUB_USERNAME" \
-            '{query: ("{ user(login: \"" + $username + "\") { pinnedItems(first: 6, types: REPOSITORY) { nodes { ... on Repository { name description url stargazerCount } } } } }")}')
-          PINNED_RAW=$(curl -s -H "Authorization: bearer $GITHUB_TOKEN" \
+          RESPONSE=$(curl -sS -H "Authorization: bearer $GITHUB_TOKEN" \
             -H "Content-Type: application/json" \
             -X POST \
             -d "$GRAPHQL_BODY" \
             "https://api.github.com/graphql")
 
-          if echo "$PINNED_RAW" | jq -e 'has("errors")' > /dev/null 2>&1; then
-            echo "Warning: Could not fetch pinned repos: $(echo "$PINNED_RAW" | jq -r '.errors[0].message // "Unknown error"')"
-            PINNED_REPOS='[]'
-          else
-            PINNED_REPOS=$(echo "$PINNED_RAW" | jq '[.data.user.pinnedItems.nodes[] | {
+          if ! echo "$RESPONSE" | jq -e . > /dev/null 2>&1; then
+            echo "Error: received invalid JSON from GitHub GraphQL API"
+            exit 1
+          fi
+
+          if echo "$RESPONSE" | jq -e 'has("errors")' > /dev/null 2>&1; then
+            echo "Error fetching GitHub stats: $(echo "$RESPONSE" | jq -r '.errors[0].message // "Unknown error"')"
+            exit 1
+          fi
+
+          USER_NODE=$(echo "$RESPONSE" | jq '.data.user')
+
+          if [ "$USER_NODE" = "null" ]; then
+            echo "Error: user '$GITHUB_USERNAME' not found"
+            exit 1
+          fi
+
+          # Calculate stats
+          FOLLOWERS=$(echo "$USER_NODE" | jq '.followers.totalCount')
+          TOTAL_REPOS=$(echo "$USER_NODE" | jq '.repositories.totalCount')
+          TOTAL_WATCHERS=$(echo "$USER_NODE" | jq '[.repositories.nodes[].watchers.totalCount] | add // 0')
+
+          LANGUAGE_STATS=$(echo "$USER_NODE" | jq '
+            reduce (.repositories.nodes[].languages.edges[]?) as $edge ({};
+              .[$edge.node.name] = ((.[$edge.node.name] // 0) + $edge.size)
+            )
+          ')
+
+          # Calculate total lines of code (approximate)
+          TOTAL_BYTES=$(echo "$LANGUAGE_STATS" | jq '[.[]] | add // 0')
+          TOTAL_LINES=$(echo "$TOTAL_BYTES / 50" | bc)
+
+          # Get repos with stars > 0, sorted by stars descending
+          STARRED_REPOS=$(echo "$USER_NODE" | jq '
+            [.repositories.nodes[] | select(.stargazerCount > 0) | {
               name: .name,
               description: .description,
               html_url: .url,
               stargazers_count: .stargazerCount
-            }]' 2>/dev/null || echo '[]')
-          fi
+            }] | sort_by(-.stargazers_count)
+          ')
+
+          PINNED_REPOS=$(echo "$USER_NODE" | jq '
+            [.pinnedItems.nodes[] | {
+              name: .name,
+              description: .description,
+              html_url: .url,
+              stargazers_count: .stargazerCount
+            }]
+          ')
 
           # Build top repos: starred repos first, then fill remaining slots with pinned repos
           TOP_REPOS=$(echo "$STARRED_REPOS $PINNED_REPOS" | jq -s '
             .[0] as $starred |
-            (.[1] // []) as $pinned |
+            .[1] as $pinned |
             ($starred | map(.name)) as $starred_names |
             ($pinned | map(select(.name as $n | $starred_names | index($n) == null))) as $extra |
             ($starred + $extra)[:5]
           ')
-          
+
           # Create final JSON
           cat > github-stats.json << EOF
           {
@@ -131,13 +156,18 @@ jobs:
             "top_repos": $TOP_REPOS
           }
           EOF
-          
+
           echo "GitHub stats updated successfully!"
           cat github-stats.json
 
       - name: Commit and push if changed
         run: |
+          set -euo pipefail
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add github-stats.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: Update GitHub stats" && git push "https://github-actions:${{ secrets.GH_STATS_TOKEN }}@github.com/${{ github.repository }}.git")
+          if ! git diff --staged --quiet; then
+            git commit -m "chore: Update GitHub stats"
+            git pull --rebase origin main
+            git push
+          fi

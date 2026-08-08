@@ -9,12 +9,17 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
 jobs:
   fetch-data:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -26,7 +31,12 @@ jobs:
 
       - name: Commit changes
         run: |
+          set -euo pipefail
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add -A
-          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: Update D&D 5e API data cache" && git push)
+          if ! git diff --staged --quiet; then
+            git commit -m "chore: Update D&D 5e API data cache"
+            git pull --rebase origin main
+            git push
+          fi
