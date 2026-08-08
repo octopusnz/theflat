@@ -14,3 +14,7 @@ build/
 # Python
 .venv/
 
+# Generated at deploy time by .github/workflows/static.yml — not tracked
+/github-stats.json
+/data/*.json
+

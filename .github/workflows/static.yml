@@ -6,10 +6,9 @@ on:
   push:
     branches: ["main"]
 
-  # Redeploy when data update jobs complete
-  workflow_run:
-    workflows: ["Update GitHub Stats", "Fetch D&D 5e API Data"]
-    types: [completed]
+  # Refresh GitHub stats and D&D 5e data daily, then redeploy
+  schedule:
+    - cron: '0 1 * * *'  # 01:00 UTC
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -29,17 +28,150 @@ concurrency:
 jobs:
   # Single deploy job since we're just deploying
   deploy:
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+
+      - name: Fetch D&D 5e API Data
+        run: |
+          chmod +x scripts/fetch-dnd-data.sh
+          scripts/fetch-dnd-data.sh
+
+      - name: Fetch GitHub Stats
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_STATS_TOKEN }}
+          GITHUB_USERNAME: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+
+          # Single GraphQL query: user info, non-fork owned repos (with per-repo
+          # language breakdown and watcher counts), and pinned repos.
+          GRAPHQL_QUERY='
+            query($username: String!) {
+              user(login: $username) {
+                followers { totalCount }
+                pinnedItems(first: 6, types: REPOSITORY) {
+                  nodes {
+                    ... on Repository {
+                      name
+                      description
+                      url
+                      stargazerCount
+                    }
+                  }
+                }
+                repositories(first: 100, ownerAffiliations: [OWNER], isFork: false, privacy: PUBLIC, orderBy: {field: UPDATED_AT, direction: DESC}) {
+                  totalCount
+                  nodes {
+                    name
+                    description
+                    url
+                    stargazerCount
+                    watchers { totalCount }
+                    languages(first: 10, orderBy: {field: SIZE, direction: DESC}) {
+                      edges {
+                        size
+                        node { name }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          '
+
+          GRAPHQL_BODY=$(jq -cn --arg query "$GRAPHQL_QUERY" --arg username "$GITHUB_USERNAME" \
+            '{query: $query, variables: {username: $username}}')
+
+          RESPONSE=$(curl -sS -H "Authorization: bearer $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -X POST \
+            -d "$GRAPHQL_BODY" \
+            "https://api.github.com/graphql")
+
+          if ! echo "$RESPONSE" | jq -e . > /dev/null 2>&1; then
+            echo "Error: received invalid JSON from GitHub GraphQL API"
+            exit 1
+          fi
+
+          if echo "$RESPONSE" | jq -e 'has("errors")' > /dev/null 2>&1; then
+            echo "Error fetching GitHub stats: $(echo "$RESPONSE" | jq -r '.errors[0].message // "Unknown error"')"
+            exit 1
+          fi
+
+          USER_NODE=$(echo "$RESPONSE" | jq '.data.user')
+
+          if [ "$USER_NODE" = "null" ]; then
+            echo "Error: user '$GITHUB_USERNAME' not found"
+            exit 1
+          fi
+
+          # Calculate stats
+          FOLLOWERS=$(echo "$USER_NODE" | jq '.followers.totalCount')
+          TOTAL_REPOS=$(echo "$USER_NODE" | jq '.repositories.totalCount')
+          TOTAL_WATCHERS=$(echo "$USER_NODE" | jq '[.repositories.nodes[].watchers.totalCount] | add // 0')
+
+          LANGUAGE_STATS=$(echo "$USER_NODE" | jq '
+            reduce (.repositories.nodes[].languages.edges[]?) as $edge ({};
+              .[$edge.node.name] = ((.[$edge.node.name] // 0) + $edge.size)
+            )
+          ')
+
+          # Calculate total lines of code (approximate)
+          TOTAL_BYTES=$(echo "$LANGUAGE_STATS" | jq '[.[]] | add // 0')
+          TOTAL_LINES=$(echo "$TOTAL_BYTES / 50" | bc)
+
+          # Get repos with stars > 0, sorted by stars descending
+          STARRED_REPOS=$(echo "$USER_NODE" | jq '
+            [.repositories.nodes[] | select(.stargazerCount > 0) | {
+              name: .name,
+              description: .description,
+              html_url: .url,
+              stargazers_count: .stargazerCount
+            }] | sort_by(-.stargazers_count)
+          ')
+
+          PINNED_REPOS=$(echo "$USER_NODE" | jq '
+            [.pinnedItems.nodes[] | {
+              name: .name,
+              description: .description,
+              html_url: .url,
+              stargazers_count: .stargazerCount
+            }]
+          ')
+
+          # Build top repos: starred repos first, then fill remaining slots with pinned repos
+          TOP_REPOS=$(echo "$STARRED_REPOS $PINNED_REPOS" | jq -s '
+            .[0] as $starred |
+            .[1] as $pinned |
+            ($starred | map(.name)) as $starred_names |
+            ($pinned | map(select(.name as $n | $starred_names | index($n) == null))) as $extra |
+            ($starred + $extra)[:5]
+          ')
+
+          # Create final JSON
+          cat > github-stats.json << EOF
+          {
+            "updated_at": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+            "total_repos": $TOTAL_REPOS,
+            "total_watchers": $TOTAL_WATCHERS,
+            "total_lines": $TOTAL_LINES,
+            "followers": $FOLLOWERS,
+            "languages": $LANGUAGE_STATS,
+            "top_repos": $TOP_REPOS
+          }
+          EOF
+
+          echo "GitHub stats updated successfully!"
+          cat github-stats.json
+
       - name: Setup Pages
         uses: actions/configure-pages@v6
       - name: Upload artifact
