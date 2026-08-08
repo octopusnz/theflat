@@ -27,8 +27,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
-        with:
-          token: ${{ secrets.GH_STATS_TOKEN }}
 
       - name: Fetch GitHub Stats
         env:
