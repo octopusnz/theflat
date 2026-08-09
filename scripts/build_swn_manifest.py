@@ -75,6 +75,28 @@ def strip_leading_title(body: str) -> str:
     return body
 
 
+IMAGE_EMBED_RE = re.compile(r"^!\[\[([^\]|]+)(?:\|[^\]]*)?\]\]\s*$")
+
+
+def strip_leading_image(body: str, image_field) -> str:
+    """Drop a leading image embed that duplicates the frontmatter `image`
+    property — this vault's character/place templates embed the portrait
+    inline as the first line of the body *and* set it as a queryable
+    property; the client renders its own hero image from the property, so
+    the inline copy would otherwise show the same photo twice."""
+    if not isinstance(image_field, str) or not image_field.strip():
+        return body
+    target = image_field.strip().split("/")[-1].lower()
+    stripped = body.lstrip("\n")
+    lines = stripped.split("\n", 1)
+    if not lines:
+        return body
+    m = IMAGE_EMBED_RE.match(lines[0].strip())
+    if not m or m.group(1).strip().split("/")[-1].lower() != target:
+        return body
+    return lines[1].lstrip("\n") if len(lines) > 1 else ""
+
+
 def _has_visible_alpha(img: Image.Image) -> bool:
     if img.mode in ("RGBA", "LA") or (img.mode == "P" and "transparency" in img.info):
         alpha = img.convert("RGBA").getchannel("A")
@@ -149,6 +171,7 @@ def parse_file(repo: Path, rel_path: Path, mtimes: dict) -> dict:
     name = rel_path.stem
     body = strip_gm_sections(body)
     body = strip_leading_title(body)
+    body = strip_leading_image(body, frontmatter.get("image"))
 
     parts = rel_path.parts
     folder = parts[0]

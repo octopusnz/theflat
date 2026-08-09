@@ -148,6 +148,18 @@ html.theme-light {
 				transform: translateY(0);
 			}
 
+			.visually-hidden {
+				position: absolute;
+				width: 1px;
+				height: 1px;
+				padding: 0;
+				margin: -1px;
+				overflow: hidden;
+				clip: rect(0, 0, 0, 0);
+				white-space: nowrap;
+				border: 0;
+			}
+
 			a {
 
 				color: var(--link);
@@ -283,6 +295,23 @@ html.theme-light {
 				display: flex;
 				flex: 1;
 				overflow: hidden;
+			}
+
+			footer {
+				flex: none;
+				border-top: 1px solid var(--border);
+				padding: 6px 16px;
+				font-size: 0.75rem;
+				color: var(--muted-fg);
+				text-align: center;
+			}
+
+			footer p {
+				margin: 0;
+			}
+
+			footer a {
+				color: var(--muted-fg);
 			}
 
 			/* Sidebar */
@@ -3066,6 +3095,13 @@ html.theme-light {
 		</div>
 		</main>
 	</div>
+
+	<footer id="site-footer">
+		<p>
+			<strong>Dungeons &amp; Dragons</strong> was created by Gary Gygax and Dave Arneson and is published by
+			<a href="https://www.wizards.com/" target="_blank" rel="noopener">Wizards of the Coast<span class="visually-hidden"> (opens in new tab)</span></a>.
+		</p>
+	</footer>
 
 	<!-- Add Item Modal -->
 	<div class="modal hidden" id="add-item-modal">
