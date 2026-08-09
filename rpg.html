@@ -3101,6 +3101,7 @@ html.theme-light {
 			<strong>Dungeons &amp; Dragons</strong> was created by Gary Gygax and Dave Arneson and is published by
 			<a href="https://www.wizards.com/" target="_blank" rel="noopener">Wizards of the Coast<span class="visually-hidden"> (opens in new tab)</span></a>.
 		</p>
+		<p id="sync-meta"></p>
 	</footer>
 
 	<!-- Add Item Modal -->
@@ -7268,6 +7269,22 @@ async loadInventory() {
 	
 	// Load default inventory if needed
 	window.inventoryManager.init().catch(err => console.error('Failed to init inventory:', err));
+
+	// Show when the cached D&D 5e API data was last synced
+	(function loadSyncMeta() {
+		const el = document.getElementById('sync-meta');
+		if (!el) return;
+
+		fetch('/data/meta.json')
+			.then(response => response.ok ? response.json() : null)
+			.then(meta => {
+				if (!meta || !meta.synced_at) return;
+				const d = new Date(meta.synced_at);
+				if (isNaN(d.getTime())) return;
+				el.textContent = 'D&D 5e data synced ' + d.toISOString().slice(0, 10);
+			})
+			.catch(() => {});
+	})();
 	</script>
 </body>
 </html>

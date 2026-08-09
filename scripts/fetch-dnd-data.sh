@@ -45,4 +45,8 @@ for endpoint in "${ENDPOINTS[@]}"; do
   fi
 done
 
+echo "Writing meta.json..."
+jq -n --arg synced_at "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
+  '{synced_at: $synced_at}' > "$DATA_DIR/meta.json"
+
 echo "Done!"
