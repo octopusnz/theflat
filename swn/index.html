@@ -60,13 +60,13 @@
 				--bg: #0b1220;
 				--fg: #e5e7eb;
 				--muted-fg: #cbd5e1;
-				--link: #93c5fd;
+				--link: #2dd4bf;
 				--link-visited: #c4b5fd;
 				--focus: #fbbf24;
-				--border: #334155;
+				--border: #24344a;
 				--hover: #1e293b;
 				--card-bg: #0f172a;
-				--chip-bg: #1e293b;
+				--chip-bg: #16232f;
 
 				--font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
 				--step-meta: 0.68rem;
@@ -81,13 +81,13 @@
 				--bg: #ffffff;
 				--fg: #111827;
 				--muted-fg: #374151;
-				--link: #1d4ed8;
+				--link: #0d9488;
 				--link-visited: #6d28d9;
-				--focus: #f59e0b;
-				--border: #d1d5db;
+				--focus: #d97706;
+				--border: #d5dde6;
 				--hover: #f3f4f6;
-				--card-bg: #f9fafb;
-				--chip-bg: #e5e7eb;
+				--card-bg: #f6f8fb;
+				--chip-bg: #e7edf3;
 			}
 
 			*,
@@ -192,6 +192,9 @@
 			header h1 {
 				margin: 0;
 				font-size: var(--step-title);
+				font-family: var(--font-mono);
+				text-transform: uppercase;
+				letter-spacing: 0.04em;
 				flex: 1;
 				min-width: 160px;
 			}
@@ -232,6 +235,9 @@
 
 			.tab-links a {
 				font-size: var(--step-chip);
+				font-family: var(--font-mono);
+				text-transform: uppercase;
+				letter-spacing: 0.04em;
 				font-weight: 600;
 				color: var(--muted-fg);
 				text-decoration: none;
@@ -508,6 +514,9 @@
 
 			.section-title {
 				font-size: var(--step-title);
+				font-family: var(--font-mono);
+				text-transform: uppercase;
+				letter-spacing: 0.04em;
 				font-weight: 700;
 				margin: 32px 0 12px;
 				padding-bottom: 6px;
@@ -557,6 +566,7 @@
 
 			.count-card .label {
 				font-size: var(--step-meta);
+				font-family: var(--font-mono);
 				color: var(--muted-fg);
 				text-transform: uppercase;
 				letter-spacing: 0.04em;
@@ -602,6 +612,9 @@
 			.faction-name {
 				font-weight: 700;
 				font-size: var(--step-title);
+				font-family: var(--font-mono);
+				text-transform: uppercase;
+				letter-spacing: 0.04em;
 			}
 
 			.map-branch-label {
@@ -668,11 +681,15 @@
 			.page-header h1 {
 				margin: 0;
 				font-size: var(--step-page);
+				font-family: var(--font-mono);
+				text-transform: uppercase;
+				letter-spacing: 0.04em;
 			}
 
 			.badge {
 				display: inline-block;
 				font-size: var(--step-meta);
+				font-family: var(--font-mono);
 				font-weight: 700;
 				text-transform: uppercase;
 				letter-spacing: 0.04em;
@@ -729,6 +746,7 @@
 
 			.page-toc-title {
 				font-size: var(--step-meta);
+				font-family: var(--font-mono);
 				font-weight: 700;
 				text-transform: uppercase;
 				letter-spacing: 0.05em;
@@ -752,6 +770,7 @@
 
 			.backlinks-title {
 				font-size: var(--step-chip);
+				font-family: var(--font-mono);
 				font-weight: 700;
 				text-transform: uppercase;
 				letter-spacing: 0.05em;
@@ -929,6 +948,9 @@
 
 			.browse-group h2 {
 				font-size: var(--step-title);
+				font-family: var(--font-mono);
+				text-transform: uppercase;
+				letter-spacing: 0.04em;
 				margin: 0 0 10px;
 				color: var(--muted-fg);
 			}
