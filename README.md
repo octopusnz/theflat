@@ -31,13 +31,10 @@ This work includes material taken from the System Reference Document 5.1 ("SRD 5
 
 ## GitHub Actions Workflows
 
-- `.github/workflows/update-github-stats.yml`: fetches GitHub user/repo stats and commits `github-stats.json` — runs daily at 01:00 UTC and on pushes to `main` that touch the workflow file
-- `.github/workflows/fetch-dnd-data.yml`: fetches and caches D&D 5e API data into `data/` — runs daily at 00:00 UTC
-- `.github/workflows/static.yml`: deploys the site to GitHub Pages — triggers on pushes to `main` and when either data workflow completes successfully
+- `.github/workflows/static.yml`: fetches D&D 5e API data, refreshes `github-stats.json`, then deploys the site to GitHub Pages — triggers on pushes to `main`, daily at 01:00 UTC, and manually via `workflow_dispatch`
 
 ## Scripts
 
-- `scripts/generate-github-stats.sh`: generate `github-stats.json` locally (useful for testing)
 - `scripts/fetch-dnd-data.sh`: fetch and cache D&D 5e API data locally
 - `scripts/check-structure.sh`: diagnostic script to validate `rpg.html` structure
 - `scripts/fetch-swn-data.sh`: clone the `octopusnz/swn` vault and rebuild `swn/content/` (manual — see Data above)
