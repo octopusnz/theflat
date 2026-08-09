@@ -686,7 +686,11 @@
 		if (tags.length) html += '<div class="chip-row">' + tags.map(chip).join('') + '</div>';
 
 		var pageImgSrc = imageUrl(fm.image);
-		if (pageImgSrc) html += '<img class="page-image" src="' + pageImgSrc + '" alt="' + escapeHtml(page.name) + '" loading="lazy">';
+		if (pageImgSrc) {
+			var dims = Array.isArray(page.image_size) ? page.image_size : null;
+			var dimAttrs = dims ? ' width="' + dims[0] + '" height="' + dims[1] + '"' : '';
+			html += '<img class="page-image" src="' + pageImgSrc + '" alt="' + escapeHtml(page.name) + '"' + dimAttrs + ' loading="lazy">';
+		}
 
 		var hasStats = fm.hit_dice !== undefined && fm.hit_dice !== null;
 		if (hasStats) {

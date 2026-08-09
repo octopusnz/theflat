@@ -116,7 +116,7 @@ def _flatten_rgb(img: Image.Image, bg=THUMB_BG) -> Image.Image:
     return img.convert("RGB")
 
 
-def optimize_image(src: Path, images_out: Path, thumbs_out: Path) -> str:
+def optimize_image(src: Path, images_out: Path, thumbs_out: Path) -> tuple:
     """Re-encode one vault image for the web: cap resolution, strip
     embedded metadata (Pillow drops EXIF unless it's explicitly
     re-attached), and convert opaque images to JPEG regardless of source
@@ -125,9 +125,11 @@ def optimize_image(src: Path, images_out: Path, thumbs_out: Path) -> str:
     with real transparency stay PNG. Also writes a small square thumbnail
     used for inline "linked from"-style avatars.
 
-    Returns the filename actually written under images_out — this can
-    differ from src.name when the format changes (e.g. "world.png" ->
-    "world.jpg"), so callers need to reconcile any stored references.
+    Returns (final_filename, width, height) of the full-size output. The
+    filename can differ from src.name when the format changed (e.g.
+    "world.png" -> "world.jpg"), so callers need to reconcile any stored
+    references; the dimensions let the client size an image box to the
+    photo's real aspect ratio instead of guessing or force-cropping it.
     """
     with Image.open(src) as im:
         im.load()
@@ -150,7 +152,9 @@ def optimize_image(src: Path, images_out: Path, thumbs_out: Path) -> str:
             quality=THUMB_JPEG_QUALITY, optimize=True,
         )
 
-    return dest_name
+        width, height = full.size
+
+    return dest_name, width, height
 
 
 def parse_file(repo: Path, rel_path: Path, mtimes: dict) -> dict:
@@ -254,31 +258,35 @@ def main():
     thumbs_out.mkdir(parents=True, exist_ok=True)
 
     image_count = 0
-    renamed = {}  # original filename -> optimized filename, only when the format changed
+    processed = {}  # original filename -> (final_filename, width, height)
     if images_src.is_dir():
         for img in sorted(images_src.iterdir()):
             if not img.is_file() or img.suffix.lower() not in IMAGE_SUFFIXES:
                 continue
             try:
-                final_name = optimize_image(img, images_out, thumbs_out)
+                final_name, width, height = optimize_image(img, images_out, thumbs_out)
             except Exception as exc:
                 print(f"warning: failed to optimize image {img.name}: {exc}", file=sys.stderr)
                 continue
+            processed[img.name] = (final_name, width, height)
             if final_name != img.name:
-                renamed[img.name] = final_name
                 stale = images_out / img.name
                 if stale.exists():
                     stale.unlink()  # leftover from a previous sync, in the old format
             image_count += 1
 
-    if renamed:
+    if processed:
         for page in pages:
             image_field = page["frontmatter"].get("image")
             if not isinstance(image_field, str):
                 continue
-            base = image_field.split("/")[-1]
-            if base in renamed:
-                page["frontmatter"]["image"] = f"Images/{renamed[base]}"
+            entry = processed.get(image_field.split("/")[-1])
+            if not entry:
+                continue
+            final_name, width, height = entry
+            if final_name != image_field.split("/")[-1]:
+                page["frontmatter"]["image"] = f"Images/{final_name}"
+            page["image_size"] = [width, height]
 
     (out_dir / "pages.json").write_text(
         json.dumps(pages, ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
