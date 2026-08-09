@@ -16,7 +16,7 @@
 		<link rel="preconnect" href="https://www.google-analytics.com">
 		<link rel="dns-prefetch" href="https://www.googletagmanager.com">
 		<link rel="dns-prefetch" href="https://www.google-analytics.com">
-		<link rel="preload" as="image" href="/map.png" fetchpriority="high">
+		<link rel="preload" as="image" href="/map.jpg" fetchpriority="high">
 
 		<script>
 			// Apply theme BEFORE page render to prevent flash
@@ -3239,12 +3239,12 @@ html.theme-light {
 				}
 
 				async loadStaticMap() {
-					// Check map.png exists without downloading the body, so the browser's
+					// Check map.jpg exists without downloading the body, so the browser's
 					// own (cacheable, preloadable) fetch for the same URL does the real work.
 					try {
-					const response = await fetch('/map.png', { method: 'HEAD' });
+					const response = await fetch('/map.jpg', { method: 'HEAD' });
 					if (response.ok) {
-						this.data.mapSvg = '/map.png';
+						this.data.mapSvg = '/map.jpg';
 						this.data.mapType = 'raster';
 						this.data.mapWidth = 11548;
 						this.data.mapHeight = 7724;
@@ -3252,10 +3252,10 @@ html.theme-light {
 						return true;
 					}
 				} catch (e) {
-					console.error('[ERROR] Failed to load map.png:', e);
+					console.error('[ERROR] Failed to load map.jpg:', e);
 				}
 
-				// Fallback to grid if map.png doesn't exist
+				// Fallback to grid if map.jpg doesn't exist
 				this.data.mapSvg = null;
 				this.data.mapType = 'grid';
 				return false;

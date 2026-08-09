@@ -46,7 +46,7 @@ This work includes material taken from the System Reference Document 5.1 ("SRD 5
 - `android-chrome-192x192.png` / `android-chrome-512x512.png`: PWA icons
 - `apple-touch-icon.png`: iOS home screen icon
 - `favicon-16x16.png` / `favicon-32x32.png` / `favicon-96x96.png` / `favicon.ico` / `favicon.svg`: favicons
-- `map.png`: campaign map image
+- `map.jpg`: campaign map image
 - `robots.txt`: crawler rules
 - `sitemap.xml`: sitemap for search engines
 - `humans.txt`: human-friendly site attribution/metadata
