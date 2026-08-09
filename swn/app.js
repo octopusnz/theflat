@@ -95,10 +95,26 @@
 		return '#/section/' + id;
 	}
 
+	// The sync step writes a small pre-cropped square alongside every full
+	// image (see build_swn_manifest.py's optimize_image) — always .jpg
+	// regardless of the full image's format, so 'thumb' rewrites the
+	// extension rather than reusing the source one.
+	function imageUrl(path, size) {
+		if (!path) return null;
+		var file = String(path).trim().split('/').pop();
+		if (!file) return null;
+		if (size === 'thumb') {
+			return 'content/Images/thumb/' + encodeURIComponent(file.replace(/\.[^.]+$/, '') + '.jpg');
+		}
+		return 'content/Images/' + encodeURIComponent(file);
+	}
+
 	function pageLink(id, label, cls) {
 		var page = state.byId.get(id);
 		var title = page ? '' : ' title="Not synced to this site"';
-		return '<a href="' + pageHref(id) + '"' + (cls ? ' class="' + cls + '"' : '') + title + '>' + escapeHtml(label) + '</a>';
+		var thumbSrc = page && imageUrl(page.frontmatter && page.frontmatter.image, 'thumb');
+		var thumb = thumbSrc ? '<img class="thumb" src="' + thumbSrc + '" alt="" loading="lazy">' : '';
+		return '<a href="' + pageHref(id) + '"' + (cls ? ' class="' + cls + '"' : '') + title + '>' + thumb + escapeHtml(label) + '</a>';
 	}
 
 	function chip(text) {
@@ -410,7 +426,7 @@
 		CAMPAIGN_FOLDERS.forEach(function (f) { byFolder[f] = pages.filter(function (p) { return p.folder === f; }); });
 
 		var html = '';
-		html += '<img class="banner" src="content/Images/galaxy.png" alt="" loading="lazy">';
+		html += '<img class="banner" src="content/Images/galaxy.jpg" alt="" loading="lazy">';
 		html += '<a class="back-link" href="#/browse">Browse all ' + pages.length + ' pages →</a>';
 
 		var systems = byFolder.Systems, worlds = byFolder.Worlds, factions = byFolder.Factions;
@@ -668,6 +684,9 @@
 
 		var tags = fm.tags || [];
 		if (tags.length) html += '<div class="chip-row">' + tags.map(chip).join('') + '</div>';
+
+		var pageImgSrc = imageUrl(fm.image);
+		if (pageImgSrc) html += '<img class="page-image" src="' + pageImgSrc + '" alt="' + escapeHtml(page.name) + '" loading="lazy">';
 
 		var hasStats = fm.hit_dice !== undefined && fm.hit_dice !== null;
 		if (hasStats) {

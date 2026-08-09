@@ -10,6 +10,9 @@ Usage: build_swn_manifest.py <path-to-swn-checkout> <path-to-swn-content-output-
   content is GM-only spoiler material and this manifest feeds a public page.
 - Excludes .obsidian/, the rulebook PDF/TXT, and non-content files.
 - Records the last git commit date per file for a "recently edited" list.
+- Re-encodes every image for the web (resolution cap, recompression,
+  metadata stripped) and generates a small thumbnail alongside it. Requires
+  Pillow (`pip install Pillow`), same as PyYAML is already required above.
 """
 import json
 import re
@@ -18,6 +21,7 @@ import sys
 from pathlib import Path
 
 import yaml
+from PIL import Image, ImageOps
 
 EXCLUDED_DIR_PARTS = {".obsidian", ".git"}
 # Not campaign content: Dashboard.md is an Obsidian dataviewjs script (the
@@ -27,6 +31,13 @@ EXCLUDED_ROOT_FILES = {"Dashboard.md", "README.md"}
 GM_ONLY_HEADINGS = {"hooks & secrets", "gm notes"}
 FRONTMATTER_RE = re.compile(r"\A---\r?\n(.*?)\r?\n---\r?\n?", re.DOTALL)
 HEADING_RE = re.compile(r"^(#{1,6})\s+(.*?)\s*$")
+
+IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp"}
+IMAGE_MAX_DIMENSION = 1600
+IMAGE_JPEG_QUALITY = 82
+THUMB_SIZE = 96
+THUMB_JPEG_QUALITY = 75
+THUMB_BG = (15, 23, 42)  # matches swn/index.html's dark --card-bg
 
 
 def strip_gm_sections(body: str) -> str:
@@ -62,6 +73,62 @@ def strip_leading_title(body: str) -> str:
     if m and m.group(1) == "#":
         return lines[1].lstrip("\n") if len(lines) > 1 else ""
     return body
+
+
+def _has_visible_alpha(img: Image.Image) -> bool:
+    if img.mode in ("RGBA", "LA") or (img.mode == "P" and "transparency" in img.info):
+        alpha = img.convert("RGBA").getchannel("A")
+        return alpha.getextrema()[0] < 255
+    return False
+
+
+def _flatten_rgb(img: Image.Image, bg=THUMB_BG) -> Image.Image:
+    """Composite any transparency onto a flat background instead of just
+    discarding the alpha channel, which can leave garbage color data
+    behind in fully-transparent regions of some PNGs."""
+    if img.mode not in ("RGB", "L"):
+        rgba = img.convert("RGBA")
+        flat = Image.new("RGB", rgba.size, bg)
+        flat.paste(rgba, mask=rgba.getchannel("A"))
+        return flat
+    return img.convert("RGB")
+
+
+def optimize_image(src: Path, images_out: Path, thumbs_out: Path) -> str:
+    """Re-encode one vault image for the web: cap resolution, strip
+    embedded metadata (Pillow drops EXIF unless it's explicitly
+    re-attached), and convert opaque images to JPEG regardless of source
+    format — PNG is a poor fit for the photographic images this vault
+    uses, and every synced image so far is a photo, not a diagram. Images
+    with real transparency stay PNG. Also writes a small square thumbnail
+    used for inline "linked from"-style avatars.
+
+    Returns the filename actually written under images_out — this can
+    differ from src.name when the format changes (e.g. "world.png" ->
+    "world.jpg"), so callers need to reconcile any stored references.
+    """
+    with Image.open(src) as im:
+        im.load()
+        full = im.copy()
+        full.thumbnail((IMAGE_MAX_DIMENSION, IMAGE_MAX_DIMENSION), Image.LANCZOS)
+
+        if _has_visible_alpha(im):
+            dest_name = src.stem + ".png"
+            full.save(images_out / dest_name, format="PNG", optimize=True)
+        else:
+            dest_name = src.stem + ".jpg"
+            _flatten_rgb(full).save(
+                images_out / dest_name, format="JPEG",
+                quality=IMAGE_JPEG_QUALITY, optimize=True, progressive=True,
+            )
+
+        thumb = ImageOps.fit(_flatten_rgb(im), (THUMB_SIZE, THUMB_SIZE), Image.LANCZOS)
+        thumb.save(
+            thumbs_out / (src.stem + ".jpg"), format="JPEG",
+            quality=THUMB_JPEG_QUALITY, optimize=True,
+        )
+
+    return dest_name
 
 
 def parse_file(repo: Path, rel_path: Path, mtimes: dict) -> dict:
@@ -157,19 +224,42 @@ def main():
 
     pages.sort(key=lambda p: p["path"].lower())
 
-    (out_dir / "pages.json").write_text(
-        json.dumps(pages, ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
-    )
-
     images_src = repo / "Images"
     images_out = out_dir / "Images"
     images_out.mkdir(parents=True, exist_ok=True)
+    thumbs_out = images_out / "thumb"
+    thumbs_out.mkdir(parents=True, exist_ok=True)
+
     image_count = 0
+    renamed = {}  # original filename -> optimized filename, only when the format changed
     if images_src.is_dir():
-        for img in images_src.iterdir():
-            if img.is_file():
-                (images_out / img.name).write_bytes(img.read_bytes())
-                image_count += 1
+        for img in sorted(images_src.iterdir()):
+            if not img.is_file() or img.suffix.lower() not in IMAGE_SUFFIXES:
+                continue
+            try:
+                final_name = optimize_image(img, images_out, thumbs_out)
+            except Exception as exc:
+                print(f"warning: failed to optimize image {img.name}: {exc}", file=sys.stderr)
+                continue
+            if final_name != img.name:
+                renamed[img.name] = final_name
+                stale = images_out / img.name
+                if stale.exists():
+                    stale.unlink()  # leftover from a previous sync, in the old format
+            image_count += 1
+
+    if renamed:
+        for page in pages:
+            image_field = page["frontmatter"].get("image")
+            if not isinstance(image_field, str):
+                continue
+            base = image_field.split("/")[-1]
+            if base in renamed:
+                page["frontmatter"]["image"] = f"Images/{renamed[base]}"
+
+    (out_dir / "pages.json").write_text(
+        json.dumps(pages, ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
+    )
 
     from datetime import datetime, timezone
 
