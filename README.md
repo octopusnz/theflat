@@ -40,6 +40,8 @@ This work includes material taken from the System Reference Document 5.1 ("SRD 5
 - `scripts/fetch-swn-data.sh`: clone the `octopusnz/swn` vault and rebuild `swn/content/` (manual — see Data above)
 - `scripts/build_swn_manifest.py`: parses the vault's markdown/frontmatter into `swn/content/pages.json`, called by `fetch-swn-data.sh`
 
+Image generation tooling (drafting/requesting portrait images via the Grok Imagine API and landing them in the vault) lives in `octopusnz/swn` itself, not here — see that repo's `scripts/` and README. This repo only picks up the result on the next `fetch-swn-data.sh` run.
+
 ## Static Assets
 
 - `site.webmanifest`: installable PWA metadata
