@@ -6,6 +6,7 @@
 
 - [Homepage](https://theflat.gen.nz/): Informational notice about the domain and its email authentication setup (DKIM, SPF, DMARC).
 - [RPG Campaign Tracker](https://theflat.gen.nz/rpg.html): Work-in-progress web app for tracking a tabletop RPG campaign.
+- [SWN Campaign Compendium](https://theflat.gen.nz/swn/): Stars Without Number campaign dashboard, lore, and rules reference. GM-only spoiler sections are intentionally omitted.
 
 ## Policies
 
