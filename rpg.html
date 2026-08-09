@@ -181,6 +181,17 @@ html.theme-light {
 				flex: 1;
 			}
 
+			.site-link {
+				font-size: 0.85rem;
+				color: var(--muted-fg);
+				text-decoration: none;
+				white-space: nowrap;
+			}
+
+			.site-link:hover {
+				color: var(--link);
+			}
+
 			#btn-menu {
 				display: none;
 				background: none;
@@ -936,6 +947,10 @@ html.theme-light {
 			}
 
 			h1 {
+				display: none;
+			}
+
+			.site-link {
 				display: none;
 			}
 
@@ -2572,6 +2587,7 @@ html.theme-light {
 		<header>
 			<button type="button" id="btn-menu" aria-label="Toggle menu">☰</button>
 			<h1 id="page-title" style="cursor: pointer;">RPG Campaign Tracker</h1>
+			<a class="site-link" href="/">← theflat.gen.nz</a>
 			<button type="button" class="btn-menu-close hidden" id="btn-menu-close" aria-label="Close menu">✕</button>
 			<nav class="nav-links">
 				<button type="button" class="nav-btn" data-page="home">Home</button>
