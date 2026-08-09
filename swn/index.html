@@ -229,7 +229,7 @@
 				display: flex;
 				gap: 6px;
 				overflow-x: auto;
-				flex: 1;
+				flex: 0 1 auto;
 				min-width: 0;
 			}
 
@@ -266,11 +266,13 @@
 			.tab-search {
 				position: relative;
 				flex: none;
+				margin-left: auto;
+				width: 340px;
+				max-width: 46vw;
 			}
 
 			.tab-search input {
-				width: 220px;
-				max-width: 40vw;
+				width: 100%;
 				padding: 7px 10px;
 				border-radius: 8px;
 				border: 2px solid var(--border);
@@ -288,8 +290,7 @@
 				position: absolute;
 				top: calc(100% + 6px);
 				right: 0;
-				width: 320px;
-				max-width: 80vw;
+				width: 100%;
 				max-height: 60vh;
 				overflow-y: auto;
 				background: var(--card-bg);
@@ -339,11 +340,9 @@
 				}
 				.tab-search {
 					width: 100%;
-					order: 2;
-				}
-				.tab-search input {
-					width: 100%;
 					max-width: none;
+					margin-left: 0;
+					order: 2;
 				}
 				.tab-links {
 					order: 1;
