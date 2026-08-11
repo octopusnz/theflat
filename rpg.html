@@ -16,6 +16,10 @@
 		<link rel="preconnect" href="https://www.google-analytics.com">
 		<link rel="dns-prefetch" href="https://www.googletagmanager.com">
 		<link rel="dns-prefetch" href="https://www.google-analytics.com">
+		<!-- Detail lookups (spells, monsters, equipment) hit the API directly; the
+		     cached data/*.json files only hold index lists. -->
+		<link rel="preconnect" href="https://www.dnd5eapi.co" crossorigin>
+		<link rel="dns-prefetch" href="https://www.dnd5eapi.co">
 		<link rel="preload" as="image" href="/map.jpg" fetchpriority="high">
 
 		<script>
@@ -29,7 +33,7 @@
 				// If no theme saved, explicitly default to dark (don't add theme-light class)
 			})();
 		</script>
-		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://static.cloudflareinsights.com; connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://cloudflareinsights.com https://static.cloudflareinsights.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; frame-src https://www.googletagmanager.com;">
+		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://static.cloudflareinsights.com; connect-src 'self' https://www.dnd5eapi.co https://www.googletagmanager.com https://www.google-analytics.com https://cloudflareinsights.com https://static.cloudflareinsights.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; frame-src https://www.googletagmanager.com;">
 		<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 		<meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)">
 		<meta name="description" content="RPG Campaign Tracker for tabletop RPGs — track world events, locations, NPCs, lore, spells, and inventory for your D&amp;D 5e campaign.">
