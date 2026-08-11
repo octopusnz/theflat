@@ -386,15 +386,25 @@
 			}
 
 			/* Modal */
+			/* A <dialog> opened with showModal(). These rules strip the UA's own
+			   box (border, centred sizing, colour) so the element stays the
+			   full-bleed scrim it was as a div, with .modal-content as the visible
+			   panel. Keeping the scrim on the element rather than ::backdrop lets a
+			   click outside .modal-content be detected and close the dialog. */
 			.modal {
 				display: none;
 				position: fixed;
 				top: 0;
 				left: 0;
 				width: 100%;
+				max-width: 100%;
 				height: 100%;
 				height: 100vh;
 				height: 100dvh;
+				max-height: 100%;
+				margin: 0;
+				border: 0;
+				color: inherit;
 				background: rgba(0, 0, 0, 0.5);
 				z-index: 100;
 				align-items: center;
@@ -402,7 +412,11 @@
 				padding: 16px;
 			}
 
-			.modal.active {
+			.modal::backdrop {
+				background: transparent;
+			}
+
+			.modal[open] {
 				display: flex;
 			}
 
@@ -890,6 +904,20 @@
 				margin: 28px 0 10px;
 				padding-bottom: 4px;
 				border-bottom: 1px solid var(--border);
+				/* .site-chrome is sticky and ~100px tall; without this an
+				   "On this page" jump lands with the heading behind it. */
+				scroll-margin-top: 7rem;
+			}
+
+			/* The heading takes focus on a TOC jump; it isn't an interactive
+			   control, so show the ring only for keyboard users. */
+			.page-body h2:focus {
+				outline: none;
+			}
+
+			.page-body h2:focus-visible {
+				outline: 3px solid var(--focus);
+				outline-offset: 4px;
 			}
 
 			.page-body h3 {
@@ -1051,10 +1079,10 @@
 		</footer>
 
 		<!-- Credits Modal -->
-		<div class="modal" id="credits-modal">
+		<dialog class="modal" id="credits-modal" aria-labelledby="credits-modal-title">
 			<div class="modal-content">
 				<div class="modal-header">
-					<h2>Credits</h2>
+					<h2 id="credits-modal-title">Credits</h2>
 					<button type="button" class="btn-close" id="btn-close-credits-modal" aria-label="Close modal">&times;</button>
 				</div>
 				<div class="modal-body">
@@ -1067,7 +1095,7 @@
 					<p> Our Obsidian repository for SWN: <a href="https://github.com/octopusnz/swn" target="_blank" rel="noopener noreferrer">GitHub</a></p>
 				</div>
 			</div>
-		</div>
+		</dialog>
 
 		<!-- defer lets both download in parallel with the tail of the document.
 		     Execution order is preserved, so marked is always ready before app.js
@@ -1099,15 +1127,21 @@
 				}
 			});
 
-			// Credits modal
+			// Credits modal. showModal() supplies the dialog role, modality,
+			// Esc-to-close, focus containment and focus restore on dismissal.
 			const creditsModal = document.getElementById('credits-modal');
 
 			document.getElementById('btn-credits').addEventListener('click', () => {
-				creditsModal.classList.add('active');
+				if (!creditsModal.open) creditsModal.showModal();
 			});
 
 			document.getElementById('btn-close-credits-modal').addEventListener('click', () => {
-				creditsModal.classList.remove('active');
+				creditsModal.close();
+			});
+
+			// A click on the dialog itself landed on the scrim, outside the panel.
+			creditsModal.addEventListener('click', (e) => {
+				if (e.target === creditsModal) creditsModal.close();
 			});
 		</script>
 	</body>

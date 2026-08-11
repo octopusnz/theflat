@@ -301,11 +301,17 @@
 		return { view: 'overview', query: query };
 	}
 
+	// What the last route() call put on screen, so jumping between headings
+	// within one page doesn't re-parse and re-render that page's markdown.
+	var rendered = { view: null, id: null };
+
 	function route() {
 		var r = parseHash();
 		var activeTab = 'overview';
+		var samePage = r.view === 'page' && rendered.view === 'page' && rendered.id === r.id;
+
 		if (r.view === 'page') {
-			renderPage(r.id);
+			if (!samePage) renderPage(r.id);
 			var p = state.byId.get(r.id);
 			activeTab = p ? sectionIdForCategory(p.category) : null;
 		} else if (r.view === 'browse') {
@@ -319,8 +325,20 @@
 			activeTab = 'overview';
 		}
 		setActiveTab(activeTab);
-		main.focus();
-		window.scrollTo(0, 0);
+		rendered = { view: r.view, id: r.id };
+
+		// An "On this page" link targets a heading within the rendered page.
+		var anchor = r.view === 'page' && r.query.h ? document.getElementById(r.query.h) : null;
+		if (anchor) {
+			anchor.scrollIntoView();
+			// Move focus to the heading so keyboard and screen-reader users land
+			// at the section, not back at the top of main.
+			anchor.setAttribute('tabindex', '-1');
+			anchor.focus({ preventScroll: true });
+		} else {
+			main.focus();
+			window.scrollTo(0, 0);
+		}
 	}
 
 	function renderSection(id) {
@@ -740,7 +758,11 @@
 				while (used[hid]) { hid = slug + '-' + n; n++; }
 				used[hid] = true;
 				h.id = hid;
-				tocItems.push('<a href="#' + hid + '">' + escapeHtml(h.textContent) + '</a>');
+				// A bare '#slug' would be swallowed by the hash router: parseHash
+				// sees a single segment that isn't page/browse/section and falls
+				// through to the overview. Carry the heading in the route's query
+				// string instead, so the link stays a real, shareable URL.
+				tocItems.push('<a href="' + pageHref(id) + '?h=' + encodeURIComponent(hid) + '">' + escapeHtml(h.textContent) + '</a>');
 			});
 			var tocEl = document.createElement('div');
 			tocEl.className = 'page-toc';

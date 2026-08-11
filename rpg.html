@@ -355,6 +355,9 @@ html.theme-light {
 				margin: 0 0 24px;
 			}
 
+			/* Real <button>s inside the <li>s, so they are reachable by keyboard and
+			   announced as controls. Reset the UA button chrome and let the
+			   existing sidebar styling show through. */
 			.category-item {
 				padding: 10px;
 				margin: 4px 0;
@@ -364,11 +367,22 @@ html.theme-light {
 				display: flex;
 				justify-content: space-between;
 				align-items: center;
+				width: 100%;
+				background: none;
+				border: 0;
+				color: inherit;
+				font: inherit;
+				text-align: left;
 			}
 
 		.category-item:hover,
 			.category-item.active {
 				background: var(--hover);
+			}
+
+			.category-item:focus-visible {
+				outline: 3px solid var(--focus);
+				outline-offset: -2px;
 			}
 
 			.category-item.active {
@@ -620,16 +634,27 @@ html.theme-light {
 				font-size: 0.875rem;
 			}
 
-			/* Modal */
+			/* Modal — a <dialog> opened with showModal(), which supplies the dialog
+			   role, modality, Esc-to-close, focus containment and focus restore.
+			   These rules strip the UA's own box (border, centred sizing, colour)
+			   so the element can stay the full-bleed scrim it was as a div, and
+			   .modal-content stays the visible panel. The scrim lives on the
+			   element rather than ::backdrop so that a click landing on the
+			   element itself — i.e. outside .modal-content — can close it. */
 			.modal {
 				display: none;
 				position: fixed;
 				top: 0;
 				left: 0;
 				width: 100%;
+				max-width: 100%;
 				height: 100%;
 				height: 100vh;
 				height: 100dvh;
+				max-height: 100%;
+				margin: 0;
+				border: 0;
+				color: inherit;
 				background: rgba(0, 0, 0, 0.5);
 				z-index: 100;
 				align-items: center;
@@ -637,8 +662,12 @@ html.theme-light {
 				padding: 16px;
 			}
 
-			.modal.active {
-				display: flex !important;
+			.modal::backdrop {
+				background: transparent;
+			}
+
+			.modal[open] {
+				display: flex;
 			}
 
 			.modal-content {
@@ -2625,7 +2654,7 @@ html.theme-light {
 		<a href="#main-content" class="skip-link">Skip to main content</a>
 
 		<header>
-			<button type="button" id="btn-menu" aria-label="Toggle menu">☰</button>
+			<button type="button" id="btn-menu" aria-label="Toggle menu" aria-controls="sidebar" aria-expanded="false">☰</button>
 			<h1 id="page-title">RPG Campaign Tracker</h1>
 			<a class="site-link" href="/">← theflat.gen.nz</a>
 			<button type="button" class="btn-menu-close hidden" id="btn-menu-close" aria-label="Close menu">✕</button>
@@ -2650,25 +2679,35 @@ html.theme-light {
 					<button type="button" class="sidebar-close" id="btn-close-sidebar" aria-label="Close menu">&times;</button>
 				</div>
 				<ul class="category-list">
-					<li class="category-item active" data-category="all">
-						<span>All</span>
-						<span class="badge" id="badge-all">0</span>
+					<li>
+						<button type="button" class="category-item active" data-category="all" aria-current="true">
+							<span>All</span>
+							<span class="badge" id="badge-all">0</span>
+						</button>
 					</li>
-					<li class="category-item" data-category="locations">
-						<span>Locations</span>
-						<span class="badge" id="badge-locations">0</span>
+					<li>
+						<button type="button" class="category-item" data-category="locations">
+							<span>Locations</span>
+							<span class="badge" id="badge-locations">0</span>
+						</button>
 					</li>
-					<li class="category-item" data-category="npcs">
-						<span>NPCs</span>
-						<span class="badge" id="badge-npcs">0</span>
+					<li>
+						<button type="button" class="category-item" data-category="npcs">
+							<span>NPCs</span>
+							<span class="badge" id="badge-npcs">0</span>
+						</button>
 					</li>
-					<li class="category-item" data-category="items">
-						<span>Items</span>
-						<span class="badge" id="badge-items">0</span>
+					<li>
+						<button type="button" class="category-item" data-category="items">
+							<span>Items</span>
+							<span class="badge" id="badge-items">0</span>
+						</button>
 					</li>
-					<li class="category-item" data-category="events">
-						<span>Events</span>
-						<span class="badge" id="badge-events">0</span>
+					<li>
+						<button type="button" class="category-item" data-category="events">
+							<span>Events</span>
+							<span class="badge" id="badge-events">0</span>
+						</button>
 					</li>
 				</ul>
 				<button type="button" class="btn" id="btn-add-new">+ Add New</button>
@@ -2680,59 +2719,95 @@ html.theme-light {
 					<input type="text" id="search-category-filter" placeholder="Filter searches..." autocomplete="off" class="search-category-filter" aria-label="Filter rules search categories">
 				</div>
 				<ul class="category-list search-category-list search-category-scrollable" id="search-category-list">
-					<li class="category-item search-category-item" data-search-type="equipment">
-						<span>Equipment</span>
+					<li>
+						<button type="button" class="category-item search-category-item" data-search-type="equipment">
+							<span>Equipment</span>
+						</button>
 					</li>
-					<li class="category-item search-category-item" data-search-type="spells">
-						<span>Spells</span>
+					<li>
+						<button type="button" class="category-item search-category-item" data-search-type="spells">
+							<span>Spells</span>
+						</button>
 					</li>
-					<li class="category-item search-category-item" data-search-type="monsters">
-						<span>Monsters</span>
+					<li>
+						<button type="button" class="category-item search-category-item" data-search-type="monsters">
+							<span>Monsters</span>
+						</button>
 					</li>
-					<li class="category-item search-category-item" data-search-type="classes">
-						<span>Classes</span>
+					<li>
+						<button type="button" class="category-item search-category-item" data-search-type="classes">
+							<span>Classes</span>
+						</button>
 					</li>
-					<li class="category-item search-category-item" data-search-type="races">
-						<span>Races</span>
+					<li>
+						<button type="button" class="category-item search-category-item" data-search-type="races">
+							<span>Races</span>
+						</button>
 					</li>
-					<li class="category-item search-category-item" data-search-type="skills">
-						<span>Skills</span>
+					<li>
+						<button type="button" class="category-item search-category-item" data-search-type="skills">
+							<span>Skills</span>
+						</button>
 					</li>
-					<li class="category-item search-category-item" data-search-type="conditions">
-						<span>Conditions</span>
+					<li>
+						<button type="button" class="category-item search-category-item" data-search-type="conditions">
+							<span>Conditions</span>
+						</button>
 					</li>
-					<li class="category-item search-category-item" data-search-type="damage-types">
-						<span>Damage Types</span>
+					<li>
+						<button type="button" class="category-item search-category-item" data-search-type="damage-types">
+							<span>Damage Types</span>
+						</button>
 					</li>
-					<li class="category-item search-category-item" data-search-type="ability-scores">
-						<span>Ability Scores</span>
+					<li>
+						<button type="button" class="category-item search-category-item" data-search-type="ability-scores">
+							<span>Ability Scores</span>
+						</button>
 					</li>
-					<li class="category-item search-category-item" data-search-type="languages">
-						<span>Languages</span>
+					<li>
+						<button type="button" class="category-item search-category-item" data-search-type="languages">
+							<span>Languages</span>
+						</button>
 					</li>
-					<li class="category-item search-category-item" data-search-type="traits">
-						<span>Traits</span>
+					<li>
+						<button type="button" class="category-item search-category-item" data-search-type="traits">
+							<span>Traits</span>
+						</button>
 					</li>
-					<li class="category-item search-category-item" data-search-type="features">
-						<span>Features</span>
+					<li>
+						<button type="button" class="category-item search-category-item" data-search-type="features">
+							<span>Features</span>
+						</button>
 					</li>
-					<li class="category-item search-category-item" data-search-type="proficiencies">
-						<span>Proficiencies</span>
+					<li>
+						<button type="button" class="category-item search-category-item" data-search-type="proficiencies">
+							<span>Proficiencies</span>
+						</button>
 					</li>
-					<li class="category-item search-category-item" data-search-type="subclasses">
-						<span>Subclasses</span>
+					<li>
+						<button type="button" class="category-item search-category-item" data-search-type="subclasses">
+							<span>Subclasses</span>
+						</button>
 					</li>
-					<li class="category-item search-category-item" data-search-type="subraces">
-						<span>Subraces</span>
+					<li>
+						<button type="button" class="category-item search-category-item" data-search-type="subraces">
+							<span>Subraces</span>
+						</button>
 					</li>
-					<li class="category-item search-category-item" data-search-type="magic-schools">
-						<span>Magic Schools</span>
+					<li>
+						<button type="button" class="category-item search-category-item" data-search-type="magic-schools">
+							<span>Magic Schools</span>
+						</button>
 					</li>
-					<li class="category-item search-category-item" data-search-type="weapon-properties">
-						<span>Weapon Properties</span>
+					<li>
+						<button type="button" class="category-item search-category-item" data-search-type="weapon-properties">
+							<span>Weapon Properties</span>
+						</button>
 					</li>
-					<li class="category-item search-category-item" data-search-type="equipment-categories">
-						<span>Equipment Categories</span>
+					<li>
+						<button type="button" class="category-item search-category-item" data-search-type="equipment-categories">
+							<span>Equipment Categories</span>
+						</button>
 					</li>
 				</ul>
 				
@@ -2750,7 +2825,7 @@ html.theme-light {
 			</aside>
 
 		<!-- Map Container -->
-		<main class="map-container" id="main-content">
+		<main class="map-container" id="main-content" tabindex="-1">
 				<div class="map-toolbar">
 					<button type="button" class="btn-toolbar" id="btn-zoom-in">Zoom In</button>
 					<button type="button" class="btn-toolbar" id="btn-zoom-out">Zoom Out</button>
@@ -3116,10 +3191,10 @@ html.theme-light {
 	</footer>
 
 	<!-- Add Item Modal -->
-	<div class="modal hidden" id="add-item-modal">
+	<dialog class="modal" id="add-item-modal" aria-labelledby="add-item-modal-title">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h3>Add Equipment to Inventory</h3>
+				<h3 id="add-item-modal-title">Add Equipment to Inventory</h3>
 				<button type="button" class="btn-close" id="btn-close-add-item-modal" aria-label="Close">&times;</button>
 			</div>
 			<div class="modal-body">
@@ -3129,7 +3204,7 @@ html.theme-light {
 				</div>
 			</div>
 		</div>
-	</div>
+	</dialog>
 
 	<!-- Detail Panel -->
 		<aside class="detail-panel hidden" id="detail-panel">
@@ -3162,10 +3237,10 @@ html.theme-light {
 		</aside>
 
 		<!-- Add New Modal -->
-		<div class="modal" id="modal-add">
+		<dialog class="modal" id="modal-add" aria-labelledby="modal-add-title">
 			<div class="modal-content">
 				<div class="modal-header">
-					<h2>Add New</h2>
+					<h2 id="modal-add-title">Add New</h2>
 					<button type="button" class="btn-close" id="btn-close-modal" aria-label="Close modal">&times;</button>
 				</div>
 				<form id="form-add">
@@ -3186,13 +3261,13 @@ html.theme-light {
 					</div>
 				</form>
 			</div>
-		</div>
+		</dialog>
 
 		<!-- Credits & Licensing Modal -->
-		<div class="modal" id="credits-modal">
+		<dialog class="modal" id="credits-modal" aria-labelledby="credits-modal-title">
 			<div class="modal-content">
 				<div class="modal-header">
-					<h2>Credits &amp; Licensing</h2>
+					<h2 id="credits-modal-title">Credits &amp; Licensing</h2>
 					<button type="button" class="btn-close" id="btn-close-credits-modal" aria-label="Close modal">&times;</button>
 				</div>
 				<div class="modal-body">
@@ -3202,7 +3277,7 @@ html.theme-light {
 					<p>This work includes material taken from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC and available at <a href="https://www.dndbeyond.com/srd" target="_blank" rel="noopener noreferrer">D&D Beyond</a>. The SRD 5.1 is licensed under the <a href="https://creativecommons.org/licenses/by/4.0/legalcode" target="_blank" rel="noopener noreferrer">Creative Commons Attribution 4.0 International License</a>.</p>
 				</div>
 			</div>
-		</div>
+		</dialog>
 
 		<script>
 			// The bundled map's logical coordinate space. Location x/y in
@@ -4692,34 +4767,55 @@ function showItemDetails(category, itemId) {
 			formFields.innerHTML = getFormTemplate(type);
 	});
 
+	// Clicking the dialog element itself means the click landed on the scrim,
+	// outside .modal-content — the conventional "click away to dismiss".
+	function closeOnBackdropClick(dialog) {
+		dialog.addEventListener('click', (e) => {
+			if (e.target === dialog) dialog.close();
+		});
+	}
+
+	// showModal() throws InvalidStateError on an already-open dialog, and the
+	// credits dialog has two triggers, so guard rather than relying on the open
+	// modal happening to cover them both.
+	function openDialog(dialog) {
+		if (!dialog.open) dialog.showModal();
+	}
+
+	closeOnBackdropClick(modal);
+
 	document.getElementById('btn-add-new').addEventListener('click', () => {
-		modal.classList.add('active');
+		openDialog(modal);
+	});
+
+	// Fires for every close path — button, backdrop, and Esc — so the form is
+	// reset once here instead of being duplicated across each handler.
+	modal.addEventListener('close', () => {
+		form.reset();
+		formFields.innerHTML = '';
 	});
 
 	document.getElementById('btn-close-modal').addEventListener('click', () => {
-		modal.classList.remove('active');
-		form.reset();
-		formFields.innerHTML = '';
+		modal.close();
 	});
 
 	document.getElementById('btn-cancel').addEventListener('click', () => {
-		modal.classList.remove('active');
-		form.reset();
-		formFields.innerHTML = '';
+		modal.close();
 	});
 
 	const creditsModal = document.getElementById('credits-modal');
+	closeOnBackdropClick(creditsModal);
 
 	document.getElementById('btn-credits').addEventListener('click', () => {
-		creditsModal.classList.add('active');
+		openDialog(creditsModal);
 	});
 
 	document.getElementById('btn-credits-menu').addEventListener('click', () => {
-		creditsModal.classList.add('active');
+		openDialog(creditsModal);
 	});
 
 	document.getElementById('btn-close-credits-modal').addEventListener('click', () => {
-		creditsModal.classList.remove('active');
+		creditsModal.close();
 	});
 
 	form.addEventListener('submit', (e) => {
@@ -4736,11 +4832,10 @@ function showItemDetails(category, itemId) {
 		if (data.y) data.y = parseFloat(data.y);
 		
 		store.add(type, data);
-		
-		modal.classList.remove('active');
-		form.reset();
-		formFields.innerHTML = '';
-		
+
+		// The dialog's 'close' handler resets the form and clears the fields.
+		modal.close();
+
 		// Refresh map if location was added
 		if (type === 'locations') {
 			mapController.render();
@@ -4815,9 +4910,16 @@ function showItemDetails(category, itemId) {
 	// Category filter
 	document.querySelectorAll('.category-item').forEach(item => {
 		item.addEventListener('click', () => {
-			document.querySelectorAll('.category-item').forEach(i => i.classList.remove('active'));
+			document.querySelectorAll('.category-item').forEach(i => {
+				i.classList.remove('active');
+				i.removeAttribute('aria-current');
+			});
 			item.classList.add('active');
-			
+			// Exactly one filter is selected at a time, so aria-current marks the
+			// chosen one rather than aria-pressed, which would imply independent
+			// toggles.
+			if (item.dataset.category) item.setAttribute('aria-current', 'true');
+
 			const category = item.dataset.category;
 			if (category === 'all') {
 				showAllCategories();
@@ -4907,12 +5009,23 @@ document.getElementById('btn-import').addEventListener('change', async (e) => {
 	const overlay = document.getElementById('mobile-overlay');
 	const closeSidebarBtn = document.getElementById('btn-close-sidebar');
 
+	// The sidebar is shown two different ways: on desktop by removing `hidden`,
+	// on mobile by adding `active`. Read the real state rather than tracking a
+	// separate flag that could drift out of sync with the classes.
+	function syncMenuAria() {
+		const expanded = window.innerWidth >= 769
+			? !sidebar.classList.contains('hidden')
+			: sidebar.classList.contains('active');
+		menuBtn.setAttribute('aria-expanded', String(expanded));
+	}
+
 	function closeSidebar() {
 		sidebar.classList.remove('active');
 		sidebar.classList.add('hidden');
 		overlay.classList.remove('active');
 		menuCloseBtn.classList.add('hidden');
 		menuBtn.classList.remove('hidden');
+		syncMenuAria();
 	}
 
 	menuBtn.addEventListener('click', () => {
@@ -4920,6 +5033,7 @@ document.getElementById('btn-import').addEventListener('change', async (e) => {
 			sidebar.classList.toggle('hidden');
 			sidebar.classList.remove('active');
 			overlay.classList.remove('active');
+			syncMenuAria();
 			return;
 		}
 		sidebar.classList.toggle('active');
@@ -4927,6 +5041,7 @@ document.getElementById('btn-import').addEventListener('change', async (e) => {
 		overlay.classList.add('active');
 		menuCloseBtn.classList.toggle('hidden');
 		menuBtn.classList.add('hidden');
+		syncMenuAria();
 	});
 
 	function syncSidebarForViewport() {
@@ -4935,6 +5050,7 @@ document.getElementById('btn-import').addEventListener('change', async (e) => {
 			overlay.classList.remove('active');
 			menuCloseBtn.classList.add('hidden');
 			menuBtn.classList.remove('hidden');
+			syncMenuAria();
 			return;
 		}
 
@@ -4942,6 +5058,7 @@ document.getElementById('btn-import').addEventListener('change', async (e) => {
 		if (!sidebar.classList.contains('active')) {
 			sidebar.classList.add('hidden');
 		}
+		syncMenuAria();
 	}
 
 	syncSidebarForViewport();
@@ -5092,10 +5209,17 @@ document.getElementById('btn-import').addEventListener('change', async (e) => {
 			mapView.classList.remove('hidden');
 		}
 
-		// Update nav buttons
+		// Update nav buttons. "Home" is an alias for the map, so it highlights
+		// alongside "World Map" — but only the button that *is* the current page
+		// gets aria-current, since two current pages would be meaningless.
 		document.querySelectorAll('.nav-btn').forEach(btn => {
 			const btnPage = btn.dataset.page === 'home' ? 'map' : btn.dataset.page;
 			btn.classList.toggle('active', btnPage === pageName);
+			if (btn.dataset.page === pageName) {
+				btn.setAttribute('aria-current', 'page');
+			} else {
+				btn.removeAttribute('aria-current');
+			}
 		});
 
 		currentPage = pageName;
@@ -5120,7 +5244,9 @@ document.getElementById('btn-import').addEventListener('change', async (e) => {
 	// display:none. The Home nav button above already does this accessibly.
 
 	// Set initial active state for map (World Map)
-	document.querySelector('[data-page="map"]').classList.add('active');
+	const initialNavBtn = document.querySelector('[data-page="map"]');
+	initialNavBtn.classList.add('active');
+	initialNavBtn.setAttribute('aria-current', 'page');
 
 	// ============================================
 	// Party Inventory Management
@@ -5200,6 +5326,22 @@ async loadInventory() {
 			// Close add item modal
 			document.getElementById('btn-close-add-item-modal').addEventListener('click', () => {
 				this.closeAddItemModal();
+			});
+
+			const addItemModal = document.getElementById('add-item-modal');
+
+			// A click on the dialog element itself landed on the scrim, not the panel.
+			addItemModal.addEventListener('click', (e) => {
+				if (e.target === addItemModal) addItemModal.close();
+			});
+
+			// Runs for every dismissal — close button, backdrop click and Esc —
+			// so the scroll lock is always released and the search state reset.
+			addItemModal.addEventListener('close', () => {
+				document.body.style.overflow = '';
+				document.getElementById('add-item-search').value = '';
+				document.getElementById('add-item-results').innerHTML =
+					'<div class="empty-state">Start typing to search equipment</div>';
 			});
 
 			// Search in add item modal
@@ -5295,17 +5437,16 @@ async loadInventory() {
 
 		showAddItemModal() {
 			const modal = document.getElementById('add-item-modal');
-			modal.classList.add('active');
+			if (!modal.open) modal.showModal();
 			document.body.style.overflow = 'hidden';
 			document.getElementById('add-item-search').focus();
 		}
 
 		closeAddItemModal() {
 			const modal = document.getElementById('add-item-modal');
-			modal.classList.remove('active');
-			document.body.style.overflow = '';
-			document.getElementById('add-item-search').value = '';
-			document.getElementById('add-item-results').innerHTML = '<div class="empty-state">Start typing to search equipment</div>';
+			// close() is a no-op on an already-closed dialog, so this stays safe
+			// when called after Esc or a backdrop click has already dismissed it.
+			modal.close();
 		}
 
 		async searchEquipmentForAdd(query) {

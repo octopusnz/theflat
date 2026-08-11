@@ -470,8 +470,18 @@
 			visibility: hidden;
 		}
 
+		/* The stats block ends with this line, whose own bottom margin used to
+		   stack with the footer's top margin for ~64px of dead space above the
+		   rule. It owns its spacing; the footer supplies the rest. */
+		.stats-updated {
+			text-align: center;
+			margin: 24px 0 0;
+			font-size: 0.875rem;
+			color: var(--muted-fg);
+		}
+
 		footer {
-			margin-top: 48px;
+			margin-top: 32px;
 			padding-top: 24px;
 			border-top: 1px solid var(--muted-fg);
 			font-size: 0.875rem;
@@ -745,7 +755,7 @@
 					</div>
 				</div>
 				
-				<p style="text-align: center; margin-top: 24px; font-size: 0.875rem; color: var(--muted-fg);">
+				<p class="stats-updated">
 					Last updated: ${new Date(data.updated_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
 				</p>
 			`;
