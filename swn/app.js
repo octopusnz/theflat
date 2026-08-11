@@ -106,6 +106,11 @@
 		if (size === 'thumb') {
 			return 'content/Images/thumb/' + encodeURIComponent(file.replace(/\.[^.]+$/, '') + '.jpg');
 		}
+		// The sync step writes a .webp sibling next to every full image, so this
+		// rewrites the extension the same way 'thumb' does.
+		if (size === 'webp') {
+			return 'content/Images/' + encodeURIComponent(file.replace(/\.[^.]+$/, '') + '.webp');
+		}
 		return 'content/Images/' + encodeURIComponent(file);
 	}
 
@@ -689,7 +694,10 @@
 		if (pageImgSrc) {
 			var dims = Array.isArray(page.image_size) ? page.image_size : null;
 			var dimAttrs = dims ? ' width="' + dims[0] + '" height="' + dims[1] + '"' : '';
-			html += '<img class="page-image" src="' + pageImgSrc + '" alt="' + escapeHtml(page.name) + '"' + dimAttrs + ' loading="lazy">';
+			html += '<picture class="page-picture">' +
+				'<source srcset="' + imageUrl(fm.image, 'webp') + '" type="image/webp">' +
+				'<img class="page-image" src="' + pageImgSrc + '" alt="' + escapeHtml(page.name) + '"' + dimAttrs + ' loading="lazy">' +
+				'</picture>';
 		}
 
 		var hasStats = fm.hit_dice !== undefined && fm.hit_dice !== null;

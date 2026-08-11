@@ -35,6 +35,7 @@ HEADING_RE = re.compile(r"^(#{1,6})\s+(.*?)\s*$")
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp"}
 IMAGE_MAX_DIMENSION = 1600
 IMAGE_JPEG_QUALITY = 82
+IMAGE_WEBP_QUALITY = 82
 THUMB_SIZE = 96
 THUMB_JPEG_QUALITY = 75
 THUMB_BG = (15, 23, 42)  # matches swn/index.html's dark --card-bg
@@ -122,8 +123,11 @@ def optimize_image(src: Path, images_out: Path, thumbs_out: Path) -> tuple:
     re-attached), and convert opaque images to JPEG regardless of source
     format — PNG is a poor fit for the photographic images this vault
     uses, and every synced image so far is a photo, not a diagram. Images
-    with real transparency stay PNG. Also writes a small square thumbnail
-    used for inline "linked from"-style avatars.
+    with real transparency stay PNG. Also writes a WebP sibling of the
+    full-size image (the client prefers it via <picture> and falls back to the
+    JPEG/PNG), and a small square thumbnail used for inline
+    "linked from"-style avatars. Thumbnails stay JPEG-only — at 96px the WebP
+    saving is a few hundred bytes and not worth the extra code path.
 
     Returns (final_filename, width, height) of the full-size output. The
     filename can differ from src.name when the format changed (e.g.
@@ -139,11 +143,20 @@ def optimize_image(src: Path, images_out: Path, thumbs_out: Path) -> tuple:
         if _has_visible_alpha(im):
             dest_name = src.stem + ".png"
             full.save(images_out / dest_name, format="PNG", optimize=True)
+            # WebP carries alpha, so the transparent branch keeps it too.
+            full.convert("RGBA").save(
+                images_out / (src.stem + ".webp"), format="WEBP",
+                quality=IMAGE_WEBP_QUALITY, method=6,
+            )
         else:
             dest_name = src.stem + ".jpg"
             _flatten_rgb(full).save(
                 images_out / dest_name, format="JPEG",
                 quality=IMAGE_JPEG_QUALITY, optimize=True, progressive=True,
+            )
+            _flatten_rgb(full).save(
+                images_out / (src.stem + ".webp"), format="WEBP",
+                quality=IMAGE_WEBP_QUALITY, method=6,
             )
 
         thumb = ImageOps.fit(_flatten_rgb(im), (THUMB_SIZE, THUMB_SIZE), Image.LANCZOS)
@@ -294,6 +307,7 @@ def main():
 
     from datetime import datetime, timezone
 
+    meta_path = out_dir / "meta.json"
     meta = {
         "source_repo": "https://github.com/octopusnz/swn",
         "source_commit": head_sha(repo),
@@ -301,7 +315,23 @@ def main():
         "page_count": len(pages),
         "image_count": image_count,
     }
-    (out_dir / "meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
+
+    # synced_at means "when the content last changed", not "when this script last
+    # ran". Re-running against an unchanged vault used to rewrite the timestamp
+    # and leave a diff with no content in it, so carry the old one forward when
+    # nothing else moved.
+    if meta_path.exists():
+        try:
+            previous = json.loads(meta_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            previous = None
+        if previous and all(
+            previous.get(k) == meta[k]
+            for k in ("source_repo", "source_commit", "page_count", "image_count")
+        ) and previous.get("synced_at"):
+            meta["synced_at"] = previous["synced_at"]
+
+    meta_path.write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
 
     print(f"Wrote {len(pages)} pages and {image_count} images to {out_dir}")
 

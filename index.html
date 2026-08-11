@@ -3,6 +3,7 @@
 	<head>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; form-action 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://static.cloudflareinsights.com; connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://cloudflareinsights.com https://static.cloudflareinsights.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; frame-src https://www.googletagmanager.com;">
 
 		<!-- Google Tag Manager -->
 		<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -18,7 +19,6 @@
 		<link rel="dns-prefetch" href="https://www.googletagmanager.com">
 		<link rel="dns-prefetch" href="https://www.google-analytics.com">
 		<link rel="manifest" href="/site.webmanifest">
-		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://static.cloudflareinsights.com; connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://cloudflareinsights.com https://static.cloudflareinsights.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; frame-src https://www.googletagmanager.com;">
 		<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 		<meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)">
 		<meta
@@ -111,19 +111,21 @@
 			body {
 				background: var(--bg);
 				color: var(--fg);
-				height: 100vh;
-				height: 100dvh;
-				overflow: hidden;
 			}
 
+			/* Scrolling stays on the document. Making <body> the scroll container
+			   breaks native scroll restoration and stops mobile browsers
+			   collapsing the URL bar; min-height is all that's needed to keep the
+			   footer at the bottom of a short page. */
 			body {
 				font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
 				line-height: 1.55;
 				margin: 0;
 				padding: 48px 20px;
+				min-height: 100vh;
+				min-height: 100dvh;
 				display: flex;
 				flex-direction: column;
-				overflow-y: auto;
 			}
 
 			.skip-link {
@@ -574,7 +576,10 @@
 
 	<section class="github-stats" aria-labelledby="github-heading">
 				<h2 id="github-heading">GitHub Statistics</h2>
-				<div id="github-container" role="region" aria-label="GitHub Statistics Loading" aria-live="polite" aria-busy="true" class="content-auto">
+				<!-- No role="region"/aria-label here: the wrapping <section> is already
+				     a named landmark via aria-labelledby, and the old label said
+				     "Loading" permanently — aria-busy carries that state instead. -->
+				<div id="github-container" aria-live="polite" aria-busy="true" class="content-auto">
 					<div class="stats-grid">
 						<div class="skeleton-card">
 							<div class="skeleton skeleton-text"></div>

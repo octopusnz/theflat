@@ -3,6 +3,7 @@
 	<head>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=10, viewport-fit=cover" id="viewport">
+		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; form-action 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://static.cloudflareinsights.com; connect-src 'self' https://www.dnd5eapi.co https://www.googletagmanager.com https://www.google-analytics.com https://cloudflareinsights.com https://static.cloudflareinsights.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; frame-src https://www.googletagmanager.com;">
 
 		<!-- Google Tag Manager -->
 		<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -20,7 +21,9 @@
 		     cached data/*.json files only hold index lists. -->
 		<link rel="preconnect" href="https://www.dnd5eapi.co" crossorigin>
 		<link rel="dns-prefetch" href="https://www.dnd5eapi.co">
-		<link rel="preload" as="image" href="/map.jpg" fetchpriority="high">
+		<!-- type= lets browsers without WebP skip this and fetch the JPEG fallback
+		     when the map renders, rather than downloading both. -->
+		<link rel="preload" as="image" href="/map.webp" type="image/webp" fetchpriority="high">
 
 		<script>
 			// Apply theme BEFORE page render to prevent flash
@@ -33,7 +36,6 @@
 				// If no theme saved, explicitly default to dark (don't add theme-light class)
 			})();
 		</script>
-		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://static.cloudflareinsights.com; connect-src 'self' https://www.dnd5eapi.co https://www.googletagmanager.com https://www.google-analytics.com https://cloudflareinsights.com https://static.cloudflareinsights.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; frame-src https://www.googletagmanager.com;">
 		<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 		<meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)">
 		<meta name="description" content="RPG Campaign Tracker for tabletop RPGs — track world events, locations, NPCs, lore, spells, and inventory for your D&amp;D 5e campaign.">
@@ -114,6 +116,7 @@ html.theme-light {
 				background: var(--bg);
 				color: var(--fg);
 				height: 100vh;
+				height: 100dvh;
 				margin: 0;
 				padding: 0;
 				overflow: hidden;
@@ -533,6 +536,7 @@ html.theme-light {
 				right: 0;
 				width: 400px;
 				height: 100vh;
+				height: 100dvh;
 				background: var(--bg);
 				border-left: 2px solid var(--border);
 				padding: 12px;
@@ -625,6 +629,7 @@ html.theme-light {
 				width: 100%;
 				height: 100%;
 				height: 100vh;
+				height: 100dvh;
 				background: rgba(0, 0, 0, 0.5);
 				z-index: 100;
 				align-items: center;
@@ -883,6 +888,7 @@ html.theme-light {
 				top: 0;
 				right: 0;
 				height: 100vh;
+				height: 100dvh;
 				z-index: 50;
 				box-shadow: -4px 0 12px rgba(0, 0, 0, 0.1);
 			}
@@ -1053,6 +1059,7 @@ html.theme-light {
 	@media (max-width: 768px) and (orientation: landscape) {
 			.sidebar {
 				height: 100vh !important;
+				height: 100dvh !important;
 				overflow: hidden;
 				display: flex !important;
 				flex-direction: column !important;
@@ -2619,7 +2626,7 @@ html.theme-light {
 
 		<header>
 			<button type="button" id="btn-menu" aria-label="Toggle menu">☰</button>
-			<h1 id="page-title" style="cursor: pointer;">RPG Campaign Tracker</h1>
+			<h1 id="page-title">RPG Campaign Tracker</h1>
 			<a class="site-link" href="/">← theflat.gen.nz</a>
 			<button type="button" class="btn-menu-close hidden" id="btn-menu-close" aria-label="Close menu">✕</button>
 			<nav class="nav-links">
@@ -3198,6 +3205,28 @@ html.theme-light {
 		</div>
 
 		<script>
+			// The bundled map's logical coordinate space. Location x/y in
+			// rpg-data.json (and in users' saved localStorage) are authored against
+			// these numbers — The Golden City at 5774,3862 is dead centre — so they
+			// are a fixed contract, NOT the pixel size of map.jpg. The image is
+			// stretched to fill this space by the SVG viewBox, so map.jpg can be
+			// re-encoded or resized without touching any stored coordinate.
+			// Uploaded maps declare their own space from the file's real dimensions.
+			const BUNDLED_MAP_COORD_WIDTH = 11548;
+			const BUNDLED_MAP_COORD_HEIGHT = 7724;
+
+			// Same artwork, ~16% smaller. The JPEG stays as the fallback for
+			// browsers that can't decode WebP — renderMap swaps to it on a decode
+			// error, which is more reliable than feature-detecting up front.
+			const BUNDLED_MAP_SRC = '/map.webp';
+			const BUNDLED_MAP_FALLBACK = '/map.jpg';
+
+			// Marker geometry as a fraction of the map's width, so markers stay
+			// proportional whichever coordinate space is in play. The divisors
+			// reproduce the previous hardcoded 80 / 120 on the bundled map.
+			const MARKER_RADIUS_RATIO = 1 / 144;
+			const MARKER_LABEL_RATIO = 1 / 96;
+
 			function debounce(fn, delay) {
 				let timeoutId;
 				return function debounced(...args) {
@@ -3281,20 +3310,22 @@ html.theme-light {
 				}
 
 				async loadStaticMap() {
-					// Check map.jpg exists without downloading the body, so the browser's
-					// own (cacheable, preloadable) fetch for the same URL does the real work.
+					// HEAD the JPEG (always committed to the repo) as the "is a bundled
+					// map available at all" check, without downloading the body — the
+					// browser's own preloaded fetch does the real work.
 					try {
-					const response = await fetch('/map.jpg', { method: 'HEAD' });
+					const response = await fetch(BUNDLED_MAP_FALLBACK, { method: 'HEAD' });
 					if (response.ok) {
-						this.data.mapSvg = '/map.jpg';
+						this.data.mapSvg = BUNDLED_MAP_SRC;
+						this.data.mapSvgFallback = BUNDLED_MAP_FALLBACK;
 						this.data.mapType = 'raster';
-						this.data.mapWidth = 11548;
-						this.data.mapHeight = 7724;
+						this.data.mapWidth = BUNDLED_MAP_COORD_WIDTH;
+						this.data.mapHeight = BUNDLED_MAP_COORD_HEIGHT;
 						this.data.isStaticMap = true;
 						return true;
 					}
 				} catch (e) {
-					console.error('[ERROR] Failed to load map.jpg:', e);
+					console.error('[ERROR] Failed to load bundled map:', e);
 				}
 
 				// Fallback to grid if map.jpg doesn't exist
@@ -3793,7 +3824,15 @@ handleTouchMove(e) {
 					image.setAttribute('width', width);
 					image.setAttribute('height', height);
 					image.setAttribute('preserveAspectRatio', 'none');
-					
+
+					// Browsers that can't decode WebP fall back to the JPEG. `once`
+					// keeps this from looping if the fallback fails too.
+					if (store.data.mapSvgFallback) {
+						image.addEventListener('error', () => {
+							image.setAttribute('href', store.data.mapSvgFallback);
+						}, { once: true });
+					}
+
 					mainGroup.appendChild(image);
 					
 					// Create and add locations layer on top
@@ -3874,27 +3913,38 @@ handleTouchMove(e) {
 
 		render() {
 			const locations = store.getAll('locations');
-			const centerX = 5774;
-			const centerY = 3862;
-			const rangeX = 11548 * 0.4;
-			const rangeY = 7724 * 0.4;
+
+			// Derive everything from the map actually in play. Uploaded maps declare
+			// their own (much smaller) coordinate space from the file's real pixel
+			// size, so fixed values sized for the bundled map would put auto-placed
+			// markers far outside the viewBox and make every marker enormous.
+			const mapWidth = store.data.mapWidth || BUNDLED_MAP_COORD_WIDTH;
+			const mapHeight = store.data.mapHeight || BUNDLED_MAP_COORD_HEIGHT;
+			const centerX = mapWidth / 2;
+			const centerY = mapHeight / 2;
+			const rangeX = mapWidth * 0.4;
+			const rangeY = mapHeight * 0.4;
+			const radius = mapWidth * MARKER_RADIUS_RATIO;
+			const labelSize = mapWidth * MARKER_LABEL_RATIO;
 
 			locations.forEach((location) => {
-				const x = location.x || (centerX - rangeX/2 + Math.random() * rangeX);
-				const y = location.y || (centerY - rangeY/2 + Math.random() * rangeY);
-				
+				// Explicit 0 is a valid coordinate, so test for a number rather than
+				// truthiness before falling back to random placement.
+				const x = Number.isFinite(location.x) ? location.x : (centerX - rangeX/2 + Math.random() * rangeX);
+				const y = Number.isFinite(location.y) ? location.y : (centerY - rangeY/2 + Math.random() * rangeY);
+
 				const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 				g.classList.add('map-location');
-				
+
 				const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
 				circle.setAttribute('cx', x);
 				circle.setAttribute('cy', y);
-				circle.setAttribute('r', 80); // Increased from 8 to 80 for 11548×7724 map
-				
+				circle.setAttribute('r', radius);
+
 				const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
 				text.setAttribute('x', x);
-				text.setAttribute('y', y - 120); // Increased offset from -15 to -120
-				text.setAttribute('font-size', '120'); // Added explicit font size
+				text.setAttribute('y', y - labelSize);
+				text.setAttribute('font-size', labelSize);
 				text.textContent = location.name;
 				
 				g.appendChild(circle);
@@ -4013,6 +4063,7 @@ function showLocationDetails(locationId) {
 				panel.style.transformOrigin = 'top right';
 				panel.style.width = '100%';
 				panel.style.height = '100vh';
+				panel.style.height = '100dvh'; // ignored where dvh is unsupported, leaving the vh above
 				panel.style.left = 'auto';
 				panel.style.right = '0';
 				panel.style.top = '0';
@@ -4908,12 +4959,15 @@ document.getElementById('btn-import').addEventListener('change', async (e) => {
 		menuCloseBtn.addEventListener('click', closeSidebar);
 	}
 
-	// Close menu when clicking on a category (mobile only)
-	if (window.innerWidth <= 768) {
-		document.querySelectorAll('.category-item').forEach(item => {
-			item.addEventListener('click', closeSidebar);
+	// Close the menu when a category is chosen, on mobile only. The width test
+	// belongs inside the handler: binding it behind a one-off check at load time
+	// meant that loading on desktop and then narrowing to a phone width left the
+	// sidebar stuck open over the map after every selection.
+	document.querySelectorAll('.category-item').forEach(item => {
+		item.addEventListener('click', () => {
+			if (window.innerWidth <= 768) closeSidebar();
 		});
-	}
+	});
 
 	// ============================================
 	// Page Navigation
@@ -5060,10 +5114,10 @@ document.getElementById('btn-import').addEventListener('change', async (e) => {
 		});
 	});
 
-	// Handle page title click to go to map
-	document.getElementById('page-title').addEventListener('click', () => {
-		showPage('map');
-	});
+	// The <h1> used to double as a "go to map" shortcut. A heading isn't
+	// focusable and exposes no affordance, so that was mouse-only and invisible
+	// to assistive tech — and hidden entirely below 768px, where the heading is
+	// display:none. The Home nav button above already does this accessibly.
 
 	// Set initial active state for map (World Map)
 	document.querySelector('[data-page="map"]').classList.add('active');

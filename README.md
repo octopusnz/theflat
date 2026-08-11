@@ -29,7 +29,7 @@ This work includes material taken from the System Reference Document 5.1 ("SRD 5
 - `inventory.json`: campaign inventory data
 - `urls.json`: curated links data
 - `data/`: cached D&D 5e API data (ability scores, classes, conditions, equipment, monsters, spells, etc.)
-- `swn/content/`: campaign/compendium markdown synced from [octopusnz/swn](https://github.com/octopusnz/swn) as `pages.json` + `meta.json`, plus `Images/`. GM-only "Hooks & Secrets" and "GM Notes" sections are stripped during sync since this page is public. This is a **manual** sync (not part of the automated deploy workflow) — re-run `scripts/fetch-swn-data.sh` and commit the result to publish vault updates.
+- `swn/content/`: campaign/compendium markdown synced from [octopusnz/swn](https://github.com/octopusnz/swn) as `pages.json` + `meta.json`, plus `Images/` (each full-size image gets a `.webp` sibling that the page prefers via `<picture>`, and a square thumbnail under `Images/thumb/`). GM-only "Hooks & Secrets" and "GM Notes" sections are stripped during sync since this page is public. This is a **manual** sync (not part of the automated deploy workflow) — re-run `scripts/fetch-swn-data.sh` and commit the result to publish vault updates.
 
 ## GitHub Actions Workflows
 
@@ -50,7 +50,8 @@ Image generation tooling (drafting/requesting portrait images via the Grok Imagi
 - `android-chrome-192x192.png` / `android-chrome-512x512.png`: PWA icons
 - `apple-touch-icon.png`: iOS home screen icon
 - `favicon-16x16.png` / `favicon-32x32.png` / `favicon-96x96.png` / `favicon.ico` / `favicon.svg`: favicons
-- `map.jpg`: campaign map image
+- `map.jpg` / `map.webp`: campaign map image. `rpg.html` loads the WebP and falls back to the JPEG if the browser can't decode it, so both must stay in sync. Regenerate the WebP after changing the JPEG:
+  `python3 -c "from PIL import Image; Image.open('map.jpg').convert('RGB').save('map.webp', quality=85, method=6)"`
 - `robots.txt`: crawler rules
 - `sitemap.xml`: sitemap for search engines
 - `humans.txt`: human-friendly site attribution/metadata
