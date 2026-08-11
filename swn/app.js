@@ -95,6 +95,32 @@
 		return '#/section/' + id;
 	}
 
+	// Page bodies are synced as one .md file per page, at the same relative
+	// path the source vault file had (build_swn_manifest.py), so a page id
+	// like "Compendium/Weapons/Long Sword" maps directly to a real,
+	// directory-shaped URL — each segment encoded on its own so slashes stay
+	// as path separators.
+	function bodyUrl(id) {
+		return 'content/bodies/' + id.split('/').map(encodeURIComponent).join('/') + '.md';
+	}
+
+	// Fetched at most once per page — the result is cached on the page
+	// record itself so revisiting a page, or jumping between its own
+	// headings, never re-fetches the body.
+	function loadPageBody(page) {
+		if (typeof page.body === 'string') return Promise.resolve(page.body);
+		if (!page._bodyPromise) {
+			page._bodyPromise = fetch(bodyUrl(page.id))
+				.then(function (r) { return r.ok ? r.text() : ''; })
+				.catch(function () { return ''; })
+				.then(function (text) {
+					page.body = text;
+					return text;
+				});
+		}
+		return page._bodyPromise;
+	}
+
 	// The sync step writes a small pre-cropped square alongside every full
 	// image (see build_swn_manifest.py's optimize_image) — always .jpg
 	// regardless of the full image's format, so 'thumb' rewrites the
@@ -191,53 +217,22 @@
 	// ---- Backlinks -------------------------------------------------------
 
 	// Every frontmatter field or body wikilink that resolves to another
-	// synced page is already computed once here, so page views can show
-	// "linked from" without re-scanning the corpus per render.
-	function buildBacklinkIndex() {
-		var index = new Map();
-		function addLink(sourceId, sourceName, targetId, field) {
-			if (!targetId || targetId === sourceId) return;
-			if (!index.has(targetId)) index.set(targetId, []);
-			index.get(targetId).push({ id: sourceId, name: sourceName, field: field });
-		}
-
-		state.pages.forEach(function (p) {
-			var fm = p.frontmatter || {};
-			Object.keys(fm).forEach(function (key) {
-				var val = fm[key];
-				if (Array.isArray(val)) {
-					val.forEach(function (v) {
-						if (typeof v === 'string' && v.indexOf('[[') !== -1) addLink(p.id, p.name, resolveFieldId(v), key);
-					});
-				} else if (typeof val === 'string' && val.indexOf('[[') !== -1) {
-					addLink(p.id, p.name, resolveFieldId(val), key);
-				}
-			});
-
-			var body = p.body || '';
-			var re = /\[\[([^\]|]+)(?:\|[^\]]+)?\]\]/g;
-			var m, seen = {};
-			while ((m = re.exec(body))) {
-				var clean = m[1].split('#')[0].trim();
-				var base = clean.split('/').pop();
-				var targetId = state.byNameLower.get(base.toLowerCase());
-				if (targetId && targetId !== p.id && !seen[targetId]) {
-					seen[targetId] = true;
-					addLink(p.id, p.name, targetId, 'mentions');
-				}
-			}
-		});
-
-		return index;
-	}
-
+	// synced page is precomputed at build time (build_swn_manifest.py) and
+	// loaded as state.backlinks — walking the full corpus for this used to
+	// happen here on every cold load, which meant every page body had to be
+	// in memory before the first render.
 	function getBacklinks(id) {
 		var raw = state.backlinks.get(id) || [];
 		var bySource = new Map();
 		raw.forEach(function (l) {
-			if (!bySource.has(l.id)) bySource.set(l.id, { id: l.id, name: l.name, fields: [] });
+			if (!bySource.has(l.id)) {
+				var srcPage = state.byId.get(l.id);
+				bySource.set(l.id, { id: l.id, name: srcPage ? srcPage.name : l.id, fields: [] });
+			}
 			var entry = bySource.get(l.id);
-			if (entry.fields.indexOf(l.field) === -1) entry.fields.push(l.field);
+			// Build-time omits "mentions" (the ~94% common case) to save bytes.
+			var field = l.field || 'mentions';
+			if (entry.fields.indexOf(field) === -1) entry.fields.push(field);
 		});
 		return Array.from(bySource.values()).sort(function (a, b) { return a.name.localeCompare(b.name); });
 	}
@@ -305,24 +300,42 @@
 	// within one page doesn't re-parse and re-render that page's markdown.
 	var rendered = { view: null, id: null };
 
+	// A page view now needs its body fetched before it can render. If the
+	// hash changes again before that fetch resolves (fast back/forward,
+	// double-click), routeToken makes the stale render a no-op instead of
+	// clobbering whatever the newer navigation already put on screen.
+	var routeToken = 0;
+
 	function route() {
+		var myToken = ++routeToken;
 		var r = parseHash();
-		var activeTab = 'overview';
 		var samePage = r.view === 'page' && rendered.view === 'page' && rendered.id === r.id;
 
+		function proceed() {
+			if (myToken !== routeToken) return;
+			finishRoute(r);
+		}
+
 		if (r.view === 'page') {
-			if (!samePage) renderPage(r.id);
+			if (samePage) { proceed(); return; }
+			renderPage(r.id).then(proceed);
+		} else {
+			if (r.view === 'browse') renderBrowse(r.category, r.query.q || '');
+			else if (r.view === 'section') renderSection(r.id);
+			else renderOverview();
+			proceed();
+		}
+	}
+
+	function finishRoute(r) {
+		var activeTab = 'overview';
+		if (r.view === 'page') {
 			var p = state.byId.get(r.id);
 			activeTab = p ? sectionIdForCategory(p.category) : null;
 		} else if (r.view === 'browse') {
-			renderBrowse(r.category, r.query.q || '');
 			activeTab = sectionIdForCategory(r.category);
 		} else if (r.view === 'section') {
-			renderSection(r.id);
 			activeTab = r.id;
-		} else {
-			renderOverview();
-			activeTab = 'overview';
 		}
 		setActiveTab(activeTab);
 		rendered = { view: r.view, id: r.id };
@@ -449,7 +462,10 @@
 		CAMPAIGN_FOLDERS.forEach(function (f) { byFolder[f] = pages.filter(function (p) { return p.folder === f; }); });
 
 		var html = '';
-		html += '<img class="banner" src="content/Images/galaxy.jpg" alt="" loading="lazy">';
+		html += '<picture class="banner-picture">' +
+			'<source srcset="content/Images/galaxy.webp" type="image/webp">' +
+			'<img class="banner" src="content/Images/galaxy.jpg" alt="" width="1536" height="1024" loading="eager" fetchpriority="high">' +
+			'</picture>';
 		html += '<a class="back-link" href="#/browse">Browse all ' + pages.length + ' pages →</a>';
 
 		var systems = byFolder.Systems, worlds = byFolder.Worlds, factions = byFolder.Factions;
@@ -684,92 +700,96 @@
 
 	function renderPage(id) {
 		var page = state.byId.get(id);
-		if (!page) { renderNotFound(id); return; }
+		if (!page) { renderNotFound(id); return Promise.resolve(); }
 
-		document.title = page.name + ' - SWN Campaign Compendium';
+		if (typeof page.body !== 'string') main.innerHTML = '<p class="empty-note">Loading…</p>';
 
-		var fm = page.frontmatter || {};
-		var rawType = fm.type ? String(fm.type) : (FOLDER_SINGULAR[page.folder] || page.folder);
-		var type = rawType.charAt(0).toUpperCase() + rawType.slice(1);
-		var accent = accentForCategory(page.category);
+		return loadPageBody(page).then(function () {
+			document.title = page.name + ' - SWN Campaign Compendium';
 
-		var html = '<a class="back-link" href="#/">← Overview</a>';
+			var fm = page.frontmatter || {};
+			var rawType = fm.type ? String(fm.type) : (FOLDER_SINGULAR[page.folder] || page.folder);
+			var type = rawType.charAt(0).toUpperCase() + rawType.slice(1);
+			var accent = accentForCategory(page.category);
 
-		html += '<div class="breadcrumb">' +
-			'<a href="' + browseHref(page.category) + '">' + escapeHtml(humanCategory(page.category)) + '</a>' +
-			' / ' + escapeHtml(page.name) +
-			'</div>';
+			var html = '<a class="back-link" href="#/">← Overview</a>';
 
-		html += '<div class="page-header"' + (accent ? ' style="border-left-color:' + accent + '"' : '') + '><h1>' + escapeHtml(page.name) + '</h1>';
-		html += '<span class="badge"' + (accent ? ' style="border-color:' + accent + ';color:' + accent + '"' : '') + '>' + escapeHtml(type) + '</span>';
-		if (fm.status) html += '<span class="badge' + (fm.status === 'active' ? ' active' : '') + '">' + escapeHtml(fm.status) + '</span>';
-		html += '</div>';
+			html += '<div class="breadcrumb">' +
+				'<a href="' + browseHref(page.category) + '">' + escapeHtml(humanCategory(page.category)) + '</a>' +
+				' / ' + escapeHtml(page.name) +
+				'</div>';
 
-		var tags = fm.tags || [];
-		if (tags.length) html += '<div class="chip-row">' + tags.map(chip).join('') + '</div>';
-
-		var pageImgSrc = imageUrl(fm.image);
-		if (pageImgSrc) {
-			var dims = Array.isArray(page.image_size) ? page.image_size : null;
-			var dimAttrs = dims ? ' width="' + dims[0] + '" height="' + dims[1] + '"' : '';
-			html += '<picture class="page-picture">' +
-				'<source srcset="' + imageUrl(fm.image, 'webp') + '" type="image/webp">' +
-				'<img class="page-image" src="' + pageImgSrc + '" alt="' + escapeHtml(page.name) + '"' + dimAttrs + ' loading="lazy">' +
-				'</picture>';
-		}
-
-		var hasStats = fm.hit_dice !== undefined && fm.hit_dice !== null;
-		if (hasStats) {
-			html += '<div class="stat-card">';
-			STAT_FIELDS.forEach(function (pair) {
-				var val = fm[pair[0]];
-				if (val === undefined || val === null || val === '') return;
-				html += '<div class="stat"><div class="value">' + escapeHtml(val) + '</div><div class="key">' + pair[1] + '</div></div>';
-			});
+			html += '<div class="page-header"' + (accent ? ' style="border-left-color:' + accent + '"' : '') + '><h1>' + escapeHtml(page.name) + '</h1>';
+			html += '<span class="badge"' + (accent ? ' style="border-color:' + accent + ';color:' + accent + '"' : '') + '>' + escapeHtml(type) + '</span>';
+			if (fm.status) html += '<span class="badge' + (fm.status === 'active' ? ' active' : '') + '">' + escapeHtml(fm.status) + '</span>';
 			html += '</div>';
-		}
 
-		html += '<div class="page-body">' + renderMarkdown(page.body) + '</div>';
+			var tags = fm.tags || [];
+			if (tags.length) html += '<div class="chip-row">' + tags.map(chip).join('') + '</div>';
 
-		if (page.mtime) html += '<p class="empty-note">Last edited ' + formatDate(page.mtime) + '</p>';
+			var pageImgSrc = imageUrl(fm.image);
+			if (pageImgSrc) {
+				var dims = Array.isArray(page.image_size) ? page.image_size : null;
+				var dimAttrs = dims ? ' width="' + dims[0] + '" height="' + dims[1] + '"' : '';
+				html += '<picture class="page-picture">' +
+					'<source srcset="' + imageUrl(fm.image, 'webp') + '" type="image/webp">' +
+					'<img class="page-image" src="' + pageImgSrc + '" alt="' + escapeHtml(page.name) + '"' + dimAttrs + ' loading="lazy">' +
+					'</picture>';
+			}
 
-		var backlinks = getBacklinks(id);
-		if (backlinks.length) {
-			var shown = backlinks.slice(0, 24);
-			html += '<div class="backlinks-panel"><div class="backlinks-title">Linked from (' + backlinks.length + ')</div>';
-			shown.forEach(function (b) {
-				var why = b.fields.filter(function (f) { return f !== 'mentions'; }).map(fieldLabel);
-				var label = why.length ? why.join(', ') : 'mentioned in text';
-				html += '<div class="backlink-row">' + pageLink(b.id, b.name) + '<span class="why"> — ' + escapeHtml(label) + '</span></div>';
-			});
-			if (backlinks.length > shown.length) html += '<div class="backlink-more">+' + (backlinks.length - shown.length) + ' more</div>';
-			html += '</div>';
-		}
+			var hasStats = fm.hit_dice !== undefined && fm.hit_dice !== null;
+			if (hasStats) {
+				html += '<div class="stat-card">';
+				STAT_FIELDS.forEach(function (pair) {
+					var val = fm[pair[0]];
+					if (val === undefined || val === null || val === '') return;
+					html += '<div class="stat"><div class="value">' + escapeHtml(val) + '</div><div class="key">' + pair[1] + '</div></div>';
+				});
+				html += '</div>';
+			}
 
-		main.innerHTML = html;
+			html += '<div class="page-body">' + renderMarkdown(page.body) + '</div>';
 
-		var headings = main.querySelectorAll('.page-body h2');
-		if (headings.length >= 3) {
-			var used = {};
-			var tocItems = [];
-			headings.forEach(function (h) {
-				var slug = slugify(h.textContent) || 'section';
-				var hid = slug, n = 2;
-				while (used[hid]) { hid = slug + '-' + n; n++; }
-				used[hid] = true;
-				h.id = hid;
-				// A bare '#slug' would be swallowed by the hash router: parseHash
-				// sees a single segment that isn't page/browse/section and falls
-				// through to the overview. Carry the heading in the route's query
-				// string instead, so the link stays a real, shareable URL.
-				tocItems.push('<a href="' + pageHref(id) + '?h=' + encodeURIComponent(hid) + '">' + escapeHtml(h.textContent) + '</a>');
-			});
-			var tocEl = document.createElement('div');
-			tocEl.className = 'page-toc';
-			tocEl.innerHTML = '<div class="page-toc-title">On this page</div>' + tocItems.join('');
-			var bodyEl = main.querySelector('.page-body');
-			bodyEl.parentNode.insertBefore(tocEl, bodyEl);
-		}
+			if (page.mtime) html += '<p class="empty-note">Last edited ' + formatDate(page.mtime) + '</p>';
+
+			var backlinks = getBacklinks(id);
+			if (backlinks.length) {
+				var shown = backlinks.slice(0, 24);
+				html += '<div class="backlinks-panel"><div class="backlinks-title">Linked from (' + backlinks.length + ')</div>';
+				shown.forEach(function (b) {
+					var why = b.fields.filter(function (f) { return f !== 'mentions'; }).map(fieldLabel);
+					var label = why.length ? why.join(', ') : 'mentioned in text';
+					html += '<div class="backlink-row">' + pageLink(b.id, b.name) + '<span class="why"> — ' + escapeHtml(label) + '</span></div>';
+				});
+				if (backlinks.length > shown.length) html += '<div class="backlink-more">+' + (backlinks.length - shown.length) + ' more</div>';
+				html += '</div>';
+			}
+
+			main.innerHTML = html;
+
+			var headings = main.querySelectorAll('.page-body h2');
+			if (headings.length >= 3) {
+				var used = {};
+				var tocItems = [];
+				headings.forEach(function (h) {
+					var slug = slugify(h.textContent) || 'section';
+					var hid = slug, n = 2;
+					while (used[hid]) { hid = slug + '-' + n; n++; }
+					used[hid] = true;
+					h.id = hid;
+					// A bare '#slug' would be swallowed by the hash router: parseHash
+					// sees a single segment that isn't page/browse/section and falls
+					// through to the overview. Carry the heading in the route's query
+					// string instead, so the link stays a real, shareable URL.
+					tocItems.push('<a href="' + pageHref(id) + '?h=' + encodeURIComponent(hid) + '">' + escapeHtml(h.textContent) + '</a>');
+				});
+				var tocEl = document.createElement('div');
+				tocEl.className = 'page-toc';
+				tocEl.innerHTML = '<div class="page-toc-title">On this page</div>' + tocItems.join('');
+				var bodyEl = main.querySelector('.page-body');
+				bodyEl.parentNode.insertBefore(tocEl, bodyEl);
+			}
+		});
 	}
 
 	function renderNotFound(id) {
@@ -907,16 +927,19 @@
 		bindGlobalSearch();
 
 		Promise.all([
+			// pages.json holds page metadata (no bodies — those are fetched
+			// per-page on navigation) plus the backlink index precomputed at
+			// sync time by build_swn_manifest.py.
 			fetch('content/pages.json').then(function (r) { return r.json(); }),
 			fetch('content/meta.json').then(function (r) { return r.json(); }).catch(function () { return null; }),
 		]).then(function (results) {
-			state.pages = results[0];
+			state.pages = results[0].pages;
+			state.backlinks = new Map(Object.entries(results[0].backlinks || {}));
 			state.meta = results[1];
 			state.pages.forEach(function (p) {
 				state.byId.set(p.id, p);
 				state.byNameLower.set(p.name.toLowerCase(), p.id);
 			});
-			state.backlinks = buildBacklinkIndex();
 			renderSyncMeta();
 			window.addEventListener('hashchange', route);
 			route();

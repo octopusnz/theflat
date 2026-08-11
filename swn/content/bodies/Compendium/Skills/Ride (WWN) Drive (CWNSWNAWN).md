@@ -1,0 +1,1 @@
+Ride an animal, drive a cart or carriage, or otherwise deal with land transportation. This skill also includes competence at mount care and tending, basic cart or carriage repair, judging good horseflesh, and other [[Skills|skills]] appropriate to a beast-rider of whatever society the PC comes from.

@@ -1,0 +1,1 @@
+Use it as a combat skill when wielding [[Melee|melee]] weapons, whether primitive or complex.

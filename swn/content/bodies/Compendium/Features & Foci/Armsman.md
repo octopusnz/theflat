@@ -1,0 +1,4 @@
+You have an unusual competence with thrown weapons and [[Melee|melee]] attacks. This focus’ benefits do not apply to unarmed attacks or projectile weapons. For thrown weapons, you can’t use the benefits of the Armsman focus at the same time as [[Gunslinger|Gunslinger]].
+
+Level 1: Gain [[Stab|Stab]] as a bonus skill. You can draw or sheath a Stowed [[Melee|melee]] or thrown weapon as an Instant action. You may add your [[Stab|Stab]] skill level to a [[Melee|melee]] or thrown weapon’s damage roll or Shock damage, assuming it has any to begin with.
+Level 2: Your primitive [[Melee|melee]] and thrown weapons count as TL4 weapons for the purpose of overcoming advanced armors. Even on a miss with a [[Melee|melee]] weapon, you do an unmodified 1d4 damage to the target, plus any Shock damage. This bonus damage doesn’t apply to thrown weapons or attacks that use the [[Punch|Punch]] skill.

@@ -16,6 +16,7 @@ Usage: build_swn_manifest.py <path-to-swn-checkout> <path-to-swn-content-output-
 """
 import json
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -216,6 +217,75 @@ def rel_path_read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+WIKI_TARGET_RE = re.compile(r"\[\[([^\]|]+)")
+WIKILINK_RE = re.compile(r"\[\[([^\]|]+)(?:\|[^\]]+)?\]\]")
+
+
+def first_wiki_target(value):
+    """Mirrors swn/app.js's firstWikiTarget: unwrap a `[[Target]]` (or
+    `[[Target|Alias]]`) wikilink, or take a plain string frontmatter value
+    as-is. Frontmatter list fields carry only their first entry, matching
+    how the client resolves e.g. a single `system:` reference."""
+    if isinstance(value, list):
+        value = value[0] if value else None
+    if not isinstance(value, str):
+        return None
+    m = WIKI_TARGET_RE.search(value)
+    raw = m.group(1) if m else value
+    return raw.split("#", 1)[0].strip()
+
+
+def resolve_field_id(value, by_name_lower):
+    target = first_wiki_target(value)
+    if not target:
+        return None
+    base = target.split("/")[-1]
+    return by_name_lower.get(base.lower())
+
+
+def build_backlink_index(pages, by_name_lower):
+    """Precompute what swn/app.js's buildBacklinkIndex used to compute in
+    the browser at boot, which required every page body to already be in
+    memory. Same two passes: frontmatter fields that hold a wikilink
+    reference, then a body-wide scan for inline `[[...]]` mentions."""
+    index: dict[str, list[dict]] = {}
+
+    def add_link(source_id, target_id, field):
+        if not target_id or target_id == source_id:
+            return
+        # The source page's name is dropped here — the client already has
+        # every page's name in the index it loads alongside this, so
+        # storing it again per link would just be duplicated bytes. Same
+        # for "mentions": it's ~94% of all links, so it's the omitted
+        # default rather than a stored string.
+        entry = {"id": source_id}
+        if field != "mentions":
+            entry["field"] = field
+        index.setdefault(target_id, []).append(entry)
+
+    for p in pages:
+        fm = p.get("frontmatter") or {}
+        for key, val in fm.items():
+            if isinstance(val, list):
+                for v in val:
+                    if isinstance(v, str) and "[[" in v:
+                        add_link(p["id"], resolve_field_id(v, by_name_lower), key)
+            elif isinstance(val, str) and "[[" in val:
+                add_link(p["id"], resolve_field_id(val, by_name_lower), key)
+
+        body = p.get("body") or ""
+        seen = set()
+        for m in WIKILINK_RE.finditer(body):
+            clean = m.group(1).split("#", 1)[0].strip()
+            base = clean.split("/")[-1]
+            target_id = by_name_lower.get(base.lower())
+            if target_id and target_id != p["id"] and target_id not in seen:
+                seen.add(target_id)
+                add_link(p["id"], target_id, "mentions")
+
+    return index
+
+
 def build_mtimes(repo: Path) -> dict:
     """Last commit date per tracked file path, newest-first log so the
     first time we see a path is its most recent commit."""
@@ -301,8 +371,29 @@ def main():
                 page["frontmatter"]["image"] = f"Images/{final_name}"
             page["image_size"] = [width, height]
 
+    by_name_lower = {p["name"].lower(): p["id"] for p in pages}
+    backlinks = build_backlink_index(pages, by_name_lower)
+
+    # Bodies are the bulk of the manifest (~two-thirds of it) but the
+    # overview/browse/search views never read them — only a single page
+    # view does, one page at a time. Ship them as separate files fetched on
+    # navigation instead of loading all 551 up front. Rebuilt from scratch
+    # each run so a renamed/deleted vault page doesn't leave an orphan.
+    bodies_out = out_dir / "bodies"
+    if bodies_out.exists():
+        shutil.rmtree(bodies_out)
+    bodies_out.mkdir(parents=True, exist_ok=True)
+    for page in pages:
+        body_path = bodies_out / f"{page['id']}.md"
+        body_path.parent.mkdir(parents=True, exist_ok=True)
+        body_path.write_text(page.pop("body"), encoding="utf-8")
+
+    # pages + backlinks together in one file: both are needed before the
+    # first render (the overview reads pages, any page view reads its own
+    # backlinks), so bundling them saves a second boot-time round trip.
     (out_dir / "pages.json").write_text(
-        json.dumps(pages, ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
+        json.dumps({"pages": pages, "backlinks": backlinks}, ensure_ascii=False, separators=(",", ":")),
+        encoding="utf-8",
     )
 
     from datetime import datetime, timezone

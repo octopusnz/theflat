@@ -1,0 +1,4 @@
+You are a whirlwind of bloody havoc in [[Melee|melee]] combat, and can [[Survive|survive]] being surrounded far better than most combatants.
+
+Level 1: Gain [[Stab|Stab]] as a bonus skill. All enemies adjacent to you at the end of your turn whom you have not attacked suffer the Shock damage of your weapon if their [[Armor|Armor]] Class is not too high to be affected.
+Level 2: After suffering your first [[Melee|melee]] hit in a round, any further [[Melee|melee]] attacks from other assailants automatically miss you. If the attacker who hits you has multiple attacks, they may attempt all of them, but other foes around you simply miss.

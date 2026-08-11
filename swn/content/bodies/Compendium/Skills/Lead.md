@@ -1,0 +1,1 @@
+Convince others to also do whatever it is you’re trying to do. [[Talk|Talk]] might persuade them that following you is smart, but Lead can make them do it even when they think it’s a bad idea. Roll it to lead troops in combat, convince others to follow you, or maintain morale and discipline.

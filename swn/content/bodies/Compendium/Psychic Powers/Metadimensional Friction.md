@@ -1,0 +1,8 @@
+| Property | Value |
+|----------|-------|
+| **Level** | 3 |
+| **Discipline** | [[Metapsionics\|Metapsionics]] |
+
+## Description
+
+As a Main Action, the metapsion Commits Effort for the scene to create localized MES turbulence around a visible target psychic within 200 meters. Each time the target Commits Effort or an NPC initiates a psychic power, they suffer 1d8 damage per [[Metapsionics|Metapsionics]] skill level of the adept. Each time the target suffers the damage they can attempt a Mental saving throw to throw off the effect. It lasts no longer than the rest of the scene at most. Only one application of this friction can affect a target at once.

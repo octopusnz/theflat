@@ -1,0 +1,8 @@
+| Property | Value |
+|----------|-------|
+| **Level** | 3 |
+| **Discipline** | Telepathy |
+
+## Description
+
+As a Main Action, the [[Telepath|telepath]] can Commit Effort for the day to force a sudden, irrational impulse into the target of a *[[Telepathic Contact|Telepathic Contact]]*. The target may make a Mental saving throw to resist; on a failure, they will use their next available action to carry out the impulse to the best of their ability. This impulse cannot be self-injurious or harmful to a loved one, but it can be foolish, reckless, or harmful to others. The target may not understand why they have done the action, but will usually attempt to rationalize it as their choice.

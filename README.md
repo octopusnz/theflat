@@ -25,11 +25,11 @@ This work includes material taken from the System Reference Document 5.1 ("SRD 5
 
 - `github-stats.json`: auto-generated GitHub statistics (updated by GitHub Actions)
 - `rpg-data.json`: RPG campaign tracker state
-- `darkstone.json`: Darkstone campaign data
+- `darkstone.json`: Darkstone campaign data (460 KB; `rpg.html` fetches it lazily on first visit to the Characters tab, not on page load)
 - `inventory.json`: campaign inventory data
 - `urls.json`: curated links data
 - `data/`: cached D&D 5e API data (ability scores, classes, conditions, equipment, monsters, spells, etc.)
-- `swn/content/`: campaign/compendium markdown synced from [octopusnz/swn](https://github.com/octopusnz/swn) as `pages.json` + `meta.json`, plus `Images/` (each full-size image gets a `.webp` sibling that the page prefers via `<picture>`, and a square thumbnail under `Images/thumb/`). GM-only "Hooks & Secrets" and "GM Notes" sections are stripped during sync since this page is public. This is a **manual** sync (not part of the automated deploy workflow) — re-run `scripts/fetch-swn-data.sh` and commit the result to publish vault updates.
+- `swn/content/`: campaign/compendium markdown synced from [octopusnz/swn](https://github.com/octopusnz/swn), plus `meta.json`. `pages.json` holds page metadata (frontmatter, folder, category, etc.) and a precomputed backlink index, but not body text — each page's body is a separate file under `bodies/` (mirroring the vault's own folder structure, one `.md` per page) fetched only when that page is opened, so the ~380 KB of combined markdown isn't part of the app's boot payload. `Images/` holds the synced images (each full-size image gets a `.webp` sibling that the page prefers via `<picture>`, and a square thumbnail under `Images/thumb/`). GM-only "Hooks & Secrets" and "GM Notes" sections are stripped during sync since this page is public. This is a **manual** sync (not part of the automated deploy workflow) — re-run `scripts/fetch-swn-data.sh` and commit the result to publish vault updates.
 
 ## GitHub Actions Workflows
 
@@ -40,7 +40,7 @@ This work includes material taken from the System Reference Document 5.1 ("SRD 5
 - `scripts/fetch-dnd-data.sh`: fetch and cache D&D 5e API data locally
 - `scripts/check-structure.sh`: diagnostic script to validate `rpg.html` structure
 - `scripts/fetch-swn-data.sh`: clone the `octopusnz/swn` vault and rebuild `swn/content/` (manual — see Data above)
-- `scripts/build_swn_manifest.py`: parses the vault's markdown/frontmatter into `swn/content/pages.json`, called by `fetch-swn-data.sh`
+- `scripts/build_swn_manifest.py`: parses the vault's markdown/frontmatter into `swn/content/pages.json` (metadata + backlink index) and `swn/content/bodies/` (one `.md` per page), called by `fetch-swn-data.sh`
 
 Image generation tooling (drafting/requesting portrait images via the Grok Imagine API and landing them in the vault) lives in `octopusnz/swn` itself, not here — see that repo's `scripts/` and README. This repo only picks up the result on the next `fetch-swn-data.sh` run.
 

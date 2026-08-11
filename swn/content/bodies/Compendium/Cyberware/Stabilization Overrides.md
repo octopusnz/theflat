@@ -1,0 +1,9 @@
+| Property | Value |
+|----------|-------|
+| **Cost** | 25,000 credits |
+| **TL** | 4 |
+| **System Strain** | 2 |
+
+## Description
+
+An intricate interweaving of microcapillaries and backup organs is implanted in the subject’s torso and spinal column. These overrides can stabilize the user when severe physical trauma would otherwise kill them. A user reduced to 0 hit points is automatically stabilized, as if a [[Lazarus patch|Lazarus patch]] had been successfully applied to them, assuming that a patch could have saved them. Stabilization overrides tend to interfere with the ordinary operation of the user’s organs, however, and the wearer’s Constitution modifier is lowered by 1, with all the attendant consequences in loss of maximum hit points.

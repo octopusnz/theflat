@@ -1,0 +1,10 @@
+| Property | Value |
+|----------|-------|
+| **Level** | 3 |
+| **Discipline** | [[Metapsionics\|Metapsionics]] |
+
+## Description
+
+The metapsion’s abilities can be reinforced with a degree of metadimensional energy that would cause substantial damage to a less adept mind. Particularly weak or unprepared minds might be completely crushed by the force of the adept’s augmented will.
+
+The adept must Commit Effort for the day when using a power that normally grants its target a saving throw. The target then suffers a penalty equal to the adept’s [[Metapsionics|Metapsionics]] skill on any saving throw normally granted by the power. If the target’s hit die total or character level is less than half the adept’s level, rounded up, they automatically fail their saving throw.

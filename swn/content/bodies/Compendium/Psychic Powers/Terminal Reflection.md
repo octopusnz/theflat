@@ -1,0 +1,8 @@
+| Property | Value |
+|----------|-------|
+| **Level** | 1 |
+| **Discipline** | [[Precognition\|Precognition]] |
+
+## Description
+
+The psychic’s *[[Oracle|Oracle]]* power automatically triggers as an Instant action moments before some unexpected danger or ambush, giving the precog a brief vision of the impending hazard. This warning comes just in time to avoid springing a trap or to negate combat surprise for the precog and their companions. If the psychic does not immediately Commit Effort for the day, this sense goes numb and this technique cannot be used for the rest of the day.

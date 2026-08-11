@@ -1,0 +1,8 @@
+| Property | Value |
+|----------|-------|
+| **Level** | 2 |
+| **Discipline** | [[Precognition\|Precognition]] |
+
+## Description
+
+The precog can sense impending failure and attempt to salvage the action. As an Instant action, the precog can target a visible ally or their own self and Commit Effort for the day to allow the target to reroll a failed hit roll, saving throw, or skill check, taking the better of the two rolls. This power disrupts delicate lines of probability, however, and cannot be used on any given target more than once a day.

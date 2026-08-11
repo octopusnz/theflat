@@ -1,0 +1,8 @@
+| Property | Value |
+|----------|-------|
+| **Level** | 2 |
+| **Discipline** | Telepathy |
+
+## Description
+
+Through intense focus, the [[Telepath|telepath]] can make the target of a *[[Telepathic Contact|Telepathic Contact]]* simply not think about something, whether that’s the presence of the [[Telepath|telepath]], the possibility of committing violence, the absence of important documentation, or any other single potential action or one specific person. This technique requires the psychic to Commit Effort for the scene as a Main Action. The target gets a Mental saving throw to resist this power and become immune to it for the scene. If failed, the thought remains unthinkable for the rest of the scene unless the target perceives physical danger or a traumatic threat to something they prize highly. In that case, the block instantly dissolves and cannot be re-established during the scene. Once the effect ends, the target will remain oblivious to their temporary fugue unless it is brought to their attention somehow.

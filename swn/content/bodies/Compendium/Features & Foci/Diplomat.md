@@ -1,0 +1,4 @@
+You [[Know|know]] how to get your way in personal negotiations, and can manipulate the attitudes of those around you. Even so, while smooth words are versatile, they’ll only [[Work|work]] if your interlocutor is actually willing to listen to you.
+
+Level 1: Gain [[Talk|Talk]] as a bonus skill. You speak all the languages common to the sector and can learn new ones to a workable level in a week, becoming fluent in a month. Reroll 1s on any skill check dice related to negotiation or diplomacy.
+Level 2: Once per game session, shift an intelligent NPC’s reaction roll one step closer to friendly if you can [[Talk|talk]] to them for at least thirty seconds.

@@ -1,0 +1,9 @@
+| Property | Value |
+|----------|-------|
+| **Cost** | 60 credits |
+| **Encumbrance** | 1 |
+| **TL** | 4 |
+
+## Description
+
+Survival kit: A standard belt-worn kit with fire lighter, water filter, three thermal flares, knife, thermal blanket, a brightly-colored 3 x 3 meter waterproof tarp, a [[Glowbug|glowbug]], and a radio beacon that can transmit a distress signal up to fifty kilometers for one month on the included type A power cell. Survival kits sold on a particular world will usually also include a small booklet on specific dangers or edible organics. Possession of a survival kit grants a +1 to all relevant [[Survive|Survive]] skill checks, assuming its contents are helpful on a given planet. Survival kits are well-organized, and count as only one item for encumbrance purposes.

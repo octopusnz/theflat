@@ -5091,6 +5091,9 @@ document.getElementById('btn-import').addEventListener('change', async (e) => {
 	// ============================================
 	
 	let currentPage = 'map';
+	// darkstone.json is 460 KB; only fetch it the first time the Characters
+	// tab is actually opened instead of on every cold load.
+	let charactersLoaded = false;
 	const mapContainer = document.querySelector('.container');
 	const pages = {
 		map: mapContainer,
@@ -5162,6 +5165,10 @@ document.getElementById('btn-import').addEventListener('change', async (e) => {
 			sessionsPage.classList.add('hidden');
 			mapToolbar.classList.add('hidden');
 			mapView.classList.add('hidden');
+			if (!charactersLoaded) {
+				charactersLoaded = true;
+				loadCharacterSheet();
+			}
 		}
 		// For generators page
 		else if (pageName === 'generators') {
@@ -7457,13 +7464,11 @@ async loadInventory() {
 		document.addEventListener('DOMContentLoaded', () => {
 			setupThemeToggle();
 			initApp();
-			loadCharacterSheet();
 			window.sessionManager.init();
 		});
 	} else {
 		setupThemeToggle();
 		initApp();
-		loadCharacterSheet();
 		window.sessionManager.init();
 	}
 	

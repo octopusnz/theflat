@@ -1,0 +1,8 @@
+| Property | Value |
+|----------|-------|
+| **Level** | 2 |
+| **Discipline** | [[Biopsionics\|Biopsionics]] |
+
+## Description
+
+The biopsion’s *[[Psychic Succor|Psychic Succor]]* can now cure congenital birth defects and regrow missing limbs and organs. It can even be used to stabilize targets that have been dropped by [[Heavy|Heavy]] weapons, decapitated, or otherwise dramatically dismembered, provided it’s used within one round per level of Biopsionic skill. The best that can be done for such badly-mangled targets is stabilization, after which they must rest for 24 hours before any further hit points can be healed by [[Biopsionics|Biopsionics]], stims, or natural rest.

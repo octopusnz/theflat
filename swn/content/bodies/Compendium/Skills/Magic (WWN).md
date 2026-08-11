@@ -1,0 +1,1 @@
+Cast or analyze magic and [[Know|know]] things about famous mages or notable magical events. Classes that can’t cast spells obtain only intellectual and scholarly benefits from this skill.

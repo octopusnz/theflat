@@ -1,0 +1,4 @@
+You have a tremendous natural talent for ship combat, and can make any starship you captain a significantly more fearsome opponent. You must take the captain’s role during a fight as described on page 117 of the Ship Combat rules in order to benefit from this focus.
+
+Level 1: Gain [[Lead|Lead]] as a bonus skill. Your ship gains 2 extra Command Points at the start of each turn.
+Level 2: A ship you captain gains bonus hit points equal to 20% of its maximum at the start of each combat. Damage is taken from these bonus points first, and they vanish at the end of the fight and do not require repairs to replenish before the next. In addition, once per engagement, you may resolve a Crisis as an Instant action by explaining how your leadership resolves the problem.

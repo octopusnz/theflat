@@ -1,0 +1,4 @@
+You are surprisingly hard to kill. You can [[Survive|survive]] injuries or bear up under stresses that would incapacitate a less determined hero.
+
+Level 1: You gain an extra 2 maximum hit points per level. This bonus applies retroactively if you take this focus after first level. You automatically stabilize if mortally wounded by anything smaller than a [[Heavy|Heavy]] weapon.
+Level 2: The first time each day that you are reduced to zero hit points by an injury, you instead [[Survive|survive]] with one hit point remaining. This ability can’t save you from [[Heavy|Heavy]] weapons or similar trauma.

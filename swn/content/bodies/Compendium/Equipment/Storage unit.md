@@ -1,0 +1,9 @@
+| Property | Value |
+|----------|-------|
+| **Cost** | 500 credits |
+| **Encumbrance** | 3 |
+| **TL** | 4 |
+
+## Description
+
+Storage unit: While conventional dataslabs have ample space to hold any reasonable amount of data, sometimes a party needs to store or acquire a truly huge dataset. This standard TL4 storage unit is a portable but clumsy case hardened against anything short of intentional damage with a firearm, capable of interfacing with a wide variety of hardware to receive and upload data. A single storage unit can hold a tremendous amount of data that has been carefully compressed and optimized for it. If the user is simply ripping a database off a network and stuffing it into the unit, it can absorb up to a small corporation’s complete files.

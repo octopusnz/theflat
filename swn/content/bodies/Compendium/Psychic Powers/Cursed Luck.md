@@ -1,0 +1,8 @@
+| Property | Value |
+|----------|-------|
+| **Level** | 3 |
+| **Discipline** | [[Precognition\|Precognition]] |
+
+## Description
+
+Negative probabilities are woven tightly around a visible animate target, including robots and animals but not including vehicles. Triggering this technique requires a Main Action and Committing Effort for the scene. The target must roll any attack rolls, damage rolls, skill checks, and saving throws twice and take the worst result each time. Any attempts to hit the target or damage dice rolled against it may be rolled twice and the better result taken. Intelligent targets can make a Mental saving throw at the end of each round to throw off the effect; this save is not penalized by the power.

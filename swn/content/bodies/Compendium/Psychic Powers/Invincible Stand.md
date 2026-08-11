@@ -1,0 +1,8 @@
+| Property | Value |
+|----------|-------|
+| **Level** | 2 |
+| **Discipline** | [[Biopsionics\|Biopsionics]] |
+
+## Description
+
+The biopsion has mastered techniques of emergency tissue reinforcement and system stabilization. As an Instant action, they can Commit Effort for the scene to keep themself or a target they can touch active even at zero hit points. This technique must be used once every round on the target or they collapse at the end of the round. If the target suffers hit point damage, the biopsion must Instantly Commit Effort for the scene or the target goes down immediately with a mortal wound. A [[Heavy|Heavy]] weapon hit on a subject of this power or similar physical dismemberment will always kill a target, regardless of this technique.

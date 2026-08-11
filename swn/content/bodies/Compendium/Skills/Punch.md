@@ -1,0 +1,1 @@
+Use it as a combat skill when fighting unarmed. If your PC means to make a habit of this rather than as a recourse of desperation, you should take the [[Unarmed Combatant|Unarmed Combatant]] focus described later.

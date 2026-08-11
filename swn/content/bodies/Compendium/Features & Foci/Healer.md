@@ -1,0 +1,4 @@
+Healing comes naturally to you, and you’re particularly gifted at preventing the quick bleed-out of wounded allies and comrades.
+
+Level 1: Gain [[Heal|Heal]] as a bonus skill. You may attempt to stabilize one mortally-wounded adjacent person per round as an On Turn action. When rollingHeal skill checks, roll 3d6 and drop the lowest die.
+Level 2: Stims or other technological healing devices applied by you [[Heal|heal]] twice as many hit points as normal. Using only basic medical supplies, you can [[Heal|heal]] 1d6+[[Heal|Heal]] skill hit points of damage to every injured or wounded person in your group with ten minutes of first aid spread among them. Such healing can be applied to a given target only once per day.

@@ -1,0 +1,8 @@
+| Property | Value |
+|----------|-------|
+| **Level** | 2 |
+| **Discipline** | [[Metapsionics\|Metapsionics]] |
+
+## Description
+
+The metapsion allows a hostile psychic into their mental sanctum in order to gain a later advantage. When targeted by a hostile psionic power that allows a save, the metapsion may Commit Effort as an Instant action and voluntarily fail the saving throw, accepting the effect. The next psychic power the user targets at that assailant then allows the victim no saving throw. This technique lasts until the metapsion makes their psychic attack or reclaims their Committed Effort. A hostile psychic may be affected by only one *Neural Trap* from a given psychic at a time

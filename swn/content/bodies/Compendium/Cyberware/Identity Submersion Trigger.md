@@ -1,0 +1,9 @@
+| Property | Value |
+|----------|-------|
+| **Cost** | 25,000 credits |
+| **TL** | 4 |
+| **System Strain** | 1 |
+
+## Description
+
+This [[Cyberware|cyberware]] involves micronized neural stimulation technology which is imperceptible to anything short of TL5 medical scanning or TL4 surgical examination of the subject’s brain tissue. When active, the IST allows the subject to adopt a secondary persona, complete with a library of manufactured memories. So long as the IST is active, the subject will honestly and completely believe himself to be the secondary persona, a conviction that cannot be penetrated by telepathy or TL4 methods of interrogation. The persona can be activated at the user’s discretion, but it only deactivates on a preset trigger, leaving the subject in full possession of all memories experienced. The trigger can be any perceptible stimulus: a particular time, the sight of a specific person, a code phrase, or any other sign, and it may be changed by the user each time they activate the [[Cyberware|cyberware]]. Many ISTs are also implanted with a “master key” that will automatically deactivate the triggered identity.

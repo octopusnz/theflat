@@ -1,0 +1,8 @@
+| Property | Value |
+|----------|-------|
+| **Level** | 2 |
+| **Discipline** | [[Metapsionics\|Metapsionics]] |
+
+## Description
+
+The metapsion is capable of “hanging” a psychic power in their brain, forming the energy patterns and then suspending them in a self-sustaining loop until it’s time to trigger their release. The psychic must Commit Effort for the day to hang a power, along with the Effort normally necessary to trigger it. None of this Effort can be recovered until the power is expended, after which it recovers at its usual speed. Activating the power is an Instant action, or an On Turn action if it allows the target a saving throw of some kind. Only one ability can be held suspended at any one time.

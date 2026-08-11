@@ -1,0 +1,9 @@
+| Property | Value |
+|----------|-------|
+| **Cost** | 100 credits |
+| **Encumbrance** | 2 |
+| **TL** | 4 |
+
+## Description
+
+Medkit: Containing a broad supply of [[Pharmaceuticals|pharmaceuticals]], spray bandages, glue sutures, and a succinct handbook of injury care, the medkit is designed for handling sudden and drastic injuries. It also contains all the necessary tools for providing long-term recuperative care for critically injured characters. After each day of granting long-term recuperative care, roll 2d6 per patient treated; on a 12, the kit has run out of some vital pharmaceutical and has become useless.

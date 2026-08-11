@@ -1,0 +1,4 @@
+You’ve had all too much practice at close-in fighting and desperate struggles with pistol or blade. You’re extremely skilled at avoiding injury in [[Melee|melee]] combat, and at level 2 you can dodge through a [[Melee|melee]] scrum without fear of being knifed in passing.
+
+Level 1: Gain any combat skill as a bonus skill. You can use pistol-sized [[Ranged|ranged]] weapons in [[Melee|melee]] without suffering penalties for the proximity of [[Melee|melee]] attackers. You ignore Shock damage from [[Melee|melee]] assailants, even if you’re unarmored at the time.
+Level 2: The Shock damage from your [[Melee|melee]] attacks treats all targets as if they were AC 10. The Fighting Withdrawal combat action is treated as an On Turn action for you and can be performed freely.

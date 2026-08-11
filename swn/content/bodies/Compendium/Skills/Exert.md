@@ -1,0 +1,1 @@
+Apply trained speed, strength, or stamina in some feat of physical exertion. Roll it to run, jump, [[Lift|lift]], swim, climb, throw, and so forth. You can use it as a combat skill when throwing things, though it doesn’t qualify as a combat skill for other ends.

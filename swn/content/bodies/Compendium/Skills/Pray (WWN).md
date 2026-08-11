@@ -1,0 +1,1 @@
+[[Perform|Perform]] the clerical rites of your religion, and be familiar with the gods, demons, and taboos of major and minor faiths, and identify iconography and persons of religious importance. Pray also helps you [[Know|know]] the state of local faiths and the important persons in their hierarchies
