@@ -1,0 +1,4211 @@
+			// The bundled map's logical coordinate space. Location x/y in
+			// rpg-data.json (and in users' saved localStorage) are authored against
+			// these numbers — The Golden City at 5774,3862 is dead centre — so they
+			// are a fixed contract, NOT the pixel size of map.jpg. The image is
+			// stretched to fill this space by the SVG viewBox, so map.jpg can be
+			// re-encoded or resized without touching any stored coordinate.
+			// Uploaded maps declare their own space from the file's real dimensions.
+			const BUNDLED_MAP_COORD_WIDTH = 11548;
+			const BUNDLED_MAP_COORD_HEIGHT = 7724;
+
+			// Same artwork, ~16% smaller. The JPEG stays as the fallback for
+			// browsers that can't decode WebP — renderMap swaps to it on a decode
+			// error, which is more reliable than feature-detecting up front.
+			const BUNDLED_MAP_SRC = '/map.webp';
+			const BUNDLED_MAP_FALLBACK = '/map.jpg';
+
+			// Marker geometry as a fraction of the map's width, so markers stay
+			// proportional whichever coordinate space is in play. The divisors
+			// reproduce the previous hardcoded 80 / 120 on the bundled map.
+			const MARKER_RADIUS_RATIO = 1 / 144;
+			const MARKER_LABEL_RATIO = 1 / 96;
+
+			function debounce(fn, delay) {
+				let timeoutId;
+				return function debounced(...args) {
+					clearTimeout(timeoutId);
+					timeoutId = setTimeout(() => fn.apply(this, args), delay);
+				};
+			}
+
+			// Data Store
+			class DataStore {
+				constructor() {
+					this.dataFile = '/rpg-data.json';
+					this.storageKey = 'rpg-data';
+					this.data = {
+						locations: [],
+						npcs: [],
+						items: [],
+						events: []
+					};
+					this.loaded = false;
+				}
+
+				async load() {
+					try {
+						const stored = localStorage.getItem(this.storageKey);
+						if (stored) {
+							const parsed = JSON.parse(stored);
+							this.data = {
+								locations: parsed.locations || [],
+								npcs: parsed.npcs || [],
+								items: parsed.items || [],
+								events: parsed.events || []
+							};
+							this.loaded = true;
+							this.updateBadges();
+
+							// Load static map if no custom map is set
+							if (!this.data.mapSvg) {
+								await this.loadStaticMap();
+							}
+
+							return true;
+						}
+					} catch (e) {
+						console.error('Error loading data from localStorage:', e);
+					}
+
+					try {
+						const response = await fetch(this.dataFile);
+						if (response.ok) {
+							this.data = await response.json();
+							this.loaded = true;
+							this.updateBadges();
+
+							// Load static map if no custom map is set
+							if (!this.data.mapSvg) {
+								await this.loadStaticMap();
+							}
+
+							return true;
+						}
+					} catch (e) {
+						console.error('Error loading data from JSON:', e);
+					}
+
+					// Fallback to empty state
+					this.data = {
+						locations: [],
+						npcs: [],
+						items: [],
+						events: [],
+						mapSvg: null
+					};
+					this.loaded = true;
+					this.updateBadges();
+					
+					// Load static map
+					await this.loadStaticMap();
+					
+					return false;
+				}
+
+				async loadStaticMap() {
+					// HEAD the JPEG (always committed to the repo) as the "is a bundled
+					// map available at all" check, without downloading the body — the
+					// browser's own preloaded fetch does the real work.
+					try {
+					const response = await fetch(BUNDLED_MAP_FALLBACK, { method: 'HEAD' });
+					if (response.ok) {
+						this.data.mapSvg = BUNDLED_MAP_SRC;
+						this.data.mapSvgFallback = BUNDLED_MAP_FALLBACK;
+						this.data.mapType = 'raster';
+						this.data.mapWidth = BUNDLED_MAP_COORD_WIDTH;
+						this.data.mapHeight = BUNDLED_MAP_COORD_HEIGHT;
+						this.data.isStaticMap = true;
+						return true;
+					}
+				} catch (e) {
+					console.error('[ERROR] Failed to load bundled map:', e);
+				}
+
+				// Fallback to grid if map.jpg doesn't exist
+				this.data.mapSvg = null;
+				this.data.mapType = 'grid';
+				return false;
+			}
+
+		save() {
+			try {
+				const { locations, npcs, items, events } = this.data;
+				localStorage.setItem(this.storageKey, JSON.stringify({ locations, npcs, items, events }));
+			} catch (e) {
+				console.error('Error saving data to localStorage:', e);
+			}
+				this.updateBadges();
+			}
+
+			exportData() {
+					const dataStr = JSON.stringify(this.data, null, 2);
+					const dataBlob = new Blob([dataStr], { type: 'application/json' });
+					const url = URL.createObjectURL(dataBlob);
+					const link = document.createElement('a');
+					link.href = url;
+					link.download = 'rpg-data.json';
+					document.body.appendChild(link);
+					link.click();
+					document.body.removeChild(link);
+					URL.revokeObjectURL(url);
+				}
+
+				async importData(file) {
+					try {
+						const text = await file.text();
+						const imported = JSON.parse(text);
+						
+						// Validate structure
+						if (imported.locations && imported.npcs && imported.items && imported.events) {
+							this.data = imported;
+							this.save();
+							return true;
+						} else {
+							throw new Error('Invalid data structure');
+						}
+					} catch (e) {
+						console.error('Error importing data:', e);
+						alert('Error importing file. Please ensure it\'s a valid rpg-data.json file.');
+						return false;
+					}
+				}
+
+				async uploadMap(file) {
+					try {
+					// Handle raster images only (JPG, PNG, etc.)
+					if (file.type.startsWith('image/')) {
+						const reader = new FileReader();
+						
+						return new Promise((resolve, reject) => {
+							reader.onload = (e) => {
+								const img = new Image();
+								img.onload = () => {
+									this.data.mapSvg = e.target.result; // Store as data URL
+									this.data.mapType = 'raster';
+									this.data.isStaticMap = false;
+									this.data.mapWidth = img.width;
+									this.data.mapHeight = img.height;
+									resolve(true);
+								};
+								img.onerror = () => {
+									reject(new Error('Failed to load image'));
+								};
+								img.src = e.target.result;
+							};
+							reader.onerror = () => reject(new Error('Failed to read file'));
+							reader.readAsDataURL(file);
+						});
+					} else {
+						throw new Error('Only image files (PNG, JPG, etc.) are supported.');
+					}
+				} catch (e) {
+					console.error('Error uploading map:', e);
+					alert('Error uploading map: ' + e.message);
+					return false;
+				}
+			}
+
+			add(type, item) {
+				if (!this.data[type]) {
+					this.data[type] = [];
+				}
+				// Generate a proper integer ID
+				const maxId = this.data[type].reduce((max, item) => 
+					Math.max(max, item.id || 0), 0);
+				item.id = maxId + 1;
+				item.createdAt = new Date().toISOString();
+				this.data[type].push(item);
+				this.save();
+				return item;
+			}
+
+				get(type, id) {
+					return this.data[type]?.find(item => item.id === id);
+				}
+
+				getAll(type) {
+					return this.data[type] || [];
+				}
+
+				update(type, id, updates) {
+					const index = this.data[type]?.findIndex(item => item.id === id);
+					if (index !== -1) {
+						this.data[type][index] = { ...this.data[type][index], ...updates };
+						this.save();
+						return this.data[type][index];
+					}
+					return null;
+				}
+
+				delete(type, id) {
+					if (this.data[type]) {
+						this.data[type] = this.data[type].filter(item => item.id !== id);
+						this.save();
+					}
+				}
+
+				updateBadges() {
+					document.getElementById('badge-locations').textContent = this.data.locations.length;
+					document.getElementById('badge-npcs').textContent = this.data.npcs.length;
+					document.getElementById('badge-items').textContent = this.data.items.length;
+					document.getElementById('badge-events').textContent = this.data.events.length;
+					
+					const total = this.data.locations.length + this.data.npcs.length + 
+						              this.data.items.length + this.data.events.length;
+					document.getElementById('badge-all').textContent = total;
+				}
+
+				// Equipment API caching with local file fallback
+				async getEquipmentList() {
+					const cacheKey = 'dnd5e_equipment_cache';
+					const cacheTTL = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+					
+					// Check if cached data exists and is fresh
+					const cached = localStorage.getItem(cacheKey);
+					const cacheTime = localStorage.getItem(cacheKey + '_time');
+					
+					if (cached && cacheTime) {
+						const age = Date.now() - parseInt(cacheTime);
+						if (age < cacheTTL) {
+							return JSON.parse(cached);
+						}
+					}
+					
+					// Try to load from local file first (updated daily by GitHub Actions)
+					try {
+					const response = await fetch('/data/equipment.json');
+					if (response.ok) {
+						const data = await response.json();
+						// Cache the data
+						localStorage.setItem(cacheKey, JSON.stringify(data));
+						localStorage.setItem(cacheKey + '_time', Date.now().toString());
+						return data;
+					}
+				} catch (error) {
+					console.debug('Could not load local equipment file, falling back to API');
+				}
+				
+				// Fallback to API if local file not available
+				try {
+					const response = await fetch('https://www.dnd5eapi.co/api/2014/equipment');
+					if (!response.ok) throw new Error('API request failed');
+					
+					const data = await response.json();
+					
+					// Cache the data
+					localStorage.setItem(cacheKey, JSON.stringify(data));
+					localStorage.setItem(cacheKey + '_time', Date.now().toString());
+					
+					return data;
+				} catch (error) {
+					console.error('Error fetching equipment data from API:', error);
+					
+					// Return cached data if available, even if expired
+					if (cached) {
+						return JSON.parse(cached);
+					}
+					
+					throw error;
+				}
+			}
+
+			async getEquipmentDetail(url) {
+				try {
+					// Construct the full URL
+					const fullUrl = `https://www.dnd5eapi.co${url}`;
+					
+					const response = await fetch(fullUrl, {
+						method: 'GET',
+						headers: {
+							'Accept': 'application/json'
+						},
+						mode: 'cors',
+						credentials: 'omit'
+					});
+					
+					if (!response.ok) {
+						throw new Error(`API returned ${response.status}: ${response.statusText}`);
+					}
+					
+					const data = await response.json();
+					return data;
+				} catch (error) {
+					console.error('[ERROR] Failed to fetch equipment details:', error.message, error);
+					throw error;
+				}
+			}
+		}
+
+		// Load data and initialize app
+		async function initApp() {
+		const mapView = document.getElementById('map-view');
+		
+		// CRITICAL: Absolute safety net - remove loading after 2 seconds NO MATTER WHAT
+		const safetyTimeout = setTimeout(() => {
+			console.error('[CRITICAL] Safety timeout triggered - forcing loading state off');
+			mapView.classList.remove('loading');
+			mapView.classList.add('ready');
+		}, 2000);
+		
+		try {
+			await store.load();
+			
+			if (mapController) {
+				mapController.renderMap();
+				clearTimeout(safetyTimeout);
+			} else {
+				console.error('[ERROR] mapController not defined');
+				mapView.classList.remove('loading');
+				mapView.classList.add('ready');
+				clearTimeout(safetyTimeout);
+			}
+		} catch (e) {
+			console.error('[ERROR] initApp failed:', e);
+			mapView.classList.remove('loading');
+			mapView.classList.add('ready');
+			clearTimeout(safetyTimeout);
+		}
+	}
+
+	function setupThemeToggle() {
+		const themeButton = document.getElementById('btn-theme');
+		const themeMeta = document.querySelector('meta[name="theme-color"]');
+		if (!themeButton) return;
+
+		const applyTheme = (theme) => {
+			const isLight = theme === 'light';
+			document.body.classList.toggle('theme-light', isLight);
+			document.documentElement.classList.toggle('theme-light', isLight);
+			themeButton.textContent = isLight ? 'Dark Mode' : 'Light Mode';
+			themeButton.setAttribute('aria-pressed', isLight ? 'false' : 'true');
+			if (themeMeta) {
+				themeMeta.setAttribute('content', isLight ? '#ffffff' : '#0b1220');
+			}
+	};
+
+	const savedTheme = localStorage.getItem('theme');
+	if (savedTheme === 'dark' || savedTheme === 'light') {
+		applyTheme(savedTheme);
+	}
+
+	themeButton.addEventListener('click', () => {
+		const isCurrentlyLight = document.documentElement.classList.contains('theme-light');
+		const nextTheme = isCurrentlyLight ? 'dark' : 'light';
+		localStorage.setItem('theme', nextTheme);
+		applyTheme(nextTheme);
+	});
+}
+
+			const store = new DataStore();
+
+			// Map Controller
+			class MapController {
+				constructor() {
+					this.svg = document.getElementById('map-svg');
+					if (!this.svg) {
+						console.error('[ERROR] map-svg element not found');
+						return;
+					}
+					this.scale = 1;
+					this.translateX = 0;
+					this.translateY = 0;
+					this.isDragging = false;
+					this.startX = 0;
+					this.startY = 0;
+				this.locationsLayer = null; // Will be set in renderMap
+					this.transformTimeout = null;
+					this.willChangeTimeout = null;
+					this.isTransforming = false;
+					this.lastDistance = 0;
+					this.lastScale = 1;
+					document.getElementById('btn-zoom-in').addEventListener('click', () => this.zoom(1.2));
+					document.getElementById('btn-zoom-out').addEventListener('click', () => this.zoom(0.8));
+					document.getElementById('btn-reset-view').addEventListener('click', () => this.resetView());
+
+					// Mouse pan controls
+					this.svg.addEventListener('mousedown', (e) => this.startDrag(e), { passive: true });
+					this.svg.addEventListener('mousemove', (e) => this.drag(e), { passive: false });
+					document.addEventListener('mouseup', (e) => this.endDrag(e), { passive: true });
+
+					// Touch support for mobile panning and pinch zoom
+					this.svg.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: true });
+					this.svg.addEventListener('touchmove', (e) => this.handleTouchMove(e), { passive: false });
+					this.svg.addEventListener('touchend', (e) => this.handleTouchEnd(e), { passive: true });
+				}
+
+		zoom(factor) {
+				// Get the viewport center
+				const mapView = this.svg.parentElement;
+				const centerX = mapView.clientWidth / 2;
+				const centerY = mapView.clientHeight / 2;
+				
+				// Calculate the position of the center point in map coordinates
+				const mapCenterX = (centerX - this.translateX) / this.scale;
+				const mapCenterY = (centerY - this.translateY) / this.scale;
+				
+				// Apply zoom
+				this.scale *= factor;
+				this.scale = Math.max(0.5, Math.min(5, this.scale));
+				
+				// Adjust translation to keep the center point in the same visual location
+				this.translateX = centerX - mapCenterX * this.scale;
+				this.translateY = centerY - mapCenterY * this.scale;
+				
+				this.updateTransform();
+				
+				// Throttle rapid subsequent zooms to prevent overwhelming
+				if (this.transformTimeout) return;
+				
+				this.transformTimeout = setTimeout(() => {
+					this.transformTimeout = null;
+				}, 50); // Reduced to 50ms for better responsiveness
+			}
+
+			resetView() {
+				this.scale = 1;
+				this.translateX = 0;
+				this.translateY = 0;
+				this.updateTransform();
+			}
+
+			startDrag(e) {
+				this.isDragging = true;
+				this.startX = e.clientX - this.translateX;
+				this.startY = e.clientY - this.translateY;
+				this.svg.style.cursor = 'grabbing';
+			
+			// Cache target and enable hardware acceleration
+			this.dragTarget = this.mainGroup || this.locationsLayer || this.svg;
+			if (this.dragTarget) {
+				this.dragTarget.style.willChange = 'transform';
+			}
+	}
+
+	drag(e) {
+		if (!this.isDragging || !this.dragTarget) return;
+		
+		// Update position values immediately
+		this.translateX = e.clientX - this.startX;
+		this.translateY = e.clientY - this.startY;
+		
+		// Apply transform directly
+		this.dragTarget.style.transform = 
+			`translate3d(${this.translateX}px, ${this.translateY}px, 0) scale(${this.scale})`;
+	}
+
+	endDrag(e) {
+		this.isDragging = false;
+		this.svg.style.cursor = 'grab';
+		
+		// Remove will-change after drag completes
+		if (this.dragTarget) {
+			const target = this.dragTarget;
+			setTimeout(() => {
+				target.style.willChange = 'auto';
+			}, 200);
+			this.dragTarget = null;
+		}
+	}
+
+updateTransformDirect() {
+// Direct update with hardware acceleration
+const target = this.mainGroup || this.locationsLayer || this.svg;
+if (target) {
+target.style.transform = 
+`translate3d(${this.translateX}px, ${this.translateY}px, 0) scale(${this.scale})`;
+}
+}
+
+handleTouchStart(e) {
+if (e.touches.length === 1) {
+// Single touch - pan only, let browser handle multi-touch zoom
+this.startDrag(e.touches[0]);
+} else {
+// Two or more fingers - stop panning, let browser handle pinch zoom natively
+this.isDragging = false;
+}
+}
+
+handleTouchMove(e) {
+			if (e.touches.length === 1) {
+				// Single touch - pan
+				e.preventDefault();
+				this.drag(e.touches[0]);
+			} else {
+				// Two or more fingers - don't prevent default, let browser handle zoom
+				// Do nothing - allow native pinch zoom
+			}
+		}
+
+		handleTouchEnd(e) {
+			if (e.touches.length < 2) {
+				// Exiting multi-touch
+				this.lastDistance = 0;
+				if (e.touches.length === 1) {
+					// Back to single touch pan
+					this.startDrag(e.touches[0]);
+				} else {
+					// No more touches
+					this.endDrag(e);
+				}
+			}
+		}
+
+		updateTransform() {
+					// Use RAF for smooth 60fps updates
+					if (this.rafId) {
+						cancelAnimationFrame(this.rafId);
+					}
+					
+					this.rafId = requestAnimationFrame(() => {
+						const target = this.mainGroup || this.locationsLayer || this.svg;
+						if (!target) return;
+						
+						// Apply transform with no transition for instant feedback
+						target.style.transform = 
+							`translate3d(${this.translateX}px, ${this.translateY}px, 0) scale(${this.scale})`;
+						
+						// Mark as transforming and set will-change
+						if (!this.isTransforming) {
+							this.isTransforming = true;
+							target.style.willChange = 'transform';
+						}
+						
+						// Remove will-change after transform completes to save memory
+						clearTimeout(this.willChangeTimeout);
+						this.willChangeTimeout = setTimeout(() => {
+							target.style.willChange = 'auto';
+							this.isTransforming = false;
+						}, 200);
+						
+						this.rafId = null;
+					});
+				}
+
+
+
+				renderMap() {
+				// Show loading state
+				const mapView = document.getElementById('map-view');
+			mapView.classList.add('loading');
+
+			// Clear existing SVG content first
+			this.svg.innerHTML = '';
+			this.svg.classList.remove('ready');
+			
+			try {
+				// Render custom map if available
+				if (store.data.mapSvg && store.data.mapType === 'raster') {
+					// Handle raster images (JPG, PNG, etc.)
+					const width = store.data.mapWidth || 1000;
+					const height = store.data.mapHeight || 600;
+					
+					// Update viewBox and SVG size
+					this.svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+					this.svg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+					
+					// Create main group for all content
+					const mainGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+					mainGroup.setAttribute('id', 'main-group');
+					
+					// Add image as background
+					const image = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+					image.setAttribute('href', store.data.mapSvg);
+					image.setAttribute('x', '0');
+					image.setAttribute('y', '0');
+					image.setAttribute('width', width);
+					image.setAttribute('height', height);
+					image.setAttribute('preserveAspectRatio', 'none');
+
+					// Browsers that can't decode WebP fall back to the JPEG. `once`
+					// keeps this from looping if the fallback fails too.
+					if (store.data.mapSvgFallback) {
+						image.addEventListener('error', () => {
+							image.setAttribute('href', store.data.mapSvgFallback);
+						}, { once: true });
+					}
+
+					mainGroup.appendChild(image);
+					
+					// Create and add locations layer on top
+					const locationsLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+					locationsLayer.setAttribute('id', 'locations-layer');
+					mainGroup.appendChild(locationsLayer);
+					
+					// Add main group to SVG
+					this.svg.appendChild(mainGroup);
+					this.mainGroup = mainGroup;
+					this.locationsLayer = locationsLayer;
+					
+					// Wait for image to load before showing
+					let imageLoaded = false;
+					image.addEventListener('load', () => {
+						imageLoaded = true;
+						mapView.classList.remove('loading');
+						this.svg.classList.add('ready');
+						this.render(); // Render locations after image is loaded and visible
+					}, { once: true });
+					
+					// Fallback: remove loading state after VERY short timeout
+					setTimeout(() => {
+						if (!imageLoaded) {
+							mapView.classList.remove('loading');
+							this.svg.classList.add('ready');
+							this.render();
+						}
+					}, 500);
+				} else {
+					// Default map with grid (fallback)
+					this.svg.setAttribute('viewBox', '0 0 1000 600');
+					
+					// Create defs with grid pattern
+					const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+					const pattern = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
+					pattern.setAttribute('id', 'grid');
+					pattern.setAttribute('width', '50');
+					pattern.setAttribute('height', '50');
+					pattern.setAttribute('patternUnits', 'userSpaceOnUse');
+					
+					const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+					path.setAttribute('d', 'M 50 0 L 0 0 0 50');
+					path.setAttribute('fill', 'none');
+					path.setAttribute('stroke', 'rgba(100,100,100,0.1)');
+					path.setAttribute('stroke-width', '1');
+					pattern.appendChild(path);
+					defs.appendChild(pattern);
+					
+					const mainGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+					mainGroup.setAttribute('id', 'main-group');
+					
+					// Add grid background
+					const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+					rect.setAttribute('width', '1000');
+					rect.setAttribute('height', '600');
+					rect.setAttribute('fill', 'url(#grid)');
+					mainGroup.appendChild(rect);
+					
+					// Create and add locations layer on top
+					const locationsLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+					locationsLayer.setAttribute('id', 'locations-layer');
+					mainGroup.appendChild(locationsLayer);
+					
+					this.svg.appendChild(defs);
+					this.svg.appendChild(mainGroup);
+					this.mainGroup = mainGroup;
+					this.locationsLayer = locationsLayer;
+
+					// Show the grid (no image to wait for)
+					}
+				} catch (err) {
+					console.error('[ERROR] renderMap failed:', err);
+					mapView.classList.remove('loading');
+					this.svg.classList.add('ready');
+				}
+			}
+
+		render() {
+			const locations = store.getAll('locations');
+
+			// Derive everything from the map actually in play. Uploaded maps declare
+			// their own (much smaller) coordinate space from the file's real pixel
+			// size, so fixed values sized for the bundled map would put auto-placed
+			// markers far outside the viewBox and make every marker enormous.
+			const mapWidth = store.data.mapWidth || BUNDLED_MAP_COORD_WIDTH;
+			const mapHeight = store.data.mapHeight || BUNDLED_MAP_COORD_HEIGHT;
+			const centerX = mapWidth / 2;
+			const centerY = mapHeight / 2;
+			const rangeX = mapWidth * 0.4;
+			const rangeY = mapHeight * 0.4;
+			const radius = mapWidth * MARKER_RADIUS_RATIO;
+			const labelSize = mapWidth * MARKER_LABEL_RATIO;
+
+			locations.forEach((location) => {
+				// Explicit 0 is a valid coordinate, so test for a number rather than
+				// truthiness before falling back to random placement.
+				const x = Number.isFinite(location.x) ? location.x : (centerX - rangeX/2 + Math.random() * rangeX);
+				const y = Number.isFinite(location.y) ? location.y : (centerY - rangeY/2 + Math.random() * rangeY);
+
+				const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+				g.classList.add('map-location');
+
+				const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+				circle.setAttribute('cx', x);
+				circle.setAttribute('cy', y);
+				circle.setAttribute('r', radius);
+
+				const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+				text.setAttribute('x', x);
+				text.setAttribute('y', y - labelSize);
+				text.setAttribute('font-size', labelSize);
+				text.textContent = location.name;
+				
+				g.appendChild(circle);
+				g.appendChild(text);
+				
+				g.addEventListener('click', () => {
+					showLocationDetails(location.id);
+				});
+				
+				this.locationsLayer.appendChild(g);
+			});
+		}
+	}
+
+// Detail Panel Controller
+function showLocationDetails(locationId) {
+	const location = store.get('locations', locationId);
+	const panel = document.getElementById('detail-panel');
+	const title = document.getElementById('detail-title');
+	const content = document.getElementById('detail-content');
+
+	// Hide equipment panel if it's open
+	hideEquipmentPanel();
+
+	title.textContent = location.name;
+
+	// Get related NPCs and items
+	const relatedNPCs = store.getAll('npcs').filter(npc => npc.locationId === locationId);
+	const relatedItems = store.getAll('items').filter(item => item.locationId === locationId);
+	
+	let html = '<div class="detail-section">';
+	html += '<h3>Description</h3>';
+	html += '<p>' + escapeHtml(location.description || 'No description available.') + '</p>';
+	html += '</div>';
+
+	if (location.history) {
+		html += '<div class="detail-section">';
+		html += '<h3>History</h3>';
+		html += '<p>' + escapeHtml(location.history) + '</p>';
+		html += '</div>';
+	}
+
+	if (relatedNPCs.length > 0) {
+		html += '<div class="detail-section">';
+		html += '<h3>NPCs</h3>';
+		html += '<ul class="npc-list">';
+		relatedNPCs.forEach(npc => {
+			html += '<li class="npc-item" data-item-id="' + npc.id + '" data-item-type="npcs" style="cursor: pointer;">';
+			html += '<div class="npc-name" style="color: var(--link); text-decoration: underline;">' + escapeHtml(npc.name) + '</div>';
+			html += '<div class="npc-role">' + escapeHtml(npc.role || 'Unknown role') + '</div>';
+			html += '</li>';
+		});
+		html += '</ul>';
+		html += '</div>';
+	}
+
+	if (relatedItems.length > 0) {
+		html += '<div class="detail-section">';
+		html += '<h3>Items</h3>';
+		html += '<ul class="item-list">';
+		relatedItems.forEach(item => {
+			html += '<li class="item-item" data-item-id="' + item.id + '" data-item-type="items" style="cursor: pointer;">';
+			html += '<div class="item-name" style="color: var(--link); text-decoration: underline;">' + escapeHtml(item.name) + '</div>';
+			html += '<div class="item-type">' + escapeHtml(item.type || 'Unknown type') + '</div>';
+			html += '</li>';
+		});
+		html += '</ul>';
+		html += '</div>';
+	}
+	
+	content.innerHTML = html;
+	panel.classList.remove('hidden');
+	
+	// Use visualViewport API to properly display panel at normal scale
+	function updateDetailPanelZoom() {
+		if (window.visualViewport && window.innerWidth <= 768) {
+			const scale = window.visualViewport.scale;
+			const vvWidth = window.visualViewport.width;
+			const vvHeight = window.visualViewport.height;
+			const offsetX = window.visualViewport.offsetLeft;
+			const offsetY = window.visualViewport.offsetTop;
+			
+			if (scale > 1) {
+				// Calculate inverse scale
+				const inverseScale = 1 / scale;
+				
+				// The panel needs to be scaled down, so we make it larger before scaling
+				// We want the final result to be exactly vvWidth x vvHeight
+				const panelWidth = vvWidth * scale;
+				const panelHeight = vvHeight * scale;
+				
+				// Set the panel to fill the visual viewport at normal scale
+				panel.style.transform = `scale(${inverseScale})`;
+				panel.style.transformOrigin = 'top left';
+				panel.style.boxSizing = 'border-box';
+				
+				// Set dimensions exactly
+				panel.style.width = `${panelWidth}px`;
+				panel.style.height = `${panelHeight}px`;
+				panel.style.minWidth = `${panelWidth}px`;
+				panel.style.minHeight = `${panelHeight}px`;
+				panel.style.maxWidth = `${panelWidth}px`;
+				panel.style.maxHeight = `${panelHeight}px`;
+				
+				// Position at the visual viewport location
+				panel.style.left = `${offsetX}px`;
+				panel.style.top = `${offsetY}px`;
+				panel.style.right = 'auto';
+				
+				// Ensure no overflow
+				panel.style.overflow = 'hidden';
+				panel.style.overflowY = 'auto';
+			} else {
+				// Reset to normal when not zoomed
+				panel.style.transform = 'none';
+				panel.style.transformOrigin = 'top right';
+				panel.style.width = '100%';
+				panel.style.height = '100vh';
+				panel.style.height = '100dvh'; // ignored where dvh is unsupported, leaving the vh above
+				panel.style.left = 'auto';
+				panel.style.right = '0';
+				panel.style.top = '0';
+				panel.style.overflow = 'hidden';
+				panel.style.overflowY = 'auto';
+			}
+		}
+	}
+	
+	updateDetailPanelZoom();
+	
+	// Listen for viewport changes
+	if (window.visualViewport) {
+		const updateHandler = () => updateDetailPanelZoom();
+		window.visualViewport.addEventListener('resize', updateHandler);
+		window.visualViewport.addEventListener('scroll', updateHandler);
+		
+		// Clean up listeners when panel closes
+		const originalClose = panel.querySelector('#btn-close-detail');
+		if (originalClose) {
+			const oldHandler = originalClose.onclick;
+			originalClose.onclick = function(e) {
+				window.visualViewport.removeEventListener('resize', updateHandler);
+				window.visualViewport.removeEventListener('scroll', updateHandler);
+				if (oldHandler) oldHandler.call(this, e);
+				else hideDetailPanel();
+			};
+		}
+	}
+}
+
+function hideDetailPanel() {
+	document.getElementById('detail-panel').classList.add('hidden');
+	// Allow zoom again when closing detail panel
+	const viewportMeta = document.querySelector('meta[name="viewport"]');
+	if (viewportMeta) {
+		viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=10');
+	}
+}
+
+function hideEquipmentPanel() {
+	const panel = document.getElementById('equipment-panel');
+	panel.classList.add('hidden');
+	panel.classList.remove('active');
+}
+
+async function showEquipmentPanel() {
+	const panel = document.getElementById('equipment-panel');
+	const resultsDiv = document.getElementById('equipment-results');
+	const countBadge = document.getElementById('badge-equipment-count');
+	
+	// Hide detail panel first
+	hideDetailPanel();
+	
+	panel.classList.remove('hidden');
+	panel.classList.add('active');
+	
+	// Load equipment list if not already loaded
+	try {
+		const data = await store.getEquipmentList();
+		const equipmentList = data.results || data;
+
+		// Update the badge count
+		if (countBadge) {
+			countBadge.textContent = equipmentList.length || 0;
+		}
+
+	displayEquipmentList(equipmentList);
+} catch (error) {
+	resultsDiv.innerHTML = '<div class="equipment-loading">Error loading equipment data. Please try again.</div>';
+	if (countBadge) {
+		countBadge.textContent = '0';
+	}
+}
+}
+
+function displayEquipmentList(equipment) {
+const resultsDiv = document.getElementById('equipment-results');
+
+if (!equipment || equipment.length === 0) {
+	resultsDiv.innerHTML = '<div class="equipment-loading">No equipment found.</div>';
+	return;
+}
+
+// Store the FULL equipment list for search (only set if not already set, to preserve master list)
+if (!window.fullEquipmentList) {
+	window.fullEquipmentList = equipment;
+}
+	
+	const html = equipment.map(item => {
+		const name = item.name || item.index || 'Unknown';
+		const index = item.index || '';
+		return `<div class="equipment-item" data-index="${escapeHtml(index)}">
+			<div class="equipment-item-name">${escapeHtml(name)}</div>
+			<div class="equipment-item-type">${escapeHtml(item.equipment_category?.name || 'Equipment')}</div>
+		</div>`;
+	}).join('');
+	
+	resultsDiv.innerHTML = html;
+	
+	// Add click handlers to show details
+	resultsDiv.querySelectorAll('.equipment-item').forEach(item => {
+		item.addEventListener('click', async () => {
+			const index = item.dataset.index;
+			const selectedEquipment = window.fullEquipmentList.find(e => e.index === index);
+			if (selectedEquipment && selectedEquipment.url) {
+				await showEquipmentDetails(selectedEquipment);
+			} else {
+				console.error('[ERROR] Equipment not found or missing URL:', { index, selectedEquipment });
+			}
+		});
+	});
+}
+
+async function showEquipmentDetails(equipment) {
+	try {
+		const details = await store.getEquipmentDetail(equipment.url);
+		const panel = document.getElementById('detail-panel');
+		const title = document.getElementById('detail-title');
+		const content = document.getElementById('detail-content');
+		
+		// Hide equipment panel, show detail panel with equipment info
+		hideEquipmentPanel();
+		
+		title.textContent = details.name || equipment.name;
+		
+		let html = '<div class="detail-section">';
+		html += '<h3>Equipment Details</h3>';
+		
+		// Equipment Categories
+		if (details.equipment_category?.name) {
+			html += '<p><strong>Category:</strong> ' + escapeHtml(details.equipment_category.name) + '</p>';
+		}
+
+		if (details.gear_category?.name) {
+			html += '<p><strong>Gear Type:</strong> ' + escapeHtml(details.gear_category.name) + '</p>';
+		}
+
+		// Weapon-specific fields
+		if (details.weapon_category) {
+			html += '<p><strong>Weapon Type:</strong> ' + escapeHtml(details.weapon_category) + '</p>';
+		}
+
+		if (details.weapon_range) {
+			html += '<p><strong>Range:</strong> ' + escapeHtml(details.weapon_range) + '</p>';
+		}
+
+		if (details.category_range) {
+			html += '<p><strong>Classification:</strong> ' + escapeHtml(details.category_range) + '</p>';
+		}
+
+		// Damage
+		if (details.damage) {
+			let damageText = details.damage.damage_dice || 'unknown';
+			if (details.damage.damage_type?.name) {
+				damageText += ' ' + details.damage.damage_type.name;
+			}
+			html += '<p><strong>Damage:</strong> ' + escapeHtml(damageText) + '</p>';
+		}
+
+		// Range information
+		if (details.range?.normal) {
+			html += '<p><strong>Range:</strong> ' + escapeHtml(details.range.normal) + ' ft</p>';
+		}
+
+		if (details.range?.long) {
+			html += '<p><strong>Long Range:</strong> ' + escapeHtml(details.range.long) + ' ft</p>';
+		}
+
+		// Weight
+		if (details.weight !== undefined && details.weight !== null) {
+			html += '<p><strong>Weight:</strong> ' + escapeHtml(details.weight) + ' lb</p>';
+		}
+
+		// Cost
+		if (details.cost?.quantity !== undefined) {
+			const unit = details.cost.unit || 'gp';
+			html += '<p><strong>Cost:</strong> ' + escapeHtml(details.cost.quantity) + ' ' + escapeHtml(unit) + '</p>';
+		}
+
+		// Description
+		if (details.desc && Array.isArray(details.desc) && details.desc.length > 0) {
+			html += '<p>' + details.desc.map(escapeHtml).join('</p><p>') + '</p>';
+		}
+
+		// Special properties
+		if (details.special && Array.isArray(details.special) && details.special.length > 0) {
+			html += '<p><strong>Special:</strong> ' + details.special.map(escapeHtml).join(', ') + '</p>';
+		}
+
+		// Weapon properties (Heavy, Two-Handed, etc)
+		if (details.properties && Array.isArray(details.properties) && details.properties.length > 0) {
+			const propNames = details.properties.map(p => escapeHtml(p.name || p.index)).join(', ');
+			html += '<p><strong>Properties:</strong> ' + propNames + '</p>';
+		}
+
+		// Contents (for containers)
+		if (details.contents && Array.isArray(details.contents) && details.contents.length > 0) {
+			html += '<p><strong>Contains:</strong></p><ul>';
+			details.contents.forEach(item => {
+				html += '<li>' + escapeHtml(item.item?.name || item.name || 'Unknown') + '</li>';
+			});
+			html += '</ul>';
+		}
+		
+		html += '</div>';
+		html += '<div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);"><button type="button" class="btn btn-back-equipment" style="width: 100%;">Back to Equipment</button></div>';
+		
+		content.innerHTML = html;
+		panel.classList.remove('hidden');
+		
+	} catch (error) {
+		console.error('[ERROR] Failed to load equipment details:', error.message, error);
+		const panel = document.getElementById('detail-panel');
+		const title = document.getElementById('detail-title');
+		const content = document.getElementById('detail-content');
+		
+		title.textContent = equipment?.name || 'Equipment';
+		content.innerHTML = '<div class="empty-state"><p>Error loading equipment details: ' + escapeHtml(error.message) + '</p><p style="font-size: 0.9em; color: var(--muted-fg);">Check browser console for more details.</p><button type="button" class="btn btn-back-equipment" style="width: 100%; margin-top: 20px;">Back to Equipment</button></div>';
+		panel.classList.remove('hidden');
+	}
+}
+
+let spellIndexCache = null;
+
+async function loadSpellIndex() {
+	if (spellIndexCache) return spellIndexCache;
+
+	try {
+		const response = await fetch('/data/spells.json');
+		if (response.ok) {
+			const data = await response.json();
+			spellIndexCache = data.results || data;
+			return spellIndexCache;
+		}
+	} catch (error) {
+		console.debug('Loading spells from API fallback');
+	}
+
+	try {
+		const response = await fetch('https://www.dnd5eapi.co/api/2014/spells');
+		if (response.ok) {
+			const data = await response.json();
+			spellIndexCache = data.results || data;
+			return spellIndexCache;
+		}
+	} catch (error) {
+		console.error('Failed to load spells:', error);
+	}
+
+	spellIndexCache = [];
+	return spellIndexCache;
+}
+
+function renderSpellDetailsHtml(spell) {
+	if (!spell) {
+		return '<div class="empty-state"><p>No spell details found.</p></div>';
+	}
+
+	let html = '<div class="detail-section">';
+	html += '<h3>Spell Details</h3>';
+
+	if (spell.level !== undefined) {
+		const levelName = spell.level === 0 ? 'Cantrip' : `Level ${spell.level}`;
+		html += `<p><strong>Level:</strong> ${escapeHtml(levelName)}</p>`;
+	}
+	if (spell.school) {
+		const schoolName = spell.school.name || spell.school;
+		html += `<p><strong>School:</strong> ${escapeHtml(schoolName)}</p>`;
+	}
+	if (spell.casting_time) html += `<p><strong>Casting Time:</strong> ${escapeHtml(spell.casting_time)}</p>`;
+	if (spell.range) html += `<p><strong>Range:</strong> ${escapeHtml(spell.range)}</p>`;
+	if (spell.components && Array.isArray(spell.components)) {
+		html += `<p><strong>Components:</strong> ${escapeHtml(spell.components.join(', '))}</p>`;
+	}
+	if (spell.material) html += `<p><strong>Material:</strong> ${escapeHtml(spell.material)}</p>`;
+	if (spell.duration) html += `<p><strong>Duration:</strong> ${escapeHtml(spell.duration)}</p>`;
+	if (spell.attack_type) html += `<p><strong>Attack Type:</strong> ${escapeHtml(spell.attack_type)}</p>`;
+	if (spell.save?.ability?.name) {
+		html += `<p><strong>Saving Throw:</strong> ${escapeHtml(spell.save.ability.name)}</p>`;
+	}
+	if (spell.concentration) html += '<p><strong>Concentration:</strong> Yes</p>';
+	if (spell.ritual) html += '<p><strong>Ritual:</strong> Yes</p>';
+
+	if (spell.desc) {
+		const descList = Array.isArray(spell.desc) ? spell.desc : [spell.desc];
+		html += descList.map(text => `<p>${escapeHtml(text)}</p>`).join('');
+	}
+
+	if (spell.higher_level && Array.isArray(spell.higher_level) && spell.higher_level.length > 0) {
+		html += '<h4>At Higher Levels</h4>';
+		html += spell.higher_level.map(text => `<p>${escapeHtml(text)}</p>`).join('');
+	}
+
+	html += '</div>';
+	return html;
+}
+
+async function showSpellDetails(spellName) {
+	const panel = document.getElementById('detail-panel');
+	const title = document.getElementById('detail-title');
+	const content = document.getElementById('detail-content');
+
+	// Hide equipment panel if it's open
+	hideEquipmentPanel();
+
+	title.textContent = spellName || 'Spell';
+	content.innerHTML = '<div class="character-loading">Loading spell details...</div>';
+	panel.classList.remove('hidden');
+
+	try {
+		const spells = await loadSpellIndex();
+		const normalized = (spellName || '').toLowerCase().trim();
+		const entry = spells.find(spell => (spell.name || '').toLowerCase() === normalized);
+
+		if (!entry || !entry.url) {
+			content.innerHTML = '<div class="empty-state"><p>No spell details found.</p></div>';
+			return;
+		}
+
+		const response = await fetch(`https://www.dnd5eapi.co${entry.url}`);
+		if (!response.ok) {
+			throw new Error('Failed to load spell details');
+		}
+		const details = await response.json();
+		content.innerHTML = renderSpellDetailsHtml(details);
+	} catch (error) {
+		console.error('[ERROR] Failed to load spell details:', error);
+		content.innerHTML = '<div class="empty-state"><p>Unable to load spell details.</p></div>';
+	}
+}
+
+	function showAllCategories() {
+		const panel = document.getElementById('detail-panel');
+		const title = document.getElementById('detail-title');
+		const content = document.getElementById('detail-content');
+
+		title.textContent = 'All Items';
+
+	// Map category names to their display names (matching the sidebar)
+	const categoryNames = {
+		'locations': 'Locations',
+		'npcs': 'NPCs',
+		'items': 'Items',
+		'events': 'Events'
+	};
+
+	const categories = ['locations', 'npcs', 'items', 'events'];
+	let allHTML = '';
+
+	categories.forEach(category => {
+		const items = store.getAll(category);
+		if (items.length === 0) return;
+
+		const categoryName = categoryNames[category] || category.charAt(0).toUpperCase() + category.slice(1);
+		allHTML += '<div style="margin-bottom: 24px;">';
+		allHTML += '<h3 style="margin: 0 0 12px; font-size: 1.1rem; color: var(--link); border-bottom: 2px solid var(--border); padding-bottom: 8px;">' + categoryName + ' (' + items.length + ')</h3>';
+		allHTML += '<div style="display: flex; flex-direction: column; gap: 8px;">';
+
+		items.forEach(item => {
+			let html = '<div class="item-list-entry" data-category="' + category + '" data-id="' + item.id + '" style="padding: 12px; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; transition: all 0.2s; background: var(--bg);">';
+			html += '<div style="font-weight: 600; color: var(--link);">' + escapeHtml(item.name) + '</div>';
+			if (item.role) html += '<div style="font-size: 0.9em; color: var(--muted-fg);">' + escapeHtml(item.role) + '</div>';
+			if (item.type) html += '<div style="font-size: 0.9em; color: var(--muted-fg);">' + escapeHtml(item.type) + '</div>';
+			if (item.date) html += '<div style="font-size: 0.9em; color: var(--muted-fg);">' + escapeHtml(item.date) + '</div>';
+			html += '</div>';
+			allHTML += html;
+		});
+
+		allHTML += '</div></div>';
+	});
+
+	if (allHTML === '') {
+		content.innerHTML = '<div class="empty-state"><p>No items yet. Click + Add New to create one.</p></div>';
+	} else {
+		content.innerHTML = '<div class="item-list-container">' + allHTML + '</div>';
+
+		// Add event listeners to all items
+		content.querySelectorAll('.item-list-entry').forEach(entry => {
+			entry.addEventListener('mouseover', function() {
+			this.style.backgroundColor = 'var(--hover)';
+			this.style.borderColor = 'var(--link)';
+		});
+		entry.addEventListener('mouseout', function() {
+			this.style.backgroundColor = 'var(--bg)';
+			this.style.borderColor = 'var(--border)';
+		});
+
+		entry.addEventListener('click', () => {
+			const itemId = parseInt(entry.dataset.id);
+			const category = entry.dataset.category;
+			showItemDetails(category, itemId);
+		});
+	});
+}
+
+panel.classList.remove('hidden');
+}
+
+function showCategoryList(category) {
+const panel = document.getElementById('detail-panel');
+const title = document.getElementById('detail-title');
+const content = document.getElementById('detail-content');
+
+// Map category names to their display names (matching the sidebar)
+const categoryNames = {
+	'locations': 'Locations',
+	'npcs': 'NPCs',
+	'items': 'Items',
+	'events': 'Events'
+};
+
+let categoryName = categoryNames[category] || category.charAt(0).toUpperCase() + category.slice(1);
+let items = store.getAll(category);
+
+title.textContent = categoryName;
+
+if (items.length === 0) {
+	content.innerHTML = '<div class="empty-state"><p>No ' + category + ' yet. Click + Add New to create one.</p></div>';
+	panel.classList.remove('hidden');
+	return;
+}
+
+const itemsHTML = items.map(item => {
+	let html = '<div class="item-list-entry" data-id="' + item.id + '" style="padding: 12px; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; margin-bottom: 8px; transition: all 0.2s;">';
+	html += '<div style="font-weight: 600; color: var(--link);">' + escapeHtml(item.name) + '</div>';
+	if (item.role) html += '<div style="font-size: 0.9em; color: var(--muted-fg);">' + escapeHtml(item.role) + '</div>';
+	if (item.type) html += '<div style="font-size: 0.9em; color: var(--muted-fg);">' + escapeHtml(item.type) + '</div>';
+	if (item.date) html += '<div style="font-size: 0.9em; color: var(--muted-fg);">' + escapeHtml(item.date) + '</div>';
+	html += '</div>';
+	return html;
+}).join('');
+
+content.innerHTML = '<div class="item-list-container">' + itemsHTML + '</div>';
+content.querySelectorAll('.item-list-entry').forEach(entry => {
+	entry.addEventListener('mouseover', function() {
+		this.style.backgroundColor = 'var(--hover)';
+		this.style.borderColor = 'var(--link)';
+	});
+	entry.addEventListener('mouseout', function() {
+		this.style.backgroundColor = 'transparent';
+		this.style.borderColor = 'var(--border)';
+	});
+	
+	entry.addEventListener('click', () => {
+		const itemId = parseInt(entry.dataset.id);
+		showItemDetails(category, itemId);
+	});
+});
+
+panel.classList.remove('hidden');
+}
+
+function showItemDetails(category, itemId) {
+	const panel = document.getElementById('detail-panel');
+	const title = document.getElementById('detail-title');
+	const content = document.getElementById('detail-content');
+	const item = store.get(category, itemId);
+	
+	// Hide equipment panel if it's open
+	hideEquipmentPanel();
+	
+	title.textContent = item.name;
+
+			let detailsHTML = '<div class="detail-section">';
+
+			if (category === 'locations') {
+				if (item.description) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Description</h3><p>' + escapeHtml(item.description) + '</p></div>';
+				if (item.history) detailsHTML += '<div style="margin-bottom: 12px;"><h3>History</h3><p>' + escapeHtml(item.history) + '</p></div>';
+
+				const relatedNPCs = store.getAll('npcs').filter(npc => npc.locationId === itemId);
+				if (relatedNPCs.length > 0) {
+					detailsHTML += '<div style="margin-bottom: 12px;"><h3>NPCs Here</h3><ul>';
+					relatedNPCs.forEach(npc => {
+						detailsHTML += '<li>' + escapeHtml(npc.name) + (npc.role ? ' - ' + escapeHtml(npc.role) : '') + '</li>';
+					});
+					detailsHTML += '</ul></div>';
+				}
+
+				const relatedItems = store.getAll('items').filter(itm => itm.locationId === itemId);
+				if (relatedItems.length > 0) {
+					detailsHTML += '<div style="margin-bottom: 12px;"><h3>Items Here</h3><ul>';
+					relatedItems.forEach(itm => {
+						detailsHTML += '<li>' + escapeHtml(itm.name) + (itm.type ? ' (' + escapeHtml(itm.type) + ')' : '') + '</li>';
+					});
+					detailsHTML += '</ul></div>';
+				}
+			} else if (category === 'npcs') {
+				if (item.role) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Role/Title</h3><p>' + escapeHtml(item.role) + '</p></div>';
+				if (item.description) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Description</h3><p>' + escapeHtml(item.description) + '</p></div>';
+				if (item.locationId) {
+					const location = store.get('locations', item.locationId);
+					if (location) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Location</h3><p>' + escapeHtml(location.name) + '</p></div>';
+				}
+			} else if (category === 'items') {
+				if (item.type) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Type</h3><p>' + escapeHtml(item.type) + '</p></div>';
+				if (item.description) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Description</h3><p>' + escapeHtml(item.description) + '</p></div>';
+				if (item.locationId) {
+					const location = store.get('locations', item.locationId);
+					if (location) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Found At</h3><p>' + escapeHtml(location.name) + '</p></div>';
+				}
+			} else if (category === 'events') {
+				if (item.date) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Date/Time</h3><p>' + escapeHtml(item.date) + '</p></div>';
+				if (item.description) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Description</h3><p>' + escapeHtml(item.description) + '</p></div>';
+				if (item.locationId) {
+					const location = store.get('locations', item.locationId);
+					if (location) detailsHTML += '<div style="margin-bottom: 12px;"><h3>Location</h3><p>' + escapeHtml(location.name) + '</p></div>';
+				}
+			}
+
+			if (item.createdAt) {
+				detailsHTML += '<div style="font-size: 0.85em; color: var(--muted-fg); margin-top: 16px; padding-top: 8px; border-top: 1px solid var(--border);\">Added ' + new Date(item.createdAt).toLocaleDateString() + '</div>';
+			}
+
+			detailsHTML += '</div>';
+		content.innerHTML = detailsHTML;
+		panel.classList.remove('hidden');
+	}
+
+	// Modal Controller
+	const modal = document.getElementById('modal-add');
+	const form = document.getElementById('form-add');
+	const typeSelect = document.getElementById('add-type');
+	const formFields = document.getElementById('form-fields');
+
+	function getFormTemplate(type) {
+		if (type === 'location') {
+			return '<div class="form-group">' +
+				'<label for="loc-name">Name</label>' +
+				'<input type="text" id="loc-name" name="name" required>' +
+				'</div>' +
+				'<div class="form-group">' +
+				'<label for="loc-description">Description</label>' +
+					'<textarea id="loc-description" name="description"></textarea>' +
+					'</div>' +
+					'<div class="form-group">' +
+					'<label for="history">History</label>' +
+					'<textarea id="history" name="history"></textarea>' +
+					'</div>' +
+					'<div class="form-group">' +
+					'<label for="x">Map X Position (optional)</label>' +
+					'<input type="number" id="x" name="x" min="0" max="1000">' +
+					'</div>' +
+					'<div class="form-group">' +
+					'<label for="y">Map Y Position (optional)</label>' +
+					'<input type="number" id="y" name="y" min="0" max="600">' +
+					'</div>';
+			} else if (type === 'npc') {
+				const locations = store.getAll('locations');
+				let locationOptions = '<option value="">None</option>';
+				locations.forEach(loc => {
+					locationOptions += '<option value="' + loc.id + '">' + escapeHtml(loc.name) + '</option>';
+				});
+				return '<div class="form-group">' +
+					'<label for="npc-name">Name *</label>' +
+					'<input type="text" id="npc-name" name="name" required>' +
+					'</div>' +
+					'<div class="form-group">' +
+					'<label for="role">Role/Title</label>' +
+					'<input type="text" id="role" name="role">' +
+					'</div>' +
+					'<div class="form-group">' +
+					'<label for="npc-description">Description</label>' +
+					'<textarea id="npc-description" name="description"></textarea>' +
+					'</div>' +
+					'<div class="form-group">' +
+					'<label for="npc-locationId">Associated Location</label>' +
+					'<select id="npc-locationId" name="locationId">' +
+					locationOptions +
+					'</select>' +
+					'</div>';
+			} else if (type === 'item') {
+				const locations = store.getAll('locations');
+				let locationOptions = '<option value="">Unknown</option>';
+				locations.forEach(loc => {
+					locationOptions += '<option value="' + loc.id + '">' + escapeHtml(loc.name) + '</option>';
+				});
+				return '<div class="form-group">' +
+					'<label for="item-name">Name *</label>' +
+					'<input type="text" id="item-name" name="name" required>' +
+					'</div>' +
+					'<div class="form-group">' +
+					'<label for="type">Type</label>' +
+					'<input type="text" id="type" name="type" placeholder="e.g., Weapon, Artifact, Consumable">' +
+					'</div>' +
+					'<div class="form-group">' +
+					'<label for="item-description">Description</label>' +
+					'<textarea id="item-description" name="description"></textarea>' +
+					'</div>' +
+					'<div class="form-group">' +
+					'<label for="item-locationId">Found At</label>' +
+					'<select id="item-locationId" name="locationId">' +
+					locationOptions +
+					'</select>' +
+					'</div>';
+			} else if (type === 'event') {
+				const locations = store.getAll('locations');
+				let locationOptions = '<option value="">Unknown</option>';
+				locations.forEach(loc => {
+					locationOptions += '<option value="' + loc.id + '">' + escapeHtml(loc.name) + '</option>';
+				});
+				return '<div class="form-group">' +
+					'<label for="event-name">Event Name *</label>' +
+					'<input type="text" id="event-name" name="name" required>' +
+					'</div>' +
+					'<div class="form-group">' +
+					'<label for="date">Date/Time</label>' +
+					'<input type="text" id="date" name="date" placeholder="e.g., Day 15 of Midsummer">' +
+					'</div>' +
+					'<div class="form-group">' +
+					'<label for="event-description">Description</label>' +
+					'<textarea id="event-description" name="description"></textarea>' +
+					'</div>' +
+					'<div class="form-group">' +
+					'<label for="event-locationId">Location</label>' +
+					'<select id="event-locationId" name="locationId">' +
+					locationOptions +
+					'</select>' +
+					'</div>';
+			}
+			return '';
+		}
+
+		typeSelect.addEventListener('change', (e) => {
+			const type = e.target.value;
+			formFields.innerHTML = getFormTemplate(type);
+	});
+
+	// Clicking the dialog element itself means the click landed on the scrim,
+	// outside .modal-content — the conventional "click away to dismiss".
+	function closeOnBackdropClick(dialog) {
+		dialog.addEventListener('click', (e) => {
+			if (e.target === dialog) dialog.close();
+		});
+	}
+
+	// showModal() throws InvalidStateError on an already-open dialog, and the
+	// credits dialog has two triggers, so guard rather than relying on the open
+	// modal happening to cover them both.
+	function openDialog(dialog) {
+		if (!dialog.open) dialog.showModal();
+	}
+
+	closeOnBackdropClick(modal);
+
+	document.getElementById('btn-add-new').addEventListener('click', () => {
+		openDialog(modal);
+	});
+
+	// Fires for every close path — button, backdrop, and Esc — so the form is
+	// reset once here instead of being duplicated across each handler.
+	modal.addEventListener('close', () => {
+		form.reset();
+		formFields.innerHTML = '';
+	});
+
+	document.getElementById('btn-close-modal').addEventListener('click', () => {
+		modal.close();
+	});
+
+	document.getElementById('btn-cancel').addEventListener('click', () => {
+		modal.close();
+	});
+
+	const creditsModal = document.getElementById('credits-modal');
+	closeOnBackdropClick(creditsModal);
+
+	document.getElementById('btn-credits').addEventListener('click', () => {
+		openDialog(creditsModal);
+	});
+
+	document.getElementById('btn-credits-menu').addEventListener('click', () => {
+		openDialog(creditsModal);
+	});
+
+	document.getElementById('btn-close-credits-modal').addEventListener('click', () => {
+		creditsModal.close();
+	});
+
+	form.addEventListener('submit', (e) => {
+		e.preventDefault();
+		
+		const formData = new FormData(form);
+		const data = Object.fromEntries(formData);
+		const type = data.type + 's'; // Convert to plural for storage
+		
+		delete data.type;
+		
+		// Convert numeric fields
+		if (data.x) data.x = parseFloat(data.x);
+		if (data.y) data.y = parseFloat(data.y);
+		
+		store.add(type, data);
+
+		// The dialog's 'close' handler resets the form and clears the fields.
+		modal.close();
+
+		// Refresh map if location was added
+		if (type === 'locations') {
+			mapController.render();
+		}
+	});
+
+	// Close detail panel
+	document.getElementById('btn-close-detail').addEventListener('click', hideDetailPanel);
+
+	// Event delegation for dynamically created elements in detail panel
+	document.getElementById('detail-panel').addEventListener('click', (e) => {
+		// Handle NPC and item clicks
+		const npcItem = e.target.closest('.npc-item');
+		const itemItem = e.target.closest('.item-item');
+		const backButton = e.target.closest('.btn-back-equipment');
+		
+		if (npcItem) {
+			const id = npcItem.dataset.itemId;
+			const type = npcItem.dataset.itemType;
+			if (id && type) {
+				showItemDetails(type, parseInt(id));
+			}
+		} else if (itemItem) {
+			const id = itemItem.dataset.itemId;
+			const type = itemItem.dataset.itemType;
+			if (id && type) {
+				showItemDetails(type, parseInt(id));
+			}
+		} else if (backButton) {
+			showEquipmentPanel();
+		}
+	});
+
+	const characterSheet = document.getElementById('character-sheet');
+	if (characterSheet && !characterSheet.dataset.spellClickBound) {
+		characterSheet.addEventListener('click', (e) => {
+			const tag = e.target.closest('.spell-tag');
+			if (!tag) return;
+			const spellName = tag.dataset.spellName;
+			if (!spellName) return;
+			showSpellDetails(spellName);
+		});
+		characterSheet.dataset.spellClickBound = 'true';
+	}
+
+	// Close equipment panel
+	document.getElementById('btn-close-equipment').addEventListener('click', hideEquipmentPanel);
+
+	// Equipment search
+	const equipmentSearchInput = document.getElementById('equipment-search');
+	
+	equipmentSearchInput.addEventListener('input', debounce((e) => {
+		const query = e.target.value.toLowerCase().trim();
+		const equipment = window.fullEquipmentList || [];
+
+		if (!query) {
+			// Show all equipment when search is cleared
+			displayEquipmentList(equipment);
+			return;
+		}
+
+		// Filter from the full list
+		const filtered = equipment.filter(item => {
+			const name = (item.name || item.index || '').toLowerCase();
+			const category = (item.equipment_category?.name || '').toLowerCase();
+			return name.includes(query) || category.includes(query);
+		});
+
+		displayEquipmentList(filtered);
+	}, 200));
+
+	// Category filter
+	document.querySelectorAll('.category-item').forEach(item => {
+		item.addEventListener('click', () => {
+			document.querySelectorAll('.category-item').forEach(i => {
+				i.classList.remove('active');
+				i.removeAttribute('aria-current');
+			});
+			item.classList.add('active');
+			// Exactly one filter is selected at a time, so aria-current marks the
+			// chosen one rather than aria-pressed, which would imply independent
+			// toggles.
+			if (item.dataset.category) item.setAttribute('aria-current', 'true');
+
+			const category = item.dataset.category;
+			if (category === 'all') {
+				showAllCategories();
+				hideEquipmentPanel();
+			} else if (category === 'equipment') {
+				hideDetailPanel();
+				showEquipmentPanel();
+			} else {
+				hideEquipmentPanel();
+				showCategoryList(category);
+			}
+		});
+	});
+
+// Search category filter
+const searchCategoryFilter = document.getElementById('search-category-filter');
+
+if (searchCategoryFilter) {
+	searchCategoryFilter.addEventListener('input', (e) => {
+		const query = e.target.value.toLowerCase().trim();
+		document.querySelectorAll('.search-category-item').forEach(item => {
+			const text = item.textContent.toLowerCase();
+			item.style.display = text.includes(query) ? 'flex' : 'none';
+		});
+	});
+}
+
+// Search category items
+document.querySelectorAll('.search-category-item').forEach(item => {
+	item.addEventListener('click', () => {
+		const searchType = item.dataset.searchType;
+		// Navigate to search page
+		showPage('search');
+		// Set the search type dropdown
+		document.getElementById('search-type').value = searchType;
+		// Clear and focus search input
+		const searchInput = document.getElementById('search-query');
+		searchInput.value = '';
+		searchInput.focus();
+		// Close sidebar on mobile
+		if (window.innerWidth <= 768) {
+			closeSidebar();
+		}
+	});
+});
+
+// Initialize
+const mapController = new MapController();
+
+// Export functionality
+document.getElementById('btn-export').addEventListener('click', () => {
+	store.exportData();
+});
+
+// Import functionality
+document.getElementById('btn-import').addEventListener('change', async (e) => {
+	const file = e.target.files[0];
+	if (file) {
+		const success = await store.importData(file);
+		if (success) {
+			mapController.render();
+			alert('Data imported successfully!');
+		}
+		// Reset input so same file can be imported again
+		e.target.value = '';
+	}
+});
+
+	// Upload Map functionality
+	document.getElementById('btn-upload-map').addEventListener('change', async (e) => {
+		const file = e.target.files[0];
+		if (file) {
+			const success = await store.uploadMap(file);
+			if (success) {
+				mapController.renderMap();
+				alert('Map uploaded successfully! Don\'t forget to export your data to save the map.');
+			}
+			// Reset input so same file can be uploaded again
+			e.target.value = '';
+		}
+	});
+
+	// Mobile menu toggle
+	const sidebar = document.getElementById('sidebar');
+	const menuBtn = document.getElementById('btn-menu');
+	const menuCloseBtn = document.getElementById('btn-menu-close');
+	const overlay = document.getElementById('mobile-overlay');
+	const closeSidebarBtn = document.getElementById('btn-close-sidebar');
+
+	// The sidebar is shown two different ways: on desktop by removing `hidden`,
+	// on mobile by adding `active`. Read the real state rather than tracking a
+	// separate flag that could drift out of sync with the classes.
+	function syncMenuAria() {
+		const expanded = window.innerWidth >= 769
+			? !sidebar.classList.contains('hidden')
+			: sidebar.classList.contains('active');
+		menuBtn.setAttribute('aria-expanded', String(expanded));
+	}
+
+	function closeSidebar() {
+		sidebar.classList.remove('active');
+		sidebar.classList.add('hidden');
+		overlay.classList.remove('active');
+		menuCloseBtn.classList.add('hidden');
+		menuBtn.classList.remove('hidden');
+		syncMenuAria();
+	}
+
+	menuBtn.addEventListener('click', () => {
+		if (window.innerWidth >= 769) {
+			sidebar.classList.toggle('hidden');
+			sidebar.classList.remove('active');
+			overlay.classList.remove('active');
+			syncMenuAria();
+			return;
+		}
+		sidebar.classList.toggle('active');
+		sidebar.classList.remove('hidden');
+		overlay.classList.add('active');
+		menuCloseBtn.classList.toggle('hidden');
+		menuBtn.classList.add('hidden');
+		syncMenuAria();
+	});
+
+	function syncSidebarForViewport() {
+		if (window.innerWidth >= 769) {
+			sidebar.classList.remove('active');
+			overlay.classList.remove('active');
+			menuCloseBtn.classList.add('hidden');
+			menuBtn.classList.remove('hidden');
+			syncMenuAria();
+			return;
+		}
+
+		menuBtn.classList.remove('hidden');
+		if (!sidebar.classList.contains('active')) {
+			sidebar.classList.add('hidden');
+		}
+		syncMenuAria();
+	}
+
+	syncSidebarForViewport();
+	window.addEventListener('resize', syncSidebarForViewport);
+
+	overlay.addEventListener('click', closeSidebar);
+
+	// Close button for sidebar
+	if (closeSidebarBtn) {
+		closeSidebarBtn.addEventListener('click', closeSidebar);
+	}
+
+	// Close button in header
+	if (menuCloseBtn) {
+		menuCloseBtn.addEventListener('click', closeSidebar);
+	}
+
+	// Close the menu when a category is chosen, on mobile only. The width test
+	// belongs inside the handler: binding it behind a one-off check at load time
+	// meant that loading on desktop and then narrowing to a phone width left the
+	// sidebar stuck open over the map after every selection.
+	document.querySelectorAll('.category-item').forEach(item => {
+		item.addEventListener('click', () => {
+			if (window.innerWidth <= 768) closeSidebar();
+		});
+	});
+
+	// ============================================
+	// Page Navigation
+	// ============================================
+	
+	let currentPage = 'map';
+	// darkstone.json is 460 KB; only fetch it the first time the Characters
+	// tab is actually opened instead of on every cold load.
+	let charactersLoaded = false;
+	const mapContainer = document.querySelector('.container');
+	const pages = {
+		map: mapContainer,
+		home: document.getElementById('search-page'), // Reusing search as home-like
+		search: document.getElementById('search-page'),
+		inventory: document.getElementById('inventory-page'),
+		characters: document.getElementById('characters-page')
+	};
+
+	function showPage(pageName) {
+		// Hide all pages and show only the active one
+		const searchPage = document.getElementById('search-page');
+		const inventoryPage = document.getElementById('inventory-page');
+		const charactersPage = document.getElementById('characters-page');
+		const generatorsPage = document.getElementById('generators-page');
+		const sessionsPage = document.getElementById('sessions-page');
+		const mapToolbar = document.querySelector('.map-toolbar');
+		const mapView = document.getElementById('map-view');
+		
+		// Reset all page scrolls before hiding
+		[searchPage, inventoryPage, charactersPage, generatorsPage, sessionsPage].forEach(page => {
+			if (page) {
+				const pageContent = page.querySelector('.page-content');
+				if (pageContent) pageContent.scrollTop = 0;
+			}
+		});
+		
+		// For search page
+		if (pageName === 'search') {
+			searchPage.classList.add('active');
+			searchPage.classList.remove('hidden');
+			inventoryPage.classList.remove('active');
+			inventoryPage.classList.add('hidden');
+			generatorsPage.classList.remove('active');
+			generatorsPage.classList.add('hidden');
+			charactersPage.classList.remove('active');
+			charactersPage.classList.add('hidden');
+			sessionsPage.classList.remove('active');
+			sessionsPage.classList.add('hidden');
+			mapToolbar.classList.add('hidden');
+			mapView.classList.add('hidden');
+		} 
+		// For inventory page
+		else if (pageName === 'inventory') {
+			inventoryPage.classList.add('active');
+			inventoryPage.classList.remove('hidden');
+			searchPage.classList.remove('active');
+			searchPage.classList.add('hidden');
+			charactersPage.classList.remove('active');
+			charactersPage.classList.add('hidden');
+			generatorsPage.classList.remove('active');
+			generatorsPage.classList.add('hidden');
+			sessionsPage.classList.remove('active');
+			sessionsPage.classList.add('hidden');
+			mapToolbar.classList.add('hidden');
+			mapView.classList.add('hidden');
+		} 
+		// For characters page
+		else if (pageName === 'characters') {
+			charactersPage.classList.add('active');
+			charactersPage.classList.remove('hidden');
+			searchPage.classList.remove('active');
+			searchPage.classList.add('hidden');
+			inventoryPage.classList.remove('active');
+			inventoryPage.classList.add('hidden');
+			generatorsPage.classList.remove('active');
+			generatorsPage.classList.add('hidden');
+			sessionsPage.classList.remove('active');
+			sessionsPage.classList.add('hidden');
+			mapToolbar.classList.add('hidden');
+			mapView.classList.add('hidden');
+			if (!charactersLoaded) {
+				charactersLoaded = true;
+				loadCharacterSheet();
+			}
+		}
+		// For generators page
+		else if (pageName === 'generators') {
+			generatorsPage.classList.add('active');
+			generatorsPage.classList.remove('hidden');
+			searchPage.classList.remove('active');
+			searchPage.classList.add('hidden');
+			inventoryPage.classList.remove('active');
+			inventoryPage.classList.add('hidden');
+			charactersPage.classList.remove('active');
+			charactersPage.classList.add('hidden');
+			sessionsPage.classList.remove('active');
+			sessionsPage.classList.add('hidden');
+			mapToolbar.classList.add('hidden');
+			mapView.classList.add('hidden');
+		}
+		// For sessions page
+		else if (pageName === 'sessions') {
+			sessionsPage.classList.add('active');
+			sessionsPage.classList.remove('hidden');
+			searchPage.classList.remove('active');
+			searchPage.classList.add('hidden');
+			inventoryPage.classList.remove('active');
+			inventoryPage.classList.add('hidden');
+			charactersPage.classList.remove('active');
+			charactersPage.classList.add('hidden');
+			generatorsPage.classList.remove('active');
+			generatorsPage.classList.add('hidden');
+			mapToolbar.classList.add('hidden');
+			mapView.classList.add('hidden');
+		}
+		// For map
+		else if (pageName === 'map') {
+			searchPage.classList.remove('active');
+			searchPage.classList.add('hidden');
+			inventoryPage.classList.remove('active');
+			inventoryPage.classList.add('hidden');
+			charactersPage.classList.remove('active');
+			charactersPage.classList.add('hidden');
+			generatorsPage.classList.remove('active');
+			generatorsPage.classList.add('hidden');
+			sessionsPage.classList.remove('active');
+			sessionsPage.classList.add('hidden');
+			mapToolbar.classList.remove('hidden');
+			mapView.classList.remove('hidden');
+		}
+
+		// Update nav buttons. "Home" is an alias for the map, so it highlights
+		// alongside "World Map" — but only the button that *is* the current page
+		// gets aria-current, since two current pages would be meaningless.
+		document.querySelectorAll('.nav-btn').forEach(btn => {
+			const btnPage = btn.dataset.page === 'home' ? 'map' : btn.dataset.page;
+			btn.classList.toggle('active', btnPage === pageName);
+			if (btn.dataset.page === pageName) {
+				btn.setAttribute('aria-current', 'page');
+			} else {
+				btn.removeAttribute('aria-current');
+			}
+		});
+
+		currentPage = pageName;
+		closeSidebar();
+	}
+
+	// Handle navigation button clicks
+	document.querySelectorAll('.nav-btn').forEach(btn => {
+		btn.addEventListener('click', () => {
+			const page = btn.dataset.page;
+			if (page === 'home') {
+				showPage('map');
+			} else {
+				showPage(page);
+			}
+		});
+	});
+
+	// The <h1> used to double as a "go to map" shortcut. A heading isn't
+	// focusable and exposes no affordance, so that was mouse-only and invisible
+	// to assistive tech — and hidden entirely below 768px, where the heading is
+	// display:none. The Home nav button above already does this accessibly.
+
+	// Set initial active state for map (World Map)
+	const initialNavBtn = document.querySelector('[data-page="map"]');
+	initialNavBtn.classList.add('active');
+	initialNavBtn.setAttribute('aria-current', 'page');
+
+	// ============================================
+	// Party Inventory Management
+	// ============================================
+
+	class InventoryManager {
+		constructor() {
+			this.storageKey = 'partyInventory';
+			this.inventory = null;
+			this.initEventListeners();
+		}
+
+		async init() {
+			this.inventory = await this.loadInventory();
+			this.renderInventory();
+		}
+
+async loadInventory() {
+		const stored = localStorage.getItem(this.storageKey);
+		if (stored) {
+			return JSON.parse(stored);
+		}
+		// Load default inventory from JSON file
+		try {
+			const response = await fetch('inventory.json');
+			if (response.ok) {
+				return await response.json();
+			}
+		} catch (e) {
+			}
+			return {
+				platinum: 0,
+				gold: 0,
+				silver: 0,
+				copper: 0,
+				items: []
+			};
+		}
+
+		saveInventory() {
+			localStorage.setItem(this.storageKey, JSON.stringify(this.inventory));
+			this.renderInventory();
+		}
+
+		initEventListeners() {
+			// Currency inputs
+			document.getElementById('currency-platinum').addEventListener('change', (e) => {
+				if (this.inventory) {
+					this.inventory.platinum = parseInt(e.target.value) || 0;
+					this.saveInventory();
+				}
+			});
+			document.getElementById('currency-gold').addEventListener('change', (e) => {
+				if (this.inventory) {
+					this.inventory.gold = parseInt(e.target.value) || 0;
+					this.saveInventory();
+				}
+			});
+			document.getElementById('currency-silver').addEventListener('change', (e) => {
+				if (this.inventory) {
+					this.inventory.silver = parseInt(e.target.value) || 0;
+					this.saveInventory();
+				}
+			});
+			document.getElementById('currency-copper').addEventListener('change', (e) => {
+				if (this.inventory) {
+					this.inventory.copper = parseInt(e.target.value) || 0;
+					this.saveInventory();
+				}
+			});
+
+			// Add item button
+			document.getElementById('btn-add-item').addEventListener('click', () => {
+				this.showAddItemModal();
+			});
+
+			// Close add item modal
+			document.getElementById('btn-close-add-item-modal').addEventListener('click', () => {
+				this.closeAddItemModal();
+			});
+
+			const addItemModal = document.getElementById('add-item-modal');
+
+			// A click on the dialog element itself landed on the scrim, not the panel.
+			addItemModal.addEventListener('click', (e) => {
+				if (e.target === addItemModal) addItemModal.close();
+			});
+
+			// Runs for every dismissal — close button, backdrop click and Esc —
+			// so the scroll lock is always released and the search state reset.
+			addItemModal.addEventListener('close', () => {
+				document.body.style.overflow = '';
+				document.getElementById('add-item-search').value = '';
+				document.getElementById('add-item-results').innerHTML =
+					'<div class="empty-state">Start typing to search equipment</div>';
+			});
+
+			// Search in add item modal
+			document.getElementById('add-item-search').addEventListener('input', (e) => {
+				this.searchEquipmentForAdd(e.target.value);
+			});
+
+			// Load initial data
+			this.renderInventory();
+		}
+
+		renderInventory() {
+			if (!this.inventory) return;
+			
+			// Update currency displays
+			document.getElementById('currency-platinum').value = this.inventory.platinum || 0;
+			document.getElementById('currency-gold').value = this.inventory.gold;
+			document.getElementById('currency-silver').value = this.inventory.silver;
+			document.getElementById('currency-copper').value = this.inventory.copper;
+
+			// Render items
+			const itemsContainer = document.getElementById('inventory-items');
+			if (this.inventory.items.length === 0) {
+				itemsContainer.innerHTML = '<div class="empty-state">No items in inventory. Click "Add Item" to begin.</div>';
+				return;
+			}
+
+		itemsContainer.innerHTML = this.inventory.items.map((item, index) => {
+			let details = [];
+			if (item.equipment_category?.name) {
+				details.push(item.equipment_category.name);
+			}
+			if (item.cost?.quantity && item.cost?.unit) {
+				details.push(item.cost.quantity + ' ' + item.cost.unit);
+			}
+			if (item.weight) {
+				details.push(item.weight + ' lb.');
+			}
+			
+			// Add damage info for weapons
+			let damageInfo = '';
+			if (item.damage) {
+				let damageText = item.damage.damage_dice || 'unknown';
+				if (item.damage.damage_type?.name) {
+					damageText += ' ' + item.damage.damage_type.name;
+				}
+				damageInfo = `<p style="margin: 0 0 8px; color: var(--link); font-weight: 600;">⚔️ ${damageText}</p>`;
+			}
+			
+			const detailText = details.length > 0 ? details.join(' • ') : 'Equipment';
+			
+			return `
+				<div class="inventory-item">
+					<div class="inventory-item-info">
+						<h4>${escapeHtml(item.name)}</h4>
+						<p>${detailText}</p>
+						${damageInfo}
+					</div>
+					<div class="inventory-item-controls">
+						<div class="inventory-item-qty">
+							<button type="button" class="inventory-qty-btn" data-index="${index}" data-action="decrease" aria-label="Decrease quantity">−</button>
+							<span class="inventory-qty-display">${item.quantity || 1}</span>
+							<button type="button" class="inventory-qty-btn" data-index="${index}" data-action="increase" aria-label="Increase quantity">+</button>
+						</div>
+						<button type="button" class="btn-remove-item" data-index="${index}">Remove</button>
+					</div>
+				</div>
+			`;
+		}).join('');
+
+			// Attach event listeners
+			itemsContainer.querySelectorAll('.inventory-qty-btn').forEach(btn => {
+				btn.addEventListener('click', (e) => {
+					const index = parseInt(e.target.dataset.index);
+					const action = e.target.dataset.action;
+					if (action === 'increase') {
+						this.inventory.items[index].quantity++;
+					} else if (action === 'decrease' && this.inventory.items[index].quantity > 1) {
+						this.inventory.items[index].quantity--;
+					}
+					this.saveInventory();
+				});
+			});
+
+			itemsContainer.querySelectorAll('.btn-remove-item').forEach(btn => {
+				btn.addEventListener('click', (e) => {
+					const index = parseInt(e.target.dataset.index);
+					this.inventory.items.splice(index, 1);
+					this.saveInventory();
+				});
+			});
+		}
+
+		showAddItemModal() {
+			const modal = document.getElementById('add-item-modal');
+			if (!modal.open) modal.showModal();
+			document.body.style.overflow = 'hidden';
+			document.getElementById('add-item-search').focus();
+		}
+
+		closeAddItemModal() {
+			const modal = document.getElementById('add-item-modal');
+			// close() is a no-op on an already-closed dialog, so this stays safe
+			// when called after Esc or a backdrop click has already dismissed it.
+			modal.close();
+		}
+
+		async searchEquipmentForAdd(query) {
+			const resultsContainer = document.getElementById('add-item-results');
+			if (query.trim().length === 0) {
+				resultsContainer.innerHTML = '<div class="empty-state">Start typing to search equipment</div>';
+				return;
+			}
+
+			resultsContainer.innerHTML = '<div class="equipment-loading">Searching...</div>';
+
+			try {
+				const data = await store.getEquipmentList();
+				const equipment = data.results || data;
+				const filtered = equipment.filter(item => 
+					item.name.toLowerCase().includes(query.toLowerCase())
+				).slice(0, 20);
+
+				if (filtered.length === 0) {
+					resultsContainer.innerHTML = '<div class="empty-state">No equipment found</div>';
+					return;
+				}
+
+// Fetch full details for each result to get damage, cost, weight, etc.
+			const fullResults = await Promise.all(
+				filtered.map(async (item) => {
+					try {
+						const details = await store.getEquipmentDetail(item.url);
+						return details;
+					} catch (e) {
+						return item;
+					}
+				})
+			);
+
+			resultsContainer.innerHTML = fullResults.map((item, idx) => `
+				<div class="add-item-result">
+					<div class="add-item-result-name">${escapeHtml(item.name)}</div>
+					<div class="add-item-result-qty">
+						<input type="number" class="add-item-qty-input" value="1" min="1" data-item-index="${idx}">
+						<button type="button" class="btn-add-to-inventory" data-item-index="${idx}">Add</button>
+						</div>
+					</div>
+				`).join('');
+
+				// Attach event listeners
+				document.querySelectorAll('.btn-add-to-inventory').forEach(btn => {
+					btn.addEventListener('click', async (e) => {
+						const itemIndex = parseInt(e.target.dataset.itemIndex);
+						const qty = parseInt(e.target.parentElement.querySelector('.add-item-qty-input').value) || 1;
+						await this.addItemToInventory(fullResults[itemIndex], qty);
+						e.target.textContent = 'Added!';
+						e.target.disabled = true;
+						setTimeout(() => {
+							this.closeAddItemModal();
+						}, 500);
+					});
+				});
+			} catch (error) {
+				console.error('Error searching equipment:', error);
+				resultsContainer.innerHTML = '<div class="empty-state">Error loading equipment data</div>';
+			}
+		}
+
+		async addItemToInventory(item, quantity = 1) {
+			// Check if item already exists
+			const existingItem = this.inventory.items.find(i => i.index === item.index);
+			if (existingItem) {
+				existingItem.quantity += quantity;
+			} else {
+				this.inventory.items.push({
+					...item,
+					quantity: quantity
+				});
+			}
+			this.saveInventory();
+		}
+	}
+
+	// ============================================
+	// Character Sheet
+	// ============================================
+
+	function escapeHtml(value) {
+		if (value === null || value === undefined) return '';
+		return String(value)
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#39;');
+	}
+
+	function getStatValue(list, statId) {
+		if (!Array.isArray(list)) return null;
+		const entry = list.find(item => item.id === statId);
+		return entry && entry.value !== null && entry.value !== undefined ? entry.value : null;
+	}
+
+	function getAbilityScore(data, statId) {
+		const override = getStatValue(data.overrideStats, statId);
+		if (override !== null) return override;
+		const base = getStatValue(data.stats, statId) || 0;
+		const bonus = getStatValue(data.bonusStats, statId) || 0;
+		return base + bonus;
+	}
+
+	function abilityMod(score) {
+		return Math.floor((score - 10) / 2);
+	}
+
+	function formatMod(value) {
+		return value >= 0 ? `+${value}` : `${value}`;
+	}
+
+	function formatTrait(value) {
+		if (!value) return '';
+		if (Array.isArray(value)) return value.join(' ');
+		return String(value);
+	}
+
+	function stripHtml(value) {
+		if (!value) return '';
+		return String(value).replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+	}
+
+	function renderCharacterSheet(data) {
+		const container = document.getElementById('character-sheet');
+		if (!container) return;
+
+		const alignmentMap = {
+			1: 'Lawful Good',
+			2: 'Neutral Good',
+			3: 'Chaotic Good',
+			4: 'Lawful Neutral',
+			5: 'Neutral',
+			6: 'Chaotic Neutral',
+			7: 'Lawful Evil',
+			8: 'Neutral Evil',
+			9: 'Chaotic Evil'
+		};
+
+		const name = data.name || 'Unnamed Character';
+		const race = (data.race && (data.race.fullName || data.race.name)) || 'Unknown Race';
+		const background = (data.background && data.background.definition && data.background.definition.name) || 'Unknown Background';
+		const classes = Array.isArray(data.classes)
+			? data.classes.map(cls => {
+				const className = (cls.definition && cls.definition.name) || 'Class';
+				const level = cls.level || 0;
+				return `${className} ${level}`;
+			}).join(' / ')
+			: 'Unknown Class';
+		const levelTotal = Array.isArray(data.classes)
+			? data.classes.reduce((sum, cls) => sum + (cls.level || 0), 0)
+			: 0;
+		const profBonus = levelTotal ? 2 + Math.floor((levelTotal - 1) / 4) : 2;
+		const alignment = alignmentMap[data.alignmentId] || 'Unknown';
+		const faith = data.faith || 'Unknown';
+		const gender = data.gender || 'Unknown';
+		const age = data.age || 'Unknown';
+		const height = data.height || 'Unknown';
+		const weight = data.weight || 'Unknown';
+
+		const baseHp = data.baseHitPoints || 0;
+		const bonusHp = data.bonusHitPoints || 0;
+		const overrideHp = data.overrideHitPoints;
+		const maxHp = overrideHp !== null && overrideHp !== undefined ? overrideHp : baseHp + bonusHp;
+		const removedHp = data.removedHitPoints || 0;
+		const tempHp = data.temporaryHitPoints || 0;
+		const currentHp = Math.max(0, maxHp - removedHp);
+
+		const dexScore = getAbilityScore(data, 2);
+		const dexMod = abilityMod(dexScore);
+		const equippedArmor = Array.isArray(data.inventory)
+			? data.inventory.filter(item => item.equipped && item.definition && item.definition.armorClass !== null && item.definition.armorClass !== undefined)
+			: [];
+		const baseArmorClass = equippedArmor.reduce((sum, item) => sum + (item.definition.armorClass || 0), 0);
+		const armorClassModifier = (() => {
+			const modifiers = data.modifiers || {};
+			const list = [];
+			if (Array.isArray(modifiers)) {
+				list.push(...modifiers);
+			} else if (modifiers && typeof modifiers === 'object') {
+				Object.values(modifiers).forEach(value => {
+					if (Array.isArray(value)) list.push(...value);
+				});
+			}
+			return list.reduce((sum, mod) => {
+				if (mod && mod.friendlySubtypeName === 'Armor Class' && typeof mod.value === 'number') {
+					return sum + mod.value;
+				}
+				return sum;
+			}, 0);
+		})();
+		const armorClass = baseArmorClass
+			? baseArmorClass + armorClassModifier
+			: 10 + dexMod + armorClassModifier;
+		const initiative = formatMod(dexMod);
+		const speedValue = data.race?.weightSpeeds?.normal?.walk || data.race?.weightSpeeds?.normal || null;
+
+		const abilities = [
+			{ id: 1, short: 'STR', label: 'Strength' },
+			{ id: 2, short: 'DEX', label: 'Dexterity' },
+			{ id: 3, short: 'CON', label: 'Constitution' },
+			{ id: 4, short: 'INT', label: 'Intelligence' },
+			{ id: 5, short: 'WIS', label: 'Wisdom' },
+			{ id: 6, short: 'CHA', label: 'Charisma' }
+		];
+
+		const abilityHtml = abilities.map(ability => {
+			const score = getAbilityScore(data, ability.id);
+			const mod = abilityMod(score);
+			return `
+				<div class="ability-card">
+					<div class="ability-name">${ability.short}</div>
+					<div class="ability-score">${score}</div>
+					<div class="ability-mod">${formatMod(mod)}</div>
+				</div>
+			`;
+		}).join('');
+
+		const currencies = data.currencies || {};
+		const currencyList = [
+			{ label: 'PP', value: currencies.pp || 0 },
+			{ label: 'GP', value: currencies.gp || 0 },
+			{ label: 'EP', value: currencies.ep || 0 },
+			{ label: 'SP', value: currencies.sp || 0 },
+			{ label: 'CP', value: currencies.cp || 0 }
+		];
+
+		const currencyHtml = currencyList.map(item => `
+			<li class="character-list-item">
+				<span>${escapeHtml(item.label)}</span>
+				<strong>${escapeHtml(item.value)}</strong>
+			</li>
+		`).join('');
+
+		const equipment = Array.isArray(data.inventory) ? data.inventory : [];
+		const equipmentHtml = equipment.length
+			? equipment.map(item => {
+				const def = item.definition || {};
+				const nameText = def.name || 'Unknown Item';
+				const typeText = def.type || def.filterType || 'Item';
+				const qtyText = item.quantity || 1;
+				const equippedBadge = item.equipped
+					? '<span class="equipment-badge" title="Equipped">E</span>'
+					: '';
+				return `
+					<li class="character-list-item equipment-item">
+						<div class="equipment-main">
+							<span class="equipment-name">${escapeHtml(nameText)}</span>
+							<span class="equipment-type">${escapeHtml(typeText)}</span>
+						</div>
+						<div class="equipment-meta">
+							<span class="equipment-qty">x${qtyText}</span>
+							${equippedBadge}
+						</div>
+					</li>
+				`;
+			}).join('')
+			: '<li class="character-list-item"><span>No equipment listed</span><strong>N/A</strong></li>';
+
+		const spellsByLevel = {};
+		const classSpells = Array.isArray(data.classSpells) ? data.classSpells : [];
+		classSpells.forEach(group => {
+			const spells = Array.isArray(group.spells) ? group.spells : [];
+			spells.forEach(spell => {
+				const def = spell.definition || {};
+				const level = def.level !== undefined ? def.level : 0;
+				const nameText = def.name || 'Unknown Spell';
+				if (!spellsByLevel[level]) spellsByLevel[level] = [];
+				spellsByLevel[level].push({
+					name: nameText,
+					prepared: !!spell.prepared
+				});
+			});
+		});
+
+		const spellLevels = Object.keys(spellsByLevel)
+			.map(level => parseInt(level, 10))
+			.sort((a, b) => a - b);
+
+		const spellsHtml = spellLevels.length
+			? `<div class="spells-grid">${spellLevels.map(level => {
+				const label = level === 0 ? 'Cantrips' : `Level ${level}`;
+				const preparedCount = spellsByLevel[level].filter(spell => spell.prepared).length;
+				const totalCount = spellsByLevel[level].length;
+				const countLabel = `${totalCount} spell${totalCount === 1 ? '' : 's'}`;
+				const preparedLabel = preparedCount ? `${preparedCount} prepared` : '';
+				const tags = spellsByLevel[level]
+					.sort((a, b) => a.name.localeCompare(b.name))
+					.map(spell => {
+						const preparedClass = spell.prepared ? ' is-prepared' : '';
+						return `<button type="button" class="spell-tag${preparedClass}" data-spell-name="${escapeHtml(spell.name)}">${escapeHtml(spell.name)}</button>`;
+					})
+					.join('');
+				return `
+					<div class="spell-level">
+						<div class="spell-level-header">
+							<h4>${label}</h4>
+							<div class="spell-level-meta">
+								<span>${countLabel}</span>
+								${preparedLabel ? `<span>${preparedLabel}</span>` : ''}
+							</div>
+						</div>
+						<div class="spell-tags">${tags}</div>
+					</div>
+				`;
+			}).join('')}</div>`
+			: '<div class="empty-state">No spells listed</div>';
+
+		const traits = data.traits || {};
+		const traitEntries = [
+			{ label: 'Personality', value: formatTrait(traits.personalityTraits) },
+			{ label: 'Ideals', value: formatTrait(traits.ideals) },
+			{ label: 'Bonds', value: formatTrait(traits.bonds) },
+			{ label: 'Flaws', value: formatTrait(traits.flaws) },
+			{ label: 'Appearance', value: formatTrait(traits.appearance) }
+		].filter(item => item.value);
+
+		const traitsHtml = traitEntries.length
+			? traitEntries.map(entry => `
+				<li class="character-list-item">
+					<span>${escapeHtml(entry.label)}</span>
+					<strong>${escapeHtml(entry.value)}</strong>
+				</li>
+			`).join('')
+			: '<li class="character-list-item"><span>No personality traits listed</span><strong>N/A</strong></li>';
+
+		const feats = Array.isArray(data.feats) ? data.feats : [];
+		const featsHtml = feats.length
+			? feats.map(feat => {
+				const def = feat.definition || {};
+				const name = def.name || 'Feat';
+				const snippet = stripHtml(def.snippet || def.description || '');
+				return `
+					<li class="character-list-item is-block">
+						<strong>${escapeHtml(name)}</strong>
+						${snippet ? `<span class="character-list-subtext">${escapeHtml(snippet)}</span>` : ''}
+					</li>
+				`;
+			}).join('')
+			: '<li class="character-list-item"><span>No feats listed</span><strong>N/A</strong></li>';
+
+		const racialTraits = data.race?.racialTraits || [];
+		const racialTraitsHtml = racialTraits.length
+			? racialTraits.map(trait => {
+				const def = trait.definition || {};
+				const name = def.name || 'Trait';
+				const snippet = stripHtml(def.snippet || def.description || '');
+				return `
+					<li class="character-list-item is-block">
+						<strong>${escapeHtml(name)}</strong>
+						${snippet ? `<span class="character-list-subtext">${escapeHtml(snippet)}</span>` : ''}
+					</li>
+				`;
+			}).join('')
+			: '<li class="character-list-item"><span>No racial traits listed</span><strong>N/A</strong></li>';
+
+		container.innerHTML = `
+			<div class="character-header">
+				<div>
+					<div class="character-name">${escapeHtml(name)}</div>
+					<div class="character-meta">
+						<span>${escapeHtml(race)}</span>
+						<span>${escapeHtml(classes)}</span>
+						<span>${escapeHtml(background)}</span>
+						<span>${escapeHtml(alignment)}</span>
+					</div>
+				</div>
+				<div class="character-badges">
+					<span class="character-badge">Level ${levelTotal}</span>
+					<span class="character-badge">Proficiency +${profBonus}</span>
+				</div>
+			</div>
+
+			<div class="character-columns">
+				<div class="character-panel">
+					<div class="summary-grid">
+						<div class="summary-card">
+							<div class="summary-label">Max HP</div>
+							<div class="summary-value">${maxHp}</div>
+						</div>
+						<div class="summary-card">
+							<div class="summary-label">Current HP</div>
+							<div class="summary-value">${currentHp}</div>
+						</div>
+						<div class="summary-card">
+							<div class="summary-label">Temp HP</div>
+							<div class="summary-value">${tempHp}</div>
+						</div>
+						<div class="summary-card">
+							<div class="summary-label">Armor Class</div>
+							<div class="summary-value">${armorClass}</div>
+						</div>
+						<div class="summary-card">
+							<div class="summary-label">Initiative</div>
+							<div class="summary-value">${initiative}</div>
+						</div>
+						<div class="summary-card">
+							<div class="summary-label">Speed</div>
+							<div class="summary-value">${speedValue ? `${speedValue} ft` : 'Unknown'}</div>
+						</div>
+						<div class="summary-card">
+							<div class="summary-label">Faith</div>
+							<div class="summary-value">${escapeHtml(faith)}</div>
+						</div>
+						<div class="summary-card">
+							<div class="summary-label">Gender</div>
+							<div class="summary-value">${escapeHtml(gender)}</div>
+						</div>
+						<div class="summary-card">
+							<div class="summary-label">Age</div>
+							<div class="summary-value">${escapeHtml(age)}</div>
+						</div>
+						<div class="summary-card">
+							<div class="summary-label">Height</div>
+							<div class="summary-value">${escapeHtml(height)}</div>
+						</div>
+						<div class="summary-card">
+							<div class="summary-label">Weight</div>
+							<div class="summary-value">${escapeHtml(weight)}</div>
+						</div>
+					</div>
+
+					<div class="character-section">
+						<h3>Ability Scores</h3>
+						<div class="abilities-grid">
+							${abilityHtml}
+						</div>
+					</div>
+
+					<div class="character-section">
+						<h3>Personality</h3>
+						<ul class="character-list">
+							${traitsHtml}
+						</ul>
+					</div>
+				</div>
+
+				<div class="character-panel">
+					<div class="character-section">
+						<h3>Currencies</h3>
+						<ul class="character-list">
+							${currencyHtml}
+						</ul>
+					</div>
+
+					<div class="character-section">
+						<h3>Equipment</h3>
+						<ul class="character-list">
+							${equipmentHtml}
+						</ul>
+					</div>
+
+					<div class="character-section">
+						<h3>Feats</h3>
+						<ul class="character-list">
+							${featsHtml}
+						</ul>
+					</div>
+
+					<div class="character-section">
+						<h3>Racial Traits</h3>
+						<ul class="character-list">
+							${racialTraitsHtml}
+						</ul>
+					</div>
+				</div>
+			</div>
+
+			<div class="character-section">
+				<h3>Spells</h3>
+				${spellsHtml}
+			</div>
+		`;
+	}
+
+	async function loadCharacterSheet() {
+		const container = document.getElementById('character-sheet');
+		if (!container) return;
+
+		container.innerHTML = '<div class="character-loading">Loading character...</div>';
+		try {
+			const response = await fetch('darkstone.json');
+			if (!response.ok) {
+				throw new Error(`Failed to load darkstone.json (${response.status})`);
+			}
+			const payload = await response.json();
+			
+			// Handle both payload.data and direct structure
+			const data = payload.data || payload || {};
+			
+			// Log what we got for debugging
+			if (Object.keys(data).length === 0) {
+				console.warn('[WARN] Character data is empty');
+				container.innerHTML = '<div class="character-error">No character data found in darkstone.json.</div>';
+				return;
+			}
+			
+			renderCharacterSheet(data);
+		} catch (error) {
+			console.error('[ERROR] Failed to load character:', error);
+			container.innerHTML = `<div class="character-error">Unable to load character data: ${error.message}</div>`;
+		}
+	}
+
+	// ============================================
+	// Search Page Management
+	// ============================================
+
+	class SearchPageManager {
+		constructor() {
+			this.cache = {};
+			this.initEventListeners();
+		}
+
+		initEventListeners() {
+			const searchInput = document.getElementById('search-query');
+			const typeSelect = document.getElementById('search-type');
+			const resultsContainer = document.getElementById('search-results');
+			const searchWrapper = document.querySelector('.search-input-wrapper');
+
+			searchInput.addEventListener('input', debounce(() => this.performSearch(), 300));
+			typeSelect.addEventListener('change', () => this.performSearch());
+
+			if (searchWrapper) {
+				const setFocused = () => searchWrapper.classList.add('is-focused');
+				const clearFocused = () => {
+					if (!searchWrapper.contains(document.activeElement)) {
+						searchWrapper.classList.remove('is-focused');
+					}
+				};
+				searchInput.addEventListener('focus', setFocused);
+				typeSelect.addEventListener('focus', setFocused);
+				searchInput.addEventListener('blur', () => setTimeout(clearFocused, 0));
+				typeSelect.addEventListener('blur', () => setTimeout(clearFocused, 0));
+			}
+
+			resultsContainer.addEventListener('click', (event) => {
+				const ref = event.target.closest('.search-ref');
+				if (!ref) return;
+				const nextType = ref.dataset.searchType;
+				const nextQuery = ref.dataset.searchQuery;
+				if (!nextType || !nextQuery) return;
+				typeSelect.value = nextType;
+				searchInput.value = nextQuery;
+				this.performSearch();
+			});
+		}
+
+		async loadData(type) {
+			// Try to load from local data directory first
+			if (this.cache[type]) {
+				return this.cache[type];
+			}
+
+			try {
+				const response = await fetch(`data/${type}.json`);
+				if (response.ok) {
+					const data = await response.json();
+					this.cache[type] = data;
+					return data;
+				}
+			} catch (e) {
+				// Fall back to API
+			}
+
+			// Fall back to API
+			const url = `https://www.dnd5eapi.co/api/2014/${type}`;
+			try {
+				const response = await fetch(url);
+				if (response.ok) {
+					const data = await response.json();
+					this.cache[type] = data;
+					return data;
+				}
+			} catch (e) {
+				console.error(`Failed to load data for ${type}:`, e);
+				throw e;
+			}
+		}
+
+		async performSearch() {
+			const query = document.getElementById('search-query').value.trim();
+			const type = document.getElementById('search-type').value;
+			const resultsContainer = document.getElementById('search-results');
+			resultsContainer.classList.remove('has-results');
+
+			if (query.length === 0) {
+				resultsContainer.innerHTML = '<div class="empty-state">Use the dropdown on the right to choose which part of the rules you would like to search.</div>';
+				return;
+			}
+
+			if (query.length < 2) {
+				resultsContainer.innerHTML = '<div class="empty-state">Keep typing...</div>';
+				return;
+			}
+
+			resultsContainer.innerHTML = '<div class="equipment-loading">Searching...</div>';
+
+		try {
+			const data = await this.loadData(type);
+			const items = data.results || data;
+
+			// Search items
+			let results = items.filter(item =>
+				(item.name || item.index || '').toLowerCase().includes(query.toLowerCase())
+			).slice(0, 10);
+
+			if (results.length === 0) {
+				resultsContainer.innerHTML = '<div class="empty-state">No results found</div>';
+				return;
+			}
+
+			// Fetch full details for each result
+			const fullResults = await Promise.all(
+				results.map(async (item) => {
+					try {
+						// Try to get full details if available
+						if (item.url) {
+							const response = await fetch(`https://www.dnd5eapi.co${item.url}`);
+							if (response.ok) {
+								return await response.json();
+							}
+						}
+						return item;
+					} catch (e) {
+						return item;
+					}
+				})
+			);
+
+			// Render results based on type
+			resultsContainer.innerHTML = fullResults.map(item => 
+				this.renderSearchResult(item, type)
+			).join('');
+			resultsContainer.classList.add('has-results');
+		} catch (error) {
+			console.error('Error performing search:', error);
+			resultsContainer.innerHTML = '<div class="empty-state">Error loading data. Please try again.</div>';
+		}
+	}
+
+	renderSearchResult(item, type) {
+		let html = `<div class="search-result-item">
+			<h4>${escapeHtml(item.name || item.index)}</h4>
+			<div class="search-result-metadata">`;
+
+		// Render type-specific metadata
+		const metadata = this.getMetadataForType(item, type);
+		if (metadata) html += metadata;
+
+		html += `</div>`;
+
+		// Add description if available
+		if (item.desc) {
+			if (Array.isArray(item.desc)) {
+				html += `<div class="search-result-description">${item.desc.map(d => `<p>${escapeHtml(d)}</p>`).join('')}</div>`;
+			} else if (typeof item.desc === 'string') {
+				html += `<div class="search-result-description"><p>${escapeHtml(item.desc)}</p></div>`;
+			}
+		}
+
+		// Add cross-references if available
+		const crossRefs = this.getCrossReferences(item, type);
+		if (crossRefs.length > 0) {
+			html += `<div class="search-result-crossrefs">
+				<strong>Explore:</strong>
+				<div class="search-ref-list">`;
+			crossRefs.forEach(ref => {
+				html += `<button type="button" class="search-ref" data-search-type="${escapeHtml(ref.type)}" data-search-query="${escapeHtml(ref.query)}">${escapeHtml(ref.label)}: ${escapeHtml(ref.value)}</button>`;
+			});
+			html += `</div>
+			</div>`;
+		}
+
+		html += `</div>`;
+		return html;
+	}
+
+	getMetadataForType(item, type) {
+		let html = '';
+
+		switch(type) {
+			case 'equipment':
+				if (item.equipment_category) html += `<p><strong>Category:</strong> ${escapeHtml(item.equipment_category.name)}</p>`;
+				if (item.weapon_category) html += `<p><strong>Weapon Type:</strong> ${escapeHtml(item.weapon_category)}</p>`;
+				if (item.armor_class) {
+					const acValue = typeof item.armor_class === 'object' ? item.armor_class.value : item.armor_class;
+					html += `<p><strong>AC:</strong> ${escapeHtml(acValue)}</p>`;
+				}
+				if (item.cost) html += `<p><strong>Cost:</strong> ${escapeHtml(item.cost.quantity)} ${escapeHtml(item.cost.unit)}</p>`;
+				if (item.weight) html += `<p><strong>Weight:</strong> ${escapeHtml(item.weight)} lb.</p>`;
+				if (item.damage) {
+					const damageDice = item.damage.damage_dice || item.damage.dice;
+					const damageType = item.damage.damage_type?.name || item.damage.damage_type || 'Unknown';
+					html += `<p><strong>Damage:</strong> ${escapeHtml(damageDice)} ${escapeHtml(damageType)}</p>`;
+				}
+				if (item.range?.normal) html += `<p><strong>Range:</strong> ${escapeHtml(item.range.normal)} ft${item.range.long ? ` / ${escapeHtml(item.range.long)} ft (long)` : ''}</p>`;
+				if (item.weapon_range) html += `<p><strong>Range Category:</strong> ${escapeHtml(item.weapon_range)}</p>`;
+				if (item.properties && Array.isArray(item.properties) && item.properties.length > 0) {
+					const propNames = item.properties.map(p => escapeHtml(p.name || p)).join(', ');
+					html += `<p><strong>Properties:</strong> ${propNames}</p>`;
+				}
+				if (item.rarity) html += `<p><strong>Rarity:</strong> ${escapeHtml(item.rarity)}</p>`;
+				break;
+
+			case 'spells':
+				if (item.level !== undefined) {
+					const levelName = item.level === 0 ? 'Cantrip' : `Level ${item.level}`;
+					html += `<p><strong>Level:</strong> ${escapeHtml(levelName)}</p>`;
+				}
+				if (item.school) html += `<p><strong>School of Magic:</strong> ${escapeHtml(item.school.name || item.school)}</p>`;
+				if (item.casting_time) html += `<p><strong>Casting Time:</strong> ${escapeHtml(item.casting_time)}</p>`;
+				if (item.range) html += `<p><strong>Range:</strong> ${escapeHtml(item.range)}</p>`;
+				if (item.components && Array.isArray(item.components)) html += `<p><strong>Components:</strong> ${item.components.map(escapeHtml).join(', ')}</p>`;
+				if (item.material) html += `<p><strong>Material:</strong> ${escapeHtml(item.material)}</p>`;
+				if (item.duration) html += `<p><strong>Duration:</strong> ${escapeHtml(item.duration)}</p>`;
+				if (item.concentration) html += `<p><strong>Requires Concentration</strong></p>`;
+				if (item.ritual) html += `<p><strong>Can be cast as ritual</strong></p>`;
+				break;
+
+			case 'monsters':
+				if (item.challenge_rating !== undefined) {
+					const xp = item.xp ? ` (${item.xp.toLocaleString()} XP)` : '';
+					html += `<p><strong>Challenge Rating:</strong> ${escapeHtml(item.challenge_rating)}${escapeHtml(xp)}</p>`;
+				}
+				if (item.size) html += `<p><strong>Size:</strong> ${escapeHtml(item.size)}</p>`;
+				if (item.type) html += `<p><strong>Type:</strong> ${escapeHtml(item.type)}</p>`;
+				if (item.alignment) html += `<p><strong>Alignment:</strong> ${escapeHtml(item.alignment)}</p>`;
+				if (item.armor_class) {
+					const acValue = typeof item.armor_class === 'object' ? item.armor_class.base : item.armor_class;
+					const acDesc = typeof item.armor_class === 'object' ? ` (${item.armor_class.description})` : '';
+					html += `<p><strong>AC:</strong> ${escapeHtml(acValue)}${escapeHtml(acDesc)}</p>`;
+				}
+				if (item.hit_points) html += `<p><strong>Hit Points:</strong> ${escapeHtml(item.hit_points)}</p>`;
+				if (item.hit_die) html += `<p><strong>Hit Dice:</strong> ${escapeHtml(item.hit_dice)}</p>`;
+				if (item.speed) {
+					const speedStr = typeof item.speed === 'object'
+						? Object.entries(item.speed).map(([k, v]) => `${escapeHtml(k)}: ${escapeHtml(v)}`).join(', ')
+						: escapeHtml(item.speed);
+					html += `<p><strong>Speed:</strong> ${speedStr}</p>`;
+				}
+				if (item.language) html += `<p><strong>Languages:</strong> ${escapeHtml(item.language)}</p>`;
+				break;
+
+			case 'classes':
+				if (item.hit_die) html += `<p><strong>Hit Die:</strong> d${escapeHtml(item.hit_die)}</p>`;
+				if (item.saving_throws && Array.isArray(item.saving_throws)) {
+					html += `<p><strong>Saving Throws:</strong> ${item.saving_throws.map(s => escapeHtml(s.name || s)).join(', ')}</p>`;
+				}
+				if (item.skill_proficiencies && Array.isArray(item.skill_proficiencies)) {
+					html += `<p><strong>Skill Proficiencies Available:</strong> ${item.skill_proficiencies.map(s => escapeHtml(s.name || s)).join(', ')}</p>`;
+				}
+				break;
+
+			case 'races':
+				if (item.ability_bonuses) {
+					const bonuses = item.ability_bonuses.map(b => `${escapeHtml(b.ability_score.name)} +${escapeHtml(b.bonus)}`).join(', ');
+					html += `<p><strong>Ability Bonuses:</strong> ${bonuses}</p>`;
+				} else if (item.ability_bonus_options) {
+					html += `<p><strong>Flexible Ability Bonus Available</strong></p>`;
+				}
+				if (item.speed) html += `<p><strong>Base Walking Speed:</strong> ${escapeHtml(item.speed)} ft.</p>`;
+				if (item.language_desc) html += `<p><strong>Languages:</strong> ${escapeHtml(item.language_desc)}</p>`;
+				if (item.size) html += `<p><strong>Size:</strong> ${escapeHtml(item.size)}</p>`;
+				break;
+
+			case 'skills':
+				if (item.ability_score) {
+					html += `<p><strong>Ability:</strong> ${escapeHtml(item.ability_score.name || item.ability_score)}</p>`;
+				}
+				break;
+
+			case 'conditions':
+				// Condition-specific details shown in description
+				break;
+
+			case 'damage-types':
+				// Damage type details shown in description
+				break;
+
+			case 'languages':
+				if (item.type) html += `<p><strong>Type:</strong> ${escapeHtml(item.type)}</p>`;
+				if (item.script) html += `<p><strong>Script:</strong> ${escapeHtml(item.script)}</p>`;
+				break;
+
+			case 'traits':
+				if (item.races && Array.isArray(item.races) && item.races.length > 0) {
+					html += `<p><strong>Races:</strong> ${item.races.map(r => escapeHtml(r.name || r)).join(', ')}</p>`;
+				}
+				if (item.subraces && Array.isArray(item.subraces) && item.subraces.length > 0) {
+					html += `<p><strong>Subraces:</strong> ${item.subraces.map(s => escapeHtml(s.name || s)).join(', ')}</p>`;
+				}
+				break;
+
+			case 'features':
+				if (item.class) html += `<p><strong>Class:</strong> ${escapeHtml(item.class.name || item.class)}</p>`;
+				if (item.subclass) html += `<p><strong>Subclass:</strong> ${escapeHtml(item.subclass.name || item.subclass)}</p>`;
+				if (item.level) html += `<p><strong>Available at Level:</strong> ${escapeHtml(item.level)}</p>`;
+				break;
+
+			case 'proficiencies':
+				if (item.type) html += `<p><strong>Type:</strong> ${escapeHtml(item.type)}</p>`;
+				if (item.races && Array.isArray(item.races) && item.races.length > 0) {
+					html += `<p><strong>Available to Races:</strong> ${item.races.map(r => escapeHtml(r.name || r)).join(', ')}</p>`;
+				}
+				if (item.classes && Array.isArray(item.classes) && item.classes.length > 0) {
+					html += `<p><strong>Available to Classes:</strong> ${item.classes.map(c => escapeHtml(c.name || c)).join(', ')}</p>`;
+				}
+				if (item.subclasses && Array.isArray(item.subclasses) && item.subclasses.length > 0) {
+					html += `<p><strong>Available to Subclasses:</strong> ${item.subclasses.map(s => escapeHtml(s.name || s)).join(', ')}</p>`;
+				}
+				break;
+
+			case 'subclasses':
+				if (item.class) html += `<p><strong>Class:</strong> ${escapeHtml(item.class.name || item.class)}</p>`;
+				if (item.subclass_flavor) html += `<p><strong>Flavor:</strong> ${escapeHtml(item.subclass_flavor)}</p>`;
+				break;
+
+			case 'subraces':
+				if (item.race) html += `<p><strong>Parent Race:</strong> ${escapeHtml(item.race.name || item.race)}</p>`;
+				if (item.ability_bonuses) {
+					const subraceBonus = item.ability_bonuses.map(b => `${escapeHtml(b.ability_score.name)} +${escapeHtml(b.bonus)}`).join(', ');
+					html += `<p><strong>Additional Ability Bonuses:</strong> ${subraceBonus}</p>`;
+				}
+				break;
+
+			case 'magic-schools':
+				// Magic school details shown in description
+				break;
+
+			case 'weapon-properties':
+				// Weapon property details shown in description
+				break;
+
+			case 'equipment-categories':
+				// Equipment category details shown in description
+				break;
+
+			case 'ability-scores':
+				if (item.full_name) html += `<p><strong>Full Name:</strong> ${escapeHtml(item.full_name)}</p>`;
+				if (item.description) html += `<p><strong>Description:</strong> ${escapeHtml(item.description)}</p>`;
+				break;
+		}
+
+		return html;
+	}
+
+	getCrossReferences(item, type) {
+		const refs = [];
+		const seen = new Set();
+		const addRef = (label, value, refType, query) => {
+			if (!label || !value || !refType || !query) return;
+			const key = `${refType}|${query}`;
+			if (seen.has(key)) return;
+			seen.add(key);
+			refs.push({ label, value, type: refType, query });
+		};
+
+		switch(type) {
+			case 'spells':
+				if (item.school) {
+					const schoolName = item.school.name || item.school;
+					addRef('School', schoolName, 'magic-schools', schoolName);
+				}
+				break;
+
+			case 'equipment':
+				if (item.damage) {
+					const damageType = item.damage.damage_type?.name || item.damage.damage_type;
+					if (damageType) {
+						addRef('Damage Type', damageType, 'damage-types', damageType);
+					}
+				}
+				if (item.equipment_category) {
+					const categoryName = item.equipment_category.name;
+					addRef('Equipment Category', categoryName, 'equipment-categories', categoryName);
+				}
+				if (item.properties && Array.isArray(item.properties)) {
+					item.properties.forEach(prop => {
+						const propName = prop.name || prop;
+						addRef('Property', propName, 'weapon-properties', propName);
+					});
+				}
+				break;
+
+			case 'monsters':
+				if (item.languages && item.languages.length > 0) {
+					item.languages.forEach(lang => addRef('Language', lang, 'languages', lang));
+				} else if (item.language) {
+					item.language.split(',').map(l => l.trim()).forEach(lang => {
+						if (lang) addRef('Language', lang, 'languages', lang);
+					});
+				}
+				break;
+
+			case 'classes':
+				if (item.hit_die) {
+					refs.push({ label: 'Hit Die', value: `d${item.hit_die}` });
+				}
+				break;
+
+			case 'races':
+				break;
+
+			case 'features':
+				if (item.class) {
+					const className = item.class.name || item.class;
+					addRef('Class', className, 'classes', className);
+				}
+				if (item.subclass) {
+					const subclassName = item.subclass.name || item.subclass;
+					addRef('Subclass', subclassName, 'subclasses', subclassName);
+				}
+				break;
+
+			case 'subclasses':
+				if (item.class) {
+					const className = item.class.name || item.class;
+					addRef('Class', className, 'classes', className);
+				}
+				break;
+
+			case 'subraces':
+				if (item.race) {
+					const raceName = item.race.name || item.race;
+					addRef('Race', raceName, 'races', raceName);
+				}
+				break;
+
+			case 'skills':
+				if (item.ability_score) {
+					const abilityName = item.ability_score.name || item.ability_score;
+					addRef('Ability', abilityName, 'ability-scores', abilityName);
+				}
+				break;
+
+			case 'languages':
+				break;
+
+			case 'conditions':
+				break;
+
+			case 'damage-types':
+				break;
+
+			case 'traits':
+				if (item.races && item.races.length > 0) {
+					item.races.forEach(race => {
+						const raceName = race.name || race;
+						addRef('Race', raceName, 'races', raceName);
+					});
+				}
+				if (item.subraces && item.subraces.length > 0) {
+					item.subraces.forEach(subrace => {
+						const subraceName = subrace.name || subrace;
+						addRef('Subrace', subraceName, 'subraces', subraceName);
+					});
+				}
+				break;
+
+			case 'proficiencies':
+				if (item.races && item.races.length > 0) {
+					item.races.forEach(race => {
+						const raceName = race.name || race;
+						addRef('Race', raceName, 'races', raceName);
+					});
+				}
+				if (item.classes && item.classes.length > 0) {
+					item.classes.forEach(cls => {
+						const className = cls.name || cls;
+						addRef('Class', className, 'classes', className);
+					});
+				}
+				if (item.subclasses && item.subclasses.length > 0) {
+					item.subclasses.forEach(subclass => {
+						const subclassName = subclass.name || subclass;
+						addRef('Subclass', subclassName, 'subclasses', subclassName);
+					});
+				}
+				break;
+		}
+
+		return refs;
+	}
+
+	getOrdinalSuffix(num) {
+		const j = num % 10;
+		const k = num % 100;
+		if (j === 1 && k !== 11) return 'st';
+		if (j === 2 && k !== 12) return 'nd';
+		if (j === 3 && k !== 13) return 'rd';
+		return 'th';
+	}
+	}
+
+	// ============================================
+	// Random Generators
+	// ============================================
+
+	class RandomGenerators {
+		constructor() {
+			this.equipmentCache = null;
+			this.monstersCache = null;
+		}
+
+		async loadEquipment() {
+			if (this.equipmentCache) {
+				return this.equipmentCache;
+			}
+
+			try {
+				const response = await fetch('/data/equipment.json');
+				if (response.ok) {
+					const data = await response.json();
+					this.equipmentCache = data.results || data;
+					return this.equipmentCache;
+				}
+			} catch (error) {
+				console.debug('Loading equipment from API fallback');
+			}
+
+			// Fallback to API
+			try {
+				const response = await fetch('https://www.dnd5eapi.co/api/2014/equipment');
+				if (response.ok) {
+					const data = await response.json();
+					this.equipmentCache = data.results || [];
+					return this.equipmentCache;
+				}
+			} catch (error) {
+				console.error('Failed to load equipment:', error);
+			}
+
+			return [];
+		}
+
+		async loadMonsters() {
+			if (this.monstersCache) {
+				return this.monstersCache;
+			}
+
+			try {
+				const response = await fetch('/data/monsters.json');
+				if (response.ok) {
+					const data = await response.json();
+					this.monstersCache = data.results || data;
+					return this.monstersCache;
+				}
+			} catch (error) {
+				console.debug('Loading monsters from API fallback');
+			}
+
+			// Fallback to API
+			try {
+				const response = await fetch('https://www.dnd5eapi.co/api/2014/monsters');
+				if (response.ok) {
+					const data = await response.json();
+					this.monstersCache = data.results || [];
+					return this.monstersCache;
+				}
+			} catch (error) {
+				console.error('Failed to load monsters:', error);
+			}
+
+			return [];
+		}
+
+		async getEquipmentDetails(url) {
+			try {
+				const fullUrl = `https://www.dnd5eapi.co${url}`;
+				const response = await fetch(fullUrl);
+				if (response.ok) {
+					return await response.json();
+				}
+			} catch (error) {
+				console.error('Failed to fetch equipment details:', error);
+			}
+			return null;
+		}
+
+		async getMonsterDetails(url) {
+			try {
+				const fullUrl = `https://www.dnd5eapi.co${url}`;
+				const response = await fetch(fullUrl);
+				if (response.ok) {
+					return await response.json();
+				}
+			} catch (error) {
+				console.error('Failed to fetch monster details:', error);
+			}
+			return null;
+		}
+
+		async generateLoot() {
+			const count = parseInt(document.getElementById('loot-count').value) || 5;
+			const resultsDiv = document.getElementById('loot-results');
+			
+			resultsDiv.innerHTML = '<div class="generator-loading">Generating loot...</div>';
+			
+			try {
+				const equipment = await this.loadEquipment();
+				
+				if (equipment.length === 0) {
+					resultsDiv.innerHTML = '<div class="empty-state">Failed to load equipment data</div>';
+					return;
+				}
+
+				// Get random items
+				const randomItems = [];
+				const usedIndices = new Set();
+				
+				for (let i = 0; i < count && i < equipment.length; i++) {
+					let randomIndex;
+					do {
+						randomIndex = Math.floor(Math.random() * equipment.length);
+					} while (usedIndices.has(randomIndex));
+					
+					usedIndices.add(randomIndex);
+					randomItems.push(equipment[randomIndex]);
+				}
+
+				// Fetch details for each item
+				const itemsWithDetails = await Promise.all(
+					randomItems.map(async (item) => {
+						if (item.url) {
+							const details = await this.getEquipmentDetails(item.url);
+							return details || item;
+						}
+						return item;
+					})
+				);
+
+				// Render results
+				let html = '';
+				itemsWithDetails.forEach((item, index) => {
+					html += '<div class="generator-item">';
+					html += `<h4>${index + 1}. ${escapeHtml(item.name || item.index || 'Unknown Item')}</h4>`;
+					html += '<div class="generator-item-meta">';
+
+					if (item.equipment_category) {
+						html += `<span><strong>Category:</strong> ${escapeHtml(item.equipment_category.name)}</span>`;
+					}
+
+					if (item.cost) {
+						html += `<span><strong>Cost:</strong> ${escapeHtml(item.cost.quantity)} ${escapeHtml(item.cost.unit)}</span>`;
+					}
+
+					if (item.weight) {
+						html += `<span><strong>Weight:</strong> ${escapeHtml(item.weight)} lb</span>`;
+					}
+
+					if (item.damage) {
+						const damageDice = item.damage.damage_dice || item.damage.dice;
+						const damageType = item.damage.damage_type?.name || 'damage';
+						html += `<span><strong>Damage:</strong> ${escapeHtml(damageDice)} ${escapeHtml(damageType)}</span>`;
+					}
+
+					if (item.armor_class) {
+						const ac = typeof item.armor_class === 'object' ? item.armor_class.base : item.armor_class;
+						html += `<span><strong>AC:</strong> ${escapeHtml(ac)}</span>`;
+					}
+
+					html += '</div>';
+
+					if (item.desc && Array.isArray(item.desc) && item.desc.length > 0) {
+						html += `<div class="generator-item-desc">${item.desc.map(escapeHtml).join(' ')}</div>`;
+					}
+
+					html += '</div>';
+				});
+				
+				resultsDiv.innerHTML = html;
+				
+			} catch (error) {
+				console.error('Error generating loot:', error);
+				resultsDiv.innerHTML = '<div class="empty-state">An error occurred while generating loot</div>';
+			}
+		}
+
+		async generateEncounter() {
+			const count = parseInt(document.getElementById('encounter-count').value) || 3;
+			const resultsDiv = document.getElementById('encounter-results');
+			
+			resultsDiv.innerHTML = '<div class="generator-loading">Generating encounter...</div>';
+			
+			try {
+				const monsters = await this.loadMonsters();
+				
+				if (monsters.length === 0) {
+					resultsDiv.innerHTML = '<div class="empty-state">Failed to load monster data</div>';
+					return;
+				}
+
+				// Get random monsters
+				const randomMonsters = [];
+				const usedIndices = new Set();
+				
+				for (let i = 0; i < count && i < monsters.length; i++) {
+					let randomIndex;
+					do {
+						randomIndex = Math.floor(Math.random() * monsters.length);
+					} while (usedIndices.has(randomIndex));
+					
+					usedIndices.add(randomIndex);
+					randomMonsters.push(monsters[randomIndex]);
+				}
+
+				// Fetch details for each monster
+				const monstersWithDetails = await Promise.all(
+					randomMonsters.map(async (monster) => {
+						if (monster.url) {
+							const details = await this.getMonsterDetails(monster.url);
+							return details || monster;
+						}
+						return monster;
+					})
+				);
+
+				// Render results
+				let html = '';
+				monstersWithDetails.forEach((monster, index) => {
+					html += '<div class="generator-item">';
+					html += `<h4>${index + 1}. ${escapeHtml(monster.name || monster.index || 'Unknown Monster')}</h4>`;
+					html += '<div class="generator-item-meta">';
+
+					if (monster.size) {
+						html += `<span><strong>Size:</strong> ${escapeHtml(monster.size)}</span>`;
+					}
+
+					if (monster.type) {
+						html += `<span><strong>Type:</strong> ${escapeHtml(monster.type)}</span>`;
+					}
+
+					if (monster.alignment) {
+						html += `<span><strong>Alignment:</strong> ${escapeHtml(monster.alignment)}</span>`;
+					}
+
+					if (monster.challenge_rating !== undefined) {
+						const xp = monster.xp ? ` (${monster.xp.toLocaleString()} XP)` : '';
+						html += `<span><strong>CR:</strong> ${escapeHtml(monster.challenge_rating)}${escapeHtml(xp)}</span>`;
+					}
+
+					if (monster.armor_class) {
+						const ac = typeof monster.armor_class === 'object' ?
+							(monster.armor_class[0]?.value || monster.armor_class.value || monster.armor_class.base) :
+							monster.armor_class;
+						html += `<span><strong>AC:</strong> ${escapeHtml(ac)}</span>`;
+					}
+
+					if (monster.hit_points) {
+						html += `<span><strong>HP:</strong> ${escapeHtml(monster.hit_points)}</span>`;
+					}
+
+					html += '</div>';
+
+					// Speed
+					if (monster.speed) {
+						const speedStr = typeof monster.speed === 'object'
+							? Object.entries(monster.speed).map(([k, v]) => `${escapeHtml(k)}: ${escapeHtml(v)}`).join(', ')
+							: escapeHtml(monster.speed);
+						html += `<div class="generator-item-desc"><strong>Speed:</strong> ${speedStr}</div>`;
+					}
+
+					// Languages
+					if (monster.languages) {
+						html += `<div class="generator-item-desc"><strong>Languages:</strong> ${escapeHtml(monster.languages)}</div>`;
+					}
+
+					html += '</div>';
+				});
+				
+				resultsDiv.innerHTML = html;
+				
+			} catch (error) {
+				console.error('Error generating encounter:', error);
+				resultsDiv.innerHTML = '<div class="empty-state">An error occurred while generating encounter</div>';
+			}
+		}
+
+		// NPC Generator
+		generateNPC() {
+			const resultsDiv = document.getElementById('npc-results');
+			resultsDiv.innerHTML = '<div class="generator-loading">Generating NPC...</div>';
+
+			setTimeout(() => {
+				const races = ['Human', 'Elf', 'Dwarf', 'Halfling', 'Gnome', 'Half-Elf', 'Half-Orc', 'Tiefling', 'Dragonborn', 'Goliath'];
+				const genders = ['Male', 'Female', 'Non-binary'];
+				const professions = ['Merchant', 'Blacksmith', 'Innkeeper', 'Guard', 'Scholar', 'Priest', 'Farmer', 'Noble', 'Thief', 'Bard', 'Alchemist', 'Herbalist', 'Sailor', 'Soldier', 'Mage'];
+				const personalities = ['Friendly', 'Suspicious', 'Greedy', 'Helpful', 'Nervous', 'Confident', 'Arrogant', 'Timid', 'Jovial', 'Grumpy', 'Secretive', 'Honest', 'Deceitful', 'Brave', 'Cowardly'];
+				const traits = ['has a distinctive scar', 'speaks in a whisper', 'laughs constantly', 'has unusual colored eyes', 'wears fancy jewelry', 'carries a lucky charm', 'has a pronounced limp', 'smells of exotic spices', 'has elaborate tattoos', 'speaks very quickly', 'has a thick accent', 'is missing a finger', 'wears colorful clothing', 'has a pet bird', 'chews on herbs'];
+				const motivations = ['seeking revenge', 'protecting their family', 'accumulating wealth', 'gaining power', 'finding love', 'uncovering secrets', 'serving their deity', 'pursuing knowledge', 'escaping their past', 'proving themselves', 'seeking redemption', 'maintaining order', 'causing chaos', 'helping others', 'surviving'];
+				const secrets = ['is actually nobility in hiding', 'owes a large debt to criminals', 'knows the location of hidden treasure', 'is secretly a spy', 'has magical abilities they hide', 'is being blackmailed', 'witnessed a crime', 'is related to someone important', 'has a terminal illness', 'is not who they claim to be'];
+
+				const firstNames = {
+					human: ['Alden', 'Brynn', 'Cade', 'Dara', 'Elara', 'Finn', 'Gwen', 'Hale', 'Iris', 'Jorn'],
+					elf: ['Aelindra', 'Belanor', 'Caladwen', 'Daemion', 'Elenwe', 'Faelyn', 'Galadhel', 'Halueth', 'Isilwen', 'Loralei'],
+					dwarf: ['Baern', 'Dolgrin', 'Eberk', 'Gurdis', 'Hilde', 'Katra', 'Morgran', 'Rurik', 'Thargin', 'Vistra'],
+					halfling: ['Benny', 'Cora', 'Denny', 'Elma', 'Finn', 'Greta', 'Harry', 'Lily', 'Milo', 'Rose']
+				};
+
+				const race = races[Math.floor(Math.random() * races.length)];
+				const gender = genders[Math.floor(Math.random() * genders.length)];
+				const profession = professions[Math.floor(Math.random() * professions.length)];
+				const personality = personalities[Math.floor(Math.random() * personalities.length)];
+				const trait = traits[Math.floor(Math.random() * traits.length)];
+				const motivation = motivations[Math.floor(Math.random() * motivations.length)];
+				const secret = secrets[Math.floor(Math.random() * secrets.length)];
+				
+				const nameList = firstNames[race.toLowerCase()] || firstNames.human;
+				const name = nameList[Math.floor(Math.random() * nameList.length)];
+
+				let html = '<div class="generator-item">';
+				html += `<h4>${name}</h4>`;
+				html += '<div class="generator-item-meta">';
+				html += `<span><strong>Race:</strong> ${race}</span>`;
+				html += `<span><strong>Gender:</strong> ${gender}</span>`;
+				html += `<span><strong>Profession:</strong> ${profession}</span>`;
+				html += '</div>';
+				html += `<div class="generator-item-desc"><strong>Personality:</strong> ${personality}</div>`;
+				html += `<div class="generator-item-desc"><strong>Distinctive Feature:</strong> ${trait}</div>`;
+				html += `<div class="generator-item-desc"><strong>Motivation:</strong> Currently ${motivation}</div>`;
+				html += `<div class="generator-item-desc"><strong>Secret:</strong> ${secret}</div>`;
+				html += '</div>';
+
+				resultsDiv.innerHTML = html;
+			}, 300);
+		}
+
+		// Town/Location Generator
+		generateTown() {
+			const resultsDiv = document.getElementById('town-results');
+			const typeSelect = document.getElementById('town-type').value;
+			
+			resultsDiv.innerHTML = '<div class="generator-loading">Generating settlement...</div>';
+
+			setTimeout(() => {
+				const settlementTypes = typeSelect === 'random' ? ['village', 'town', 'city'] : [typeSelect];
+				const type = settlementTypes[Math.floor(Math.random() * settlementTypes.length)];
+				
+				const populations = {
+					village: [50, 500],
+					town: [500, 5000],
+					city: [5000, 50000]
+				};
+
+				const prefixes = ['North', 'South', 'East', 'West', 'New', 'Old', 'Upper', 'Lower', 'High', 'Deep', 'Silver', 'Golden', 'Shadow', 'Bright', 'Dark'];
+				const roots = ['haven', 'dale', 'ford', 'bridge', 'wood', 'stone', 'garde', 'mere', 'brook', 'field', 'mill', 'port', 'crest', 'hill', 'mount'];
+				const features = ['Ancient ruins nearby', 'Built on a river crossroads', 'Famous for its market', 'Has a dark reputation', 'Known for excellent craftsmanship', 'Surrounded by farmland', 'Near a haunted forest', 'Protected by high walls', 'Has a prestigious academy', 'Site of a historic battle'];
+				const governments = ['Council of Elders', 'Hereditary Lord/Lady', 'Elected Mayor', 'Merchant Guild', 'Religious Leader', 'Military Commander'];
+				
+				const shops = ['General Store', 'Blacksmith', 'Tavern', 'Inn', 'Temple', 'Herbalist', 'Stables', 'Fletcher', 'Jeweler', 'Alchemist', 'Bookstore', 'Armorer', 'Leatherworker', 'Bakery'];
+				const taverns = ['The Prancing Pony', 'The Dragon\'s Flagon', 'The Rusty Anchor', 'The Golden Goblet', 'The Sleeping Giant', 'The Merry Minstrel', 'The Silver Stag', 'The Broken Shield', 'The Dancing Bear', 'The Laughing Fox'];
+
+				const name = prefixes[Math.floor(Math.random() * prefixes.length)] + roots[Math.floor(Math.random() * roots.length)];
+				const pop = Math.floor(Math.random() * (populations[type][1] - populations[type][0]) + populations[type][0]);
+				const feature = features[Math.floor(Math.random() * features.length)];
+				const government = governments[Math.floor(Math.random() * governments.length)];
+				
+				const numShops = type === 'village' ? 3 : type === 'town' ? 6 : 10;
+				const shuffledShops = shops.sort(() => 0.5 - Math.random()).slice(0, numShops);
+				const tavernName = taverns[Math.floor(Math.random() * taverns.length)];
+
+				let html = '<div class="generator-item">';
+				html += `<h4>${name}</h4>`;
+				html += '<div class="generator-item-meta">';
+				html += `<span><strong>Type:</strong> ${type.charAt(0).toUpperCase() + type.slice(1)}</span>`;
+				html += `<span><strong>Population:</strong> ~${pop.toLocaleString()}</span>`;
+				html += `<span><strong>Government:</strong> ${government}</span>`;
+				html += '</div>';
+				html += `<div class="generator-item-desc"><strong>Notable Feature:</strong> ${feature}</div>`;
+				html += `<div class="generator-item-desc"><strong>Main Tavern:</strong> ${tavernName}</div>`;
+				html += `<div class="generator-item-desc"><strong>Available Services:</strong> ${shuffledShops.join(', ')}</div>`;
+				html += '</div>';
+
+				resultsDiv.innerHTML = html;
+			}, 300);
+		}
+
+		// Quest Generator
+		generateQuest() {
+			const resultsDiv = document.getElementById('quest-results');
+			resultsDiv.innerHTML = '<div class="generator-loading">Generating quest...</div>';
+
+			setTimeout(() => {
+				const questTypes = ['Retrieval', 'Rescue', 'Investigation', 'Escort', 'Elimination', 'Exploration', 'Delivery', 'Protection'];
+				const objectives = {
+					'Retrieval': ['a stolen artifact', 'a magical item', 'ancient scrolls', 'a family heirloom', 'evidence of a crime'],
+					'Rescue': ['a kidnapped noble', 'missing villagers', 'an imprisoned ally', 'a captured merchant', 'lost children'],
+					'Investigation': ['mysterious disappearances', 'strange occurrences', 'a murder', 'corruption in the guard', 'cult activity'],
+					'Escort': ['a merchant caravan', 'a noble dignitary', 'a religious pilgrim', 'refugees', 'valuable cargo'],
+					'Elimination': ['a dangerous monster', 'bandits terrorizing the road', 'an enemy spy', 'a crime lord', 'undead threats'],
+					'Exploration': ['ancient ruins', 'an uncharted territory', 'a mysterious cave system', 'a lost civilization', 'a magical anomaly'],
+					'Delivery': ['an urgent message', 'medical supplies', 'a peace treaty', 'rare components', 'diplomatic gifts'],
+					'Protection': ['a town under siege', 'a VIP during an event', 'an important trial', 'harvest festival', 'sacred grounds']
+				};
+				const locations = ['in the nearby mountains', 'within the cursed forest', 'in the city sewers', 'at an abandoned castle', 'in the desert ruins', 'on a remote island', 'within enemy territory', 'at the old lighthouse', 'in the frozen north', 'beneath the city'];
+				const complications = ['but time is running out', 'while avoiding detection', 'against a rival group', 'despite political complications', 'with limited resources', 'while pursued by enemies', 'in hostile territory', 'during a dangerous storm', 'with unreliable allies', 'under a curse'];
+				const rewards = ['a generous gold reward', 'a magical item', 'land and title', 'valuable information', 'a powerful ally', 'rare spell components', 'a reputation boost', 'ancient knowledge', 'trade connections', 'political favor'];
+
+				const type = questTypes[Math.floor(Math.random() * questTypes.length)];
+				const objective = objectives[type][Math.floor(Math.random() * objectives[type].length)];
+				const location = locations[Math.floor(Math.random() * locations.length)];
+				const complication = complications[Math.floor(Math.random() * complications.length)];
+				const reward = rewards[Math.floor(Math.random() * rewards.length)];
+
+				let html = '<div class="generator-item">';
+				html += `<h4>${type} Quest</h4>`;
+				html += `<div class="generator-item-desc"><strong>Objective:</strong> ${type} ${objective}</div>`;
+				html += `<div class="generator-item-desc"><strong>Location:</strong> ${location}</div>`;
+				html += `<div class="generator-item-desc"><strong>Complication:</strong> ${complication}</div>`;
+				html += `<div class="generator-item-desc"><strong>Reward:</strong> The party will receive ${reward}</div>`;
+				html += '</div>';
+
+				resultsDiv.innerHTML = html;
+			}, 300);
+		}
+
+		// Treasure Hoard Generator
+		async generateTreasureHoard() {
+			const resultsDiv = document.getElementById('hoard-results');
+			const cr = document.getElementById('hoard-cr').value;
+			
+			resultsDiv.innerHTML = '<div class="generator-loading">Generating treasure hoard...</div>';
+
+			try {
+				const equipment = await this.loadEquipment();
+				
+				// Currency ranges based on CR
+				const currencyRanges = {
+					'0-4': { cp: [600, 2000], sp: [300, 1000], gp: [50, 200], pp: [0, 20] },
+					'5-10': { cp: [2000, 6000], sp: [1000, 3000], gp: [200, 800], pp: [20, 100] },
+					'11-16': { cp: [5000, 15000], sp: [2000, 8000], gp: [800, 3000], pp: [100, 500] },
+					'17+': { cp: [10000, 50000], sp: [5000, 20000], gp: [3000, 15000], pp: [500, 2000] }
+				};
+
+				const range = currencyRanges[cr];
+				const cp = Math.floor(Math.random() * (range.cp[1] - range.cp[0]) + range.cp[0]);
+				const sp = Math.floor(Math.random() * (range.sp[1] - range.sp[0]) + range.sp[0]);
+				const gp = Math.floor(Math.random() * (range.gp[1] - range.gp[0]) + range.gp[0]);
+				const pp = Math.floor(Math.random() * (range.pp[1] - range.pp[0]) + range.pp[0]);
+
+				// Number of items based on CR
+				const itemCounts = {
+					'0-4': [1, 3],
+					'5-10': [2, 5],
+					'11-16': [3, 7],
+					'17+': [4, 10]
+				};
+
+				const itemCount = Math.floor(Math.random() * (itemCounts[cr][1] - itemCounts[cr][0]) + itemCounts[cr][0]);
+				
+				// Get random items
+				const randomItems = [];
+				const usedIndices = new Set();
+				
+				for (let i = 0; i < itemCount && equipment.length > 0; i++) {
+					let randomIndex;
+					do {
+						randomIndex = Math.floor(Math.random() * equipment.length);
+					} while (usedIndices.has(randomIndex));
+					
+					usedIndices.add(randomIndex);
+					randomItems.push(equipment[randomIndex]);
+				}
+
+				// Fetch details
+				const itemsWithDetails = await Promise.all(
+					randomItems.map(async (item) => {
+						if (item.url) {
+							const details = await this.getEquipmentDetails(item.url);
+							return details || item;
+						}
+						return item;
+					})
+				);
+
+				// Gemstones
+				const gems = ['Diamond', 'Ruby', 'Emerald', 'Sapphire', 'Amethyst', 'Pearl', 'Opal', 'Jade', 'Tourmaline', 'Topaz'];
+				const numGems = Math.floor(Math.random() * 5);
+				const gemList = [];
+				for (let i = 0; i < numGems; i++) {
+					const gem = gems[Math.floor(Math.random() * gems.length)];
+					const value = [10, 50, 100, 500, 1000][Math.floor(Math.random() * 5)];
+					gemList.push(`${gem} (${value} gp)`);
+				}
+
+				let html = '<div class="generator-item">';
+				html += `<h4>Treasure Hoard (CR ${cr})</h4>`;
+				html += '<div class="generator-item-meta">';
+				html += `<span><strong>💰 Currency</strong></span>`;
+				html += '</div>';
+				html += '<div class="generator-item-desc">';
+				html += `${cp.toLocaleString()} copper, ${sp.toLocaleString()} silver, ${gp.toLocaleString()} gold, ${pp.toLocaleString()} platinum`;
+				html += '</div>';
+
+				if (gemList.length > 0) {
+					html += '<div class="generator-item-meta" style="margin-top: 12px;">';
+					html += `<span><strong>💎 Gemstones</strong></span>`;
+					html += '</div>';
+					html += '<div class="generator-item-desc">';
+					html += gemList.join(', ');
+					html += '</div>';
+				}
+
+				if (itemsWithDetails.length > 0) {
+					html += '<div class="generator-item-meta" style="margin-top: 12px;">';
+					html += `<span><strong>⚔️ Items</strong></span>`;
+					html += '</div>';
+					html += '<div class="generator-item-desc"><ul style="margin: 8px 0; padding-left: 20px;">';
+					itemsWithDetails.forEach(item => {
+						html += `<li>${escapeHtml(item.name || item.index)}</li>`;
+					});
+					html += '</ul></div>';
+				}
+
+				html += '</div>';
+				resultsDiv.innerHTML = html;
+				
+			} catch (error) {
+				console.error('Error generating hoard:', error);
+				resultsDiv.innerHTML = '<div class="empty-state">An error occurred while generating treasure hoard</div>';
+			}
+		}
+
+		// Name Generator
+		generateNames() {
+			const resultsDiv = document.getElementById('name-results');
+			const type = document.getElementById('name-type').value;
+			const count = parseInt(document.getElementById('name-count').value) || 10;
+			
+			resultsDiv.innerHTML = '<div class="generator-loading">Generating names...</div>';
+
+			setTimeout(() => {
+				const names = [];
+
+				const nameData = {
+					fantasy: {
+						syllables: ['al', 'an', 'ar', 'bel', 'car', 'dar', 'el', 'far', 'gal', 'hal', 'il', 'kar', 'lar', 'mar', 'nar', 'or', 'ral', 'sar', 'tar', 'val', 'xan', 'yar', 'zar', 'dor', 'fen', 'wen', 'lyn', 'mir', 'nor', 'ren']
+					},
+					human: ['Alden', 'Beatrice', 'Cedric', 'Diana', 'Edmund', 'Fiona', 'Gregory', 'Helena', 'Isaac', 'Julia', 'Marcus', 'Natalie', 'Oliver', 'Penelope', 'Roland', 'Sophia', 'Thomas', 'Victoria', 'William', 'Amelia'],
+					elven: ['Aelindra', 'Belanor', 'Caladwen', 'Daemion', 'Elenwe', 'Faelyn', 'Galadhel', 'Halueth', 'Isilwen', 'Loralei', 'Naevys', 'Orophin', 'Silaqui', 'Thalion', 'Valorin', 'Celebrian', 'Finduilas', 'Miriel', 'Aerandir', 'Lindir'],
+					dwarven: ['Baern', 'Dolgrin', 'Eberk', 'Gurdis', 'Hilde', 'Katra', 'Morgran', 'Rurik', 'Thargin', 'Vistra', 'Adrik', 'Bardryn', 'Eldeth', 'Falkrunn', 'Gimgen', 'Harbek', 'Kathra', 'Riswynn', 'Torbera', 'Vondal'],
+					orcish: ['Ghorza', 'Durgash', 'Marzog', 'Uzgash', 'Bagrak', 'Shagrol', 'Urzoth', 'Mogdurz', 'Ghorbash', 'Larzog', 'Borgakh', 'Sharamph', 'Shapob', 'Krognak', 'Mazoga', 'Ugor', 'Ghorub', 'Shuk', 'Bagol', 'Yarug'],
+					place: {
+						prefixes: ['North', 'South', 'East', 'West', 'New', 'Old', 'High', 'Low', 'Silver', 'Golden', 'Iron', 'Storm', 'Shadow', 'Bright', 'Dark', 'White', 'Black', 'Green', 'Red', 'Blue'],
+						suffixes: ['haven', 'dale', 'ford', 'bridge', 'wood', 'stone', 'garde', 'mere', 'brook', 'field', 'mill', 'ton', 'port', 'crest', 'hill', 'mount', 'vale', 'wick', 'bury', 'ham']
+					},
+					tavern: {
+						adjectives: ['Prancing', 'Dancing', 'Sleeping', 'Drunken', 'Golden', 'Silver', 'Rusty', 'Merry', 'Laughing', 'Broken', 'Red', 'Black', 'Green', 'Blue', 'Wild', 'Tipsy', 'Jolly', 'Hungry', 'Thirsty', 'Lucky'],
+						nouns: ['Pony', 'Dragon', 'Giant', 'Dwarf', 'Goblin', 'Flagon', 'Tankard', 'Barrel', 'Sword', 'Shield', 'Crown', 'Stag', 'Bear', 'Fox', 'Wolf', 'Eagle', 'Lion', 'Boar', 'Anchor', 'Compass']
+					},
+					shop: {
+						types: ['Emporium', 'Shop', 'Shoppe', 'Market', 'Store', 'Boutique', 'Trading Post', 'Merchant'],
+						themes: ['Curiosities', 'Wares', 'Goods', 'Treasures', 'Sundries', 'Supplies', 'Provisions', 'Oddities']
+					}
+				};
+
+				for (let i = 0; i < count; i++) {
+					let name;
+					
+					if (type === 'fantasy') {
+						const sylCount = 2 + Math.floor(Math.random() * 2);
+						const syllables = nameData.fantasy.syllables;
+						name = '';
+						for (let j = 0; j < sylCount; j++) {
+							name += syllables[Math.floor(Math.random() * syllables.length)];
+						}
+						name = name.charAt(0).toUpperCase() + name.slice(1);
+					} else if (type === 'place') {
+						const prefix = nameData.place.prefixes[Math.floor(Math.random() * nameData.place.prefixes.length)];
+						const suffix = nameData.place.suffixes[Math.floor(Math.random() * nameData.place.suffixes.length)];
+						name = prefix + suffix;
+					} else if (type === 'tavern') {
+						const adj = nameData.tavern.adjectives[Math.floor(Math.random() * nameData.tavern.adjectives.length)];
+						const noun = nameData.tavern.nouns[Math.floor(Math.random() * nameData.tavern.nouns.length)];
+						name = `The ${adj} ${noun}`;
+					} else if (type === 'shop') {
+						const owner = nameData.human[Math.floor(Math.random() * nameData.human.length)].split(' ')[0];
+						const shopType = nameData.shop.types[Math.floor(Math.random() * nameData.shop.types.length)];
+						const theme = nameData.shop.themes[Math.floor(Math.random() * nameData.shop.themes.length)];
+						name = Math.random() > 0.5 ? `${owner}'s ${shopType}` : `${owner}'s ${theme}`;
+					} else {
+						const nameList = nameData[type];
+						name = nameList[Math.floor(Math.random() * nameList.length)];
+					}
+					
+					names.push(name);
+				}
+
+				let html = '<div class="generator-item">';
+				html += `<h4>Generated ${type.charAt(0).toUpperCase() + type.slice(1)} Names</h4>`;
+				html += '<div class="generator-item-desc"><ul style="margin: 8px 0; padding-left: 20px; columns: 2;">';
+				names.forEach(name => {
+					html += `<li>${name}</li>`;
+				});
+				html += '</ul></div>';
+				html += '</div>';
+
+				resultsDiv.innerHTML = html;
+			}, 300);
+		}
+
+	// Weather/Environment Generator
+	generateWeather() {
+		const resultsDiv = document.getElementById('weather-results');
+		const climate = document.getElementById('weather-climate').value;
+		const season = document.getElementById('weather-season').value;
+		
+		resultsDiv.innerHTML = '<div class="generator-loading">Generating weather...</div>';
+
+		setTimeout(() => {
+			// Weather conditions by climate and season
+			const weatherData = {
+				temperate: {
+					spring: ['Light Rain', 'Overcast', 'Partly Cloudy', 'Clear Skies', 'Morning Fog', 'Drizzle', 'Breezy', 'Warm Sunshine'],
+					summer: ['Clear Skies', 'Hot and Sunny', 'Afternoon Thunderstorm', 'Humid', 'Light Breeze', 'Partly Cloudy', 'Warm', 'Heat Wave'],
+					autumn: ['Crisp and Clear', 'Light Rain', 'Overcast', 'Windy', 'Morning Frost', 'Partly Cloudy', 'Cool and Breezy', 'Fog'],
+					winter: ['Light Snow', 'Clear and Cold', 'Overcast', 'Freezing Rain', 'Blizzard', 'Frost', 'Cloudy', 'Ice Storm']
+				},
+				tropical: {
+					spring: ['Hot and Humid', 'Afternoon Rain', 'Partly Cloudy', 'Thunderstorm', 'Muggy', 'Clear Skies', 'Light Rain', 'Humid'],
+					summer: ['Scorching Heat', 'Torrential Rain', 'Monsoon', 'Heavy Thunderstorm', 'Oppressive Humidity', 'Flash Flooding', 'Hurricane Winds', 'Sweltering'],
+					autumn: ['Warm Rain', 'Humid', 'Thunderstorm', 'Partly Cloudy', 'Hot', 'Afternoon Shower', 'Muggy', 'Clear'],
+					winter: ['Warm and Humid', 'Light Rain', 'Partly Cloudy', 'Clear Skies', 'Comfortable', 'Breezy', 'Shower', 'Pleasant']
+				},
+				arctic: {
+					spring: ['Light Snow', 'Clear and Cold', 'Windy', 'Overcast', 'Freezing', 'Ice Fog', 'Snow Flurries', 'Bitter Cold'],
+					summer: ['Cool and Clear', 'Overcast', 'Light Rain', 'Windy', 'Chilly', 'Midnight Sun', 'Cool Breeze', 'Partly Cloudy'],
+					autumn: ['Snow Flurries', 'Freezing', 'Windy', 'Overcast', 'Early Blizzard', 'Clear and Cold', 'Ice', 'Howling Winds'],
+					winter: ['Extreme Blizzard', 'Whiteout', 'Deadly Cold', 'Ice Storm', 'Polar Vortex', 'Freezing Winds', 'Heavy Snow', 'Sub-zero']
+				},
+				desert: {
+					spring: ['Clear Skies', 'Warm', 'Dust Storm', 'Hot Winds', 'Dry and Sunny', 'Pleasant', 'Mild', 'Breezy'],
+					summer: ['Scorching Heat', 'Extreme Heat', 'Dust Devil', 'Oppressive', 'Heat Shimmer', 'Sandstorm', 'Searing', 'No Clouds'],
+					autumn: ['Hot and Dry', 'Clear Skies', 'Cooling', 'Light Winds', 'Pleasant Evening', 'Dust Storm', 'Warm', 'Clear Night'],
+					winter: ['Cool and Clear', 'Cold Night', 'Clear Skies', 'Chilly', 'Rare Rain', 'Pleasant Day', 'Cold Winds', 'Frost']
+				},
+				mountain: {
+					spring: ['Snow Melt', 'Clear Skies', 'Windy', 'Late Snow', 'Avalanche Risk', 'Crisp Air', 'Partly Cloudy', 'Cool'],
+					summer: ['Clear Skies', 'Afternoon Thunderstorm', 'Cool Breeze', 'Partly Cloudy', 'Pleasant', 'Lightning Storm', 'Warm Valleys', 'Hail'],
+					autumn: ['Early Snow', 'Clear and Cool', 'Windy', 'Frost', 'Overcast', 'Crisp', 'First Snow', 'Cold Winds'],
+					winter: ['Heavy Snow', 'Blizzard', 'Avalanche', 'Extreme Cold', 'Whiteout', 'Ice Storm', 'Freezing Winds', 'Deep Snow']
+				},
+				coastal: {
+					spring: ['Morning Fog', 'Sea Breeze', 'Partly Cloudy', 'Light Rain', 'Salty Air', 'Clear Skies', 'Breezy', 'Overcast'],
+					summer: ['Clear Skies', 'Hot and Humid', 'Sea Breeze', 'Afternoon Thunderstorm', 'Warm', 'Partly Cloudy', 'Storm Warning', 'Pleasant'],
+					autumn: ['Windy', 'Storm Surge', 'Overcast', 'Rain', 'Hurricane Season', 'Choppy Seas', 'Cool Breeze', 'Fog'],
+					winter: ['Cold Rain', 'Storm', 'Overcast', 'Strong Winds', 'Rough Seas', 'Freezing Spray', 'Gale Force Winds', 'Cold and Wet']
+				}
+			};
+
+			// Temperature ranges by climate and season
+			const temperatures = {
+				temperate: { spring: [45, 65], summer: [65, 85], autumn: [45, 65], winter: [25, 45] },
+				tropical: { spring: [75, 90], summer: [80, 100], autumn: [75, 90], winter: [65, 85] },
+				arctic: { spring: [15, 35], summer: [35, 55], autumn: [15, 35], winter: [-20, 15] },
+				desert: { spring: [60, 85], summer: [90, 120], autumn: [60, 85], winter: [40, 65] },
+				mountain: { spring: [30, 55], summer: [50, 75], autumn: [30, 55], winter: [0, 30] },
+				coastal: { spring: [50, 70], summer: [70, 85], autumn: [50, 70], winter: [35, 55] }
+			};
+
+			// Precipitation types
+			const precipitationTypes = ['None', 'Light', 'Moderate', 'Heavy', 'Severe'];
+
+			// Wind conditions
+			const windConditions = ['Calm', 'Light Breeze', 'Moderate Wind', 'Strong Wind', 'Gale Force', 'Storm Force'];
+
+			// Environmental effects
+			const environmentalEffects = {
+				temperate: ['Blooming flowers', 'Birds singing', 'Fresh grass scent', 'Muddy paths', 'Colorful leaves', 'Harvest time', 'Snow-covered ground', 'Bare trees'],
+				tropical: ['Dense humidity', 'Exotic bird calls', 'Lush vegetation', 'Muddy trails', 'Flooding risk', 'Abundant wildlife', 'River swelling', 'Heavy foliage'],
+				arctic: ['Ice sheets', 'Aurora visible at night', 'Howling winds', 'Frostbite risk', 'Limited visibility', 'Frozen ground', 'Snow drifts', 'Wildlife scarce'],
+				desert: ['Mirages', 'Sand in everything', 'Dehydration risk', 'Scorpions active', 'Cool nights', 'Clear star visibility', 'Dust clouds', 'Cacti in bloom'],
+				mountain: ['Thin air', 'Echo effects', 'Altitude sickness risk', 'Rockfall danger', 'Pine scent', 'Mountain streams', 'Avalanche risk', 'Stunning vistas'],
+				coastal: ['Salt spray', 'Seabird cries', 'Tidal effects', 'Seaweed smell', 'Beach erosion', 'Tide pools', 'Driftwood scattered', 'Marine life visible']
+			};
+
+			// Visibility conditions
+			const visibilityOptions = ['Crystal Clear', 'Clear', 'Good', 'Moderate', 'Poor', 'Very Poor', 'Near Zero'];
+
+			// Special phenomena
+			const specialPhenomena = ['Rainbow', 'Double Rainbow', 'Lightning Storm', 'Aurora (at night)', 'Meteor Shower (at night)', 'Rare Wildlife Sighting', 'Unusual Cloud Formation', 'Eerie Silence'];
+
+			// Select random conditions
+			const weatherOptions = weatherData[climate][season];
+			const condition = weatherOptions[Math.floor(Math.random() * weatherOptions.length)];
+			
+			const tempRange = temperatures[climate][season];
+			const temperature = Math.floor(Math.random() * (tempRange[1] - tempRange[0]) + tempRange[0]);
+			
+			const precipitation = precipitationTypes[Math.floor(Math.random() * precipitationTypes.length)];
+			const wind = windConditions[Math.floor(Math.random() * windConditions.length)];
+			const visibility = visibilityOptions[Math.floor(Math.random() * visibilityOptions.length)];
+			
+			const effectOptions = environmentalEffects[climate];
+			const effect = effectOptions[Math.floor(Math.random() * effectOptions.length)];
+			
+			// 20% chance of special phenomenon
+			const hasSpecial = Math.random() < 0.2;
+			const special = hasSpecial ? specialPhenomena[Math.floor(Math.random() * specialPhenomena.length)] : null;
+
+			// Generate travel impact
+			const travelImpacts = [
+				'No impact on travel',
+				'Slightly slowed travel',
+				'Moderate travel delays',
+				'Difficult travel conditions',
+				'Hazardous travel',
+				'Travel strongly discouraged'
+			];
+			const travelImpact = travelImpacts[Math.floor(Math.random() * travelImpacts.length)];
+
+			let html = '<div class="generator-item">';
+			html += `<h4>${condition}</h4>`;
+			html += '<div class="generator-item-meta">';
+			html += `<span><strong>Climate:</strong> ${climate.charAt(0).toUpperCase() + climate.slice(1)}</span>`;
+			html += `<span><strong>Season:</strong> ${season.charAt(0).toUpperCase() + season.slice(1)}</span>`;
+			html += `<span><strong>Temperature:</strong> ${temperature}°F</span>`;
+			html += '</div>';
+			html += `<div class="generator-item-desc"><strong>Precipitation:</strong> ${precipitation}</div>`;
+			html += `<div class="generator-item-desc"><strong>Wind:</strong> ${wind}</div>`;
+			html += `<div class="generator-item-desc"><strong>Visibility:</strong> ${visibility}</div>`;
+			html += `<div class="generator-item-desc"><strong>Environmental Effect:</strong> ${effect}</div>`;
+			html += `<div class="generator-item-desc"><strong>Travel Impact:</strong> ${travelImpact}</div>`;
+			
+			if (special) {
+				html += `<div class="generator-item-desc" style="color: var(--link); font-weight: 600;"><strong>✨ Special:</strong> ${special}</div>`;
+			}
+			
+			html += '</div>';
+
+			resultsDiv.innerHTML = html;
+		}, 300);
+	}
+}
+
+	// Session Manager
+	class SessionManager {
+		constructor() {
+			this.sessions = [];
+			this.currentSessionId = null;
+		}
+
+		init() {
+			this.loadSessions();
+			this.setupEventListeners();
+			this.render();
+		}
+
+		loadSessions() {
+			// Load from localStorage
+			const saved = localStorage.getItem('rpg-sessions');
+			if (saved) {
+				this.sessions = JSON.parse(saved);
+				return;
+			}
+
+			this.sessions = this.getDefaultSessions();
+			this.saveSessions();
+		}
+
+		getDefaultSessions() {
+			return [
+				{
+					id: 'sample-001',
+					title: 'Session 1: The Fallen Waystone',
+					date: '2026-02-01',
+					duration: '3.5 hours',
+					summary: 'The party followed rumors of a broken waystone and discovered a hidden vault beneath the old road.',
+					events: 'Tracked missing traders, solved a sigil lock puzzle, defeated two stone sentinels.',
+					npcs: 'Marla the caravan scout; Brother Keth, a wandering cleric.',
+					loot: 'Map fragment, 120 gp, waystone shard.',
+					notes: 'The shard hums near ley lines. Vault door seals at midnight.'
+				},
+				{
+					id: 'sample-002',
+					title: 'Session 2: Fog on the Gilden Marsh',
+					date: '2026-02-08',
+					duration: '4 hours',
+					summary: 'A marsh fog revealed a drowned village and a pact gone wrong.',
+					events: 'Negotiated with marshfolk, escaped a sinking walkway, banished a mist wraith.',
+					npcs: 'Reeve Halden; Sable, a marsh guide.',
+					loot: 'Silver amulet, 2 healing draughts.',
+					notes: 'Wraith is tied to the bell tower. The pact ledger is missing.'
+				},
+				{
+					id: 'sample-003',
+					title: 'Session 3: Ashes at Emberhall',
+					date: '2026-02-15',
+					duration: '3 hours',
+					summary: 'Emberhall smolders after a raid. The party rallied survivors and traced the attackers.',
+					events: 'Rescued trapped townsfolk, chased raiders, uncovered a cult brand.',
+					npcs: 'Captain Rysa; Old Joran the miller.',
+					loot: 'Cult signet, 80 gp, scorched journal.',
+					notes: 'The brand matches the vault sigils. Raiders headed north.'
+				}
+			];
+		}
+
+		saveSessions() {
+			localStorage.setItem('rpg-sessions', JSON.stringify(this.sessions));
+		}
+
+		setupEventListeners() {
+			const btnNewSession = document.getElementById('btn-new-session');
+			const btnSaveSession = document.getElementById('btn-save-session');
+			const btnDeleteSession = document.getElementById('btn-delete-session');
+			const btnCloseSession = document.getElementById('btn-close-session');
+
+			if (btnNewSession) {
+				btnNewSession.addEventListener('click', () => this.newSession());
+			}
+
+			if (btnSaveSession) {
+				btnSaveSession.addEventListener('click', () => this.saveSession());
+			}
+
+			if (btnDeleteSession) {
+				btnDeleteSession.addEventListener('click', () => this.deleteCurrentSession());
+			}
+
+			if (btnCloseSession) {
+				btnCloseSession.addEventListener('click', () => this.closeForm());
+			}
+		}
+
+		newSession() {
+			const session = {
+				id: Date.now().toString(),
+				title: 'New Session',
+				date: new Date().toISOString().split('T')[0],
+				duration: '',
+				summary: '',
+				events: '',
+				npcs: '',
+				loot: '',
+				notes: ''
+			};
+
+			this.sessions.unshift(session);
+			this.saveSessions();
+			this.selectSession(session.id);
+			this.render();
+		}
+
+		selectSession(id) {
+			this.currentSessionId = id;
+			this.showForm();
+			this.render();
+		}
+
+		saveSession() {
+			if (!this.currentSessionId) return;
+
+			const session = this.sessions.find(s => s.id === this.currentSessionId);
+			if (!session) return;
+
+			session.title = document.getElementById('session-title').value || 'Untitled Session';
+			session.date = document.getElementById('session-date').value;
+			session.duration = document.getElementById('session-duration').value;
+			session.summary = document.getElementById('session-summary').value;
+			session.events = document.getElementById('session-events').value;
+			session.npcs = document.getElementById('session-npcs').value;
+			session.loot = document.getElementById('session-loot').value;
+			session.notes = document.getElementById('session-notes').value;
+
+			this.saveSessions();
+			this.render();
+		}
+
+		deleteCurrentSession() {
+			if (!this.currentSessionId) return;
+
+			if (confirm('Delete this session? This cannot be undone.')) {
+				this.sessions = this.sessions.filter(s => s.id !== this.currentSessionId);
+				this.saveSessions();
+				this.currentSessionId = null;
+				this.closeForm();
+				this.render();
+			}
+		}
+
+		showForm() {
+			const form = document.getElementById('session-form');
+			const empty = document.getElementById('session-empty-state');
+
+			if (this.currentSessionId) {
+				const session = this.sessions.find(s => s.id === this.currentSessionId);
+				if (session) {
+					document.getElementById('session-title').value = session.title;
+					document.getElementById('session-date').value = session.date;
+					document.getElementById('session-duration').value = session.duration;
+					document.getElementById('session-summary').value = session.summary;
+					document.getElementById('session-events').value = session.events;
+					document.getElementById('session-npcs').value = session.npcs;
+					document.getElementById('session-loot').value = session.loot;
+					document.getElementById('session-notes').value = session.notes;
+
+					if (form) form.classList.remove('hidden');
+					if (empty) empty.classList.add('hidden');
+				}
+			}
+		}
+
+		closeForm() {
+			const form = document.getElementById('session-form');
+			const empty = document.getElementById('session-empty-state');
+
+			this.currentSessionId = null;
+
+			if (form) form.classList.add('hidden');
+			if (empty) empty.classList.remove('hidden');
+			this.render();
+		}
+
+		render() {
+			const list = document.getElementById('sessions-list');
+			if (!list) return;
+
+			if (this.sessions.length === 0) {
+				list.innerHTML = '<div class="empty-state">No sessions yet. Click "New Session" to begin.</div>';
+				return;
+			}
+
+			list.innerHTML = this.sessions.map(session => `
+				<div class="session-item ${session.id === this.currentSessionId ? 'active' : ''}" data-id="${session.id}">
+					<div><strong>${escapeHtml(session.title)}</strong></div>
+					<div class="session-item-date">${escapeHtml(session.date || 'No date')}</div>
+				</div>
+			`).join('');
+
+			// Add click handlers
+			list.querySelectorAll('.session-item').forEach(item => {
+				item.addEventListener('click', () => {
+					this.selectSession(item.dataset.id);
+				});
+			});
+		}
+	}
+
+	// Initialize managers
+	window.inventoryManager = new InventoryManager();
+	window.searchPageManager = new SearchPageManager();
+	window.randomGenerators = new RandomGenerators();
+	window.sessionManager = new SessionManager();
+	const btnGenerateLoot = document.getElementById('btn-generate-loot');
+	const btnGenerateEncounter = document.getElementById('btn-generate-encounter');
+	const btnGenerateNPC = document.getElementById('btn-generate-npc');
+	const btnGenerateTown = document.getElementById('btn-generate-town');
+	const btnGenerateQuest = document.getElementById('btn-generate-quest');
+	const btnGenerateHoard = document.getElementById('btn-generate-hoard');
+	const btnGenerateNames = document.getElementById('btn-generate-names');
+	const btnGenerateWeather = document.getElementById('btn-generate-weather');
+	
+	if (btnGenerateLoot) {
+		btnGenerateLoot.addEventListener('click', () => {
+			window.randomGenerators.generateLoot();
+		});
+	}
+	
+	if (btnGenerateEncounter) {
+		btnGenerateEncounter.addEventListener('click', () => {
+			window.randomGenerators.generateEncounter();
+		});
+	}
+
+	if (btnGenerateNPC) {
+		btnGenerateNPC.addEventListener('click', () => {
+			window.randomGenerators.generateNPC();
+		});
+	}
+
+	if (btnGenerateTown) {
+		btnGenerateTown.addEventListener('click', () => {
+			window.randomGenerators.generateTown();
+		});
+	}
+
+	if (btnGenerateQuest) {
+		btnGenerateQuest.addEventListener('click', () => {
+			window.randomGenerators.generateQuest();
+		});
+	}
+
+	if (btnGenerateHoard) {
+		btnGenerateHoard.addEventListener('click', () => {
+			window.randomGenerators.generateTreasureHoard();
+		});
+	}
+
+	if (btnGenerateNames) {
+		btnGenerateNames.addEventListener('click', () => {
+			window.randomGenerators.generateNames();
+		});
+	}
+
+	if (btnGenerateWeather) {
+		btnGenerateWeather.addEventListener('click', () => {
+			window.randomGenerators.generateWeather();
+		});
+	}
+	
+	// Start the app - wait for DOM to be ready
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', () => {
+			setupThemeToggle();
+			initApp();
+			window.sessionManager.init();
+		});
+	} else {
+		setupThemeToggle();
+		initApp();
+		window.sessionManager.init();
+	}
+	
+	// Load default inventory if needed
+	window.inventoryManager.init().catch(err => console.error('Failed to init inventory:', err));
+
+	// Show when the cached D&D 5e API data was last synced
+	(function loadSyncMeta() {
+		const el = document.getElementById('sync-meta');
+		if (!el) return;
+
+		fetch('/data/meta.json')
+			.then(response => response.ok ? response.json() : null)
+			.then(meta => {
+				if (!meta || !meta.synced_at) return;
+				const d = new Date(meta.synced_at);
+				if (isNaN(d.getTime())) return;
+				let text = 'D&D 5e data synced ' + d.toISOString().slice(0, 10);
+				if (meta.entry_count) text += ' · ' + meta.entry_count + ' entries';
+				el.textContent = text;
+			})
+			.catch(() => {});
+	})();

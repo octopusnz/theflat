@@ -1,0 +1,74 @@
+/* Shared across index.html, cv.html, rpg.html, swn/index.html, 404.html.
+   Only rules verified identical (or serving the same purpose with drifted
+   values) live here — page-specific layout (body sizing, .btn variants,
+   hr) stays in each page's own stylesheet. */
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
+}
+
+.visually-hidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+.skip-link {
+	position: absolute;
+	top: 12px;
+	left: 12px;
+	padding: 10px 12px;
+	background: var(--bg);
+	color: var(--fg);
+	border: 2px solid var(--focus);
+	border-radius: 8px;
+	text-decoration: none;
+	transform: translateY(-200%);
+	transition: transform 120ms ease-in-out;
+	z-index: 100;
+}
+
+.skip-link:focus {
+	transform: translateY(0);
+}
+
+a {
+	color: var(--link);
+	text-decoration-thickness: 0.12em;
+	text-underline-offset: 0.16em;
+}
+
+a:visited {
+	color: var(--link-visited);
+}
+
+a:focus-visible {
+	outline: 3px solid var(--focus);
+	outline-offset: 3px;
+	border-radius: 4px;
+}
+
+button,
+input,
+select,
+textarea {
+	font: inherit;
+}

@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; form-action 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://static.cloudflareinsights.com; connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://cloudflareinsights.com https://static.cloudflareinsights.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; frame-src https://www.googletagmanager.com;">
+		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; form-action 'self'; script-src 'self' 'sha256-rr7WrnV0odFM96HYTM1KhfKHmjpVhfuniWdc/v7c8zo=' 'sha256-KSZV4aT7v33A75d0TBgQ1s5RKghO5SGl41D7VNLGdeA=' 'sha256-nhZjCVPS5o58Zn89jCptRGG3TWQgZ3zxKzXnP4kBFCg=' https://www.googletagmanager.com https://www.google-analytics.com https://static.cloudflareinsights.com; connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://cloudflareinsights.com https://static.cloudflareinsights.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; frame-src https://www.googletagmanager.com;">
 
 		<!-- Google Tag Manager -->
 		<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -40,6 +40,7 @@
 		<link rel="icon" href="/favicon-96x96.png" type="image/png" sizes="96x96">
 		<link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <link rel="manifest" href="/site.webmanifest">
+		<link rel="stylesheet" href="/shared.css">
 		<style>
 			:root {
 				color-scheme: light dark;
@@ -68,12 +69,6 @@
 				--card-bg: #ffffff;
 			}
 
-			*,
-			*::before,
-			*::after {
-				box-sizing: border-box;
-			}
-
 			html,
 			body {
 				background: var(--bg);
@@ -89,60 +84,6 @@
 				flex-direction: column;
 				min-height: 100vh;
 				min-height: 100dvh;
-			}
-
-			button,
-			input,
-			select,
-			textarea {
-				font: inherit;
-			}
-
-			.skip-link {
-				position: absolute;
-				top: 12px;
-				left: 12px;
-				padding: 10px 12px;
-				background: var(--bg);
-				color: var(--fg);
-				border: 2px solid var(--focus);
-				border-radius: 8px;
-				text-decoration: none;
-				transform: translateY(-200%);
-				transition: transform 120ms ease-in-out;
-				z-index: 100;
-			}
-
-			.skip-link:focus {
-				transform: translateY(0);
-			}
-
-			.visually-hidden {
-				position: absolute;
-				width: 1px;
-				height: 1px;
-				padding: 0;
-				margin: -1px;
-				overflow: hidden;
-				clip: rect(0, 0, 0, 0);
-				white-space: nowrap;
-				border: 0;
-			}
-
-			a {
-				color: var(--link);
-				text-decoration-thickness: 0.12em;
-				text-underline-offset: 0.16em;
-			}
-
-			a:visited {
-				color: var(--link-visited);
-			}
-
-			a:focus {
-				outline: 3px solid var(--focus);
-				outline-offset: 3px;
-				border-radius: 4px;
 			}
 
 			/* Header */
