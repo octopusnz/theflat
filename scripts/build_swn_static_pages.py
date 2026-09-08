@@ -128,7 +128,19 @@ def encode_uri_component(segment):
 
 
 def id_to_url_path(page_id):
-    return "/".join(encode_uri_component(seg) for seg in page_id.split("/"))
+    """The folder segment (Sectors/Systems/.../Factions) is already a plain
+    ASCII word and stays as-is; every other segment (the entry's name, which
+    is free-text and often contains spaces/apostrophes) is slugified rather
+    than percent-encoded. GitHub Pages' directory-index redirect (added when
+    a request is missing the trailing slash) reflects the *decoded* path
+    into its Location header instead of re-encoding it — so a name like
+    "Ashvale's Answer" round-trips through that redirect as a raw, unescaped
+    space in the Location header, which is not a valid URI and is exactly
+    the "bad URL in the redirect chain" class of error Search Console
+    reports. A slug has no characters that ever need encoding, so there's
+    nothing for that bug to corrupt."""
+    parts = page_id.split("/")
+    return "/".join([parts[0]] + [slugify(seg) for seg in parts[1:]])
 
 
 def page_url(page_id):
@@ -506,7 +518,7 @@ def main():
 
     written = 0
     for page in campaign_pages:
-        out_dir = repo_root / "swn" / page["id"]
+        out_dir = repo_root / "swn" / id_to_url_path(page["id"])
         out_dir.mkdir(parents=True, exist_ok=True)
         (out_dir / "index.html").write_text(render_document(page, comp), encoding="utf-8")
         written += 1

@@ -90,9 +90,19 @@
 	// fragment, which no crawler indexes as separate content. Everything
 	// else (the ~500 generic SWN rules-reference entries) has no static
 	// page, so it stays on the in-app hash route.
+	//
+	// The name segment is slugified, not percent-encoded, to match
+	// build_swn_static_pages.py's own URL scheme: GitHub Pages' directory
+	// redirect (added for a request missing the trailing slash) reflects
+	// the *decoded* path into its Location header instead of re-encoding
+	// it, so a literal name like "Ashvale's Answer" round-trips through
+	// that redirect as a raw, unescaped space — an invalid URI, and exactly
+	// the "bad URL in the redirect chain" class of error Search Console
+	// flags. A slug has nothing in it that ever needs encoding.
 	function pageHref(id) {
-		if (CAMPAIGN_FOLDERS.indexOf(id.split('/')[0]) !== -1) {
-			return '/swn/' + id.split('/').map(encodeURIComponent).join('/') + '/';
+		var parts = id.split('/');
+		if (CAMPAIGN_FOLDERS.indexOf(parts[0]) !== -1) {
+			return '/swn/' + parts[0] + '/' + parts.slice(1).map(slugify).join('/') + '/';
 		}
 		return '#/page/' + encodeURIComponent(id);
 	}
