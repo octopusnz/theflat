@@ -170,6 +170,11 @@ jobs:
           echo "GitHub stats updated successfully!"
           cat github-stats.json
 
+      - name: Build SWN static campaign pages
+        run: |
+          pip install --quiet markdown
+          python3 scripts/build_swn_static_pages.py
+
       - name: Setup Pages
         uses: actions/configure-pages@v6
       - name: Upload artifact

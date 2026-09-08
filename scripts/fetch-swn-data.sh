@@ -26,4 +26,8 @@ git clone --depth 1 --quiet "$SOURCE_REPO" "$CLONE_DIR"
 echo "Building swn content manifest..."
 python3 "$SCRIPT_DIR/build_swn_manifest.py" "$CLONE_DIR" "$OUTPUT_DIR"
 
-echo "Done! Review changes under swn/content/ and commit them to publish."
+echo "Building static campaign pages and sitemap..."
+python3 "$SCRIPT_DIR/build_swn_static_pages.py" "$REPO_ROOT"
+
+echo "Done! Review changes under swn/content/ and sitemap.xml, and commit them to publish."
+echo "(The generated swn/<Folder>/<Name>/ pages themselves are gitignored — .github/workflows/static.yml rebuilds them fresh on every deploy.)"

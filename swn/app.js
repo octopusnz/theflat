@@ -83,7 +83,17 @@
 		return String(s).replace(/\\/g, '\\\\').replace(/\[/g, '\\[').replace(/\]/g, '\\]');
 	}
 
+	// Campaign pages (Sectors/Systems/Worlds/NPCs/Ships/Vehicles/Factions) are
+	// pre-rendered as real, crawlable static pages by
+	// scripts/build_swn_static_pages.py — link straight to those so search
+	// engines (and anyone sharing a link) get a real URL instead of a "#"
+	// fragment, which no crawler indexes as separate content. Everything
+	// else (the ~500 generic SWN rules-reference entries) has no static
+	// page, so it stays on the in-app hash route.
 	function pageHref(id) {
+		if (CAMPAIGN_FOLDERS.indexOf(id.split('/')[0]) !== -1) {
+			return '/swn/' + id.split('/').map(encodeURIComponent).join('/') + '/';
+		}
 		return '#/page/' + encodeURIComponent(id);
 	}
 

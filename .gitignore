@@ -20,3 +20,13 @@ __pycache__/
 /github-stats.json
 /data/*.json
 
+# Static campaign pages generated from swn/content/ by
+# scripts/build_swn_static_pages.py — derived, rebuilt on every deploy
+/swn/Sectors/
+/swn/Systems/
+/swn/Worlds/
+/swn/NPCs/
+/swn/Ships/
+/swn/Vehicles/
+/swn/Factions/
+
